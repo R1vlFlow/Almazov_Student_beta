@@ -1,0 +1,12 @@
+{
+  "name": "Almazov Student",
+  "short_name": "Almazov Student",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f7fc",
+  "theme_color": "#2f65d5",
+  "icons": [
+    {"src":"assets/logo.png","sizes":"192x192","type":"image/png"},
+    {"src":"assets/logo.png","sizes":"512x512","type":"image/png"}
+  ]
+}
