@@ -355,4 +355,83 @@ document.getElementById("mSave").onclick=()=>{
 render();showFirstStart();
 </script>
 </body>
-</html>
+</html> <script>
+(function(){
+  const KEY="almazov_student_static_v1_0";
+
+  const exportBtn=document.getElementById("exportData");
+  const importBtn=document.getElementById("importData");
+  const importFile=document.getElementById("importFile");
+
+  if(exportBtn){
+    exportBtn.onclick=function(){
+      try{
+        const raw=localStorage.getItem(KEY);
+        if(!raw) throw new Error("no data");
+
+        const payload={
+          app:"Almazov Student",
+          version:1,
+          exportedAt:new Date().toISOString(),
+          data:JSON.parse(raw)
+        };
+
+        const blob=new Blob(
+          [JSON.stringify(payload,null,2)],
+          {type:"application/json"}
+        );
+
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement("a");
+        a.href=url;
+        a.download="almazov-student-backup.json";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),1000);
+      }catch(e){
+        alert("Не удалось экспортировать данные.");
+      }
+    };
+  }
+
+  if(importBtn && importFile){
+    importBtn.onclick=function(){
+      importFile.click();
+    };
+
+    importFile.onchange=function(e){
+      const file=e.target.files && e.target.files[0];
+      if(!file)return;
+
+      const reader=new FileReader();
+
+      reader.onload=function(){
+        try{
+          const parsed=JSON.parse(reader.result);
+          const data=parsed.data || parsed;
+
+          if(
+            !data ||
+            typeof data!=="object" ||
+            !data.profile ||
+            !Array.isArray(data.tasks)
+          ){
+            throw new Error("invalid");
+          }
+
+          localStorage.setItem(KEY,JSON.stringify(data));
+          alert("Данные успешно импортированы!");
+          location.reload();
+
+        }catch(err){
+          alert("Не удалось импортировать файл Almazov Student.");
+        }
+      };
+
+      reader.readAsText(file);
+      e.target.value="";
+    };
+  }
+})();
+</script>
