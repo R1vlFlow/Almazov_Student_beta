@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f65d5">
+<meta name="description" content="Almazov Student — учебный планер для студентов НМИЦ им. В.А. Алмазова.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Almazov Student</title>
+<style>
+:root{
+  --blue:#2f65d5; --blue2:#6f8ff0; --navy:#16233b; --muted:#71809a;
+  --bg:#f4f7fc; --card:#fff; --line:#e3e9f3; --green:#2ba873;
+  --red:#dc5c68; --shadow:0 18px 50px rgba(40,70,130,.10);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--navy);background:linear-gradient(135deg,#f8faff,#eef4ff);min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #d9e5ff;outline-offset:1px}
+.hidden{display:none!important}
+.app{min-height:100vh;display:flex}
+.sidebar{position:fixed;inset:0 auto 0 0;width:250px;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-right:1px solid var(--line);padding:20px 15px;z-index:20;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 23px}
+.brand img{width:44px;height:44px;object-fit:cover;border-radius:13px;box-shadow:0 7px 20px rgba(47,101,213,.18)}
+.brand b{font-size:16px}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.nav{display:grid;gap:6px}
+.nav button{border:0;background:transparent;color:#65748d;text-align:left;padding:12px 13px;border-radius:13px;font-weight:700}
+.nav button:hover,.nav button.active{background:#edf3ff;color:var(--blue)}
+.address-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.address-card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:16px}.address-card h4{margin:0 0 6px;font-size:15px}.address-card p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}.address-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.address-actions a,.address-actions button{font-size:11px;padding:8px 10px;border-radius:10px;text-decoration:none;font-weight:800}.map-btn{background:var(--blue);color:#fff;border:0}.copy-btn{background:#fff;color:#5f6f87;border:1px solid var(--line)}.address-note{margin-top:14px;padding:12px 14px;background:#f8fbff;border:1px solid var(--line);border-radius:13px;color:var(--muted);font-size:11px;line-height:1.5}
+.side-card{margin-top:auto;background:#f5f8fc;border:1px solid var(--line);border-radius:15px;padding:12px}
+.side-card b{display:block;font-size:13px}.side-card span{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.side-btn{width:100%;margin-top:8px;border:1px solid var(--line);background:#fff;color:#64728a;padding:9px;border-radius:10px}
+.main{margin-left:250px;width:calc(100% - 250px);max-width:1500px;padding:28px}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:22px}
+.topbar h1{margin:0;font-size:28px}.topbar p{margin:6px 0 0;color:var(--muted)}
+.badge{background:#fff;border:1px solid var(--line);padding:9px 12px;border-radius:999px;color:#52627c;font-size:12px;font-weight:700}
+.page{display:none}.page.active{display:block}
+.grid{display:grid;grid-template-columns:1.35fr .85fr;gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:21px;padding:20px;box-shadow:var(--shadow)}
+.hero{background:linear-gradient(135deg,#2f5fcf,#718ee9);color:#fff;position:relative;overflow:hidden;min-height:205px}
+.hero:after{content:"";position:absolute;width:260px;height:260px;border:35px solid rgba(255,255,255,.11);border-radius:50%;right:-85px;top:-100px}
+.hero .eyebrow{font-size:12px;letter-spacing:.09em;opacity:.78}.hero h2{font-size:31px;margin:8px 0 5px}.hero p{opacity:.88;margin:0 0 20px}
+.hero .hero-pill{display:inline-flex;background:rgba(255,255,255,.16);padding:8px 11px;border-radius:999px;font-size:12px}
+.card + .card{margin-top:18px}
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.section-title h3{margin:0;font-size:17px}.muted{color:var(--muted)}
+.primary{border:0;background:var(--blue);color:#fff;border-radius:11px;padding:9px 12px;font-weight:800}
+.secondary{border:1px solid var(--line);background:#fff;color:#5f6f87;border-radius:11px;padding:9px 12px;font-weight:700}
+.lesson{display:flex;align-items:center;gap:13px;padding:13px 0;border-bottom:1px solid var(--line)}
+.lesson:last-child{border-bottom:0}.time{min-width:74px;color:var(--blue);font-weight:900;font-size:13px}.lesson-dot{width:9px;height:9px;border-radius:50%;background:var(--blue)}
+.lesson strong{display:block}.lesson small{display:block;color:var(--muted);margin-top:3px;font-size:11px}
+.empty{text-align:center;padding:25px 5px;color:var(--muted)}
+.task{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.task:last-child{border-bottom:0}.task input{margin-top:4px;accent-color:var(--blue)}
+.task-body{flex:1}.task-title{font-weight:700}.task.done .task-title{text-decoration:line-through;color:#9ba6b8}
+.task-meta{font-size:11px;color:var(--muted);margin-top:3px}.priority{font-size:10px;padding:4px 7px;border-radius:999px;background:#eef3ff;color:var(--blue);white-space:nowrap}
+.priority.high{background:#fff0f1;color:var(--red)}.priority.low{background:#eef9f3;color:var(--green)}
+.icon-btn{border:0;background:transparent;color:#9aa6b9;font-size:18px;line-height:1}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat{background:#f6f8fc;border:1px solid var(--line);border-radius:15px;padding:15px}.stat span{display:block;color:var(--muted);font-size:11px}.stat b{display:block;margin-top:5px;font-size:20px}
+.form-grid{display:grid;grid-template-columns:1fr 170px 150px;gap:9px}.field{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--navy)}
+textarea.field{resize:vertical;min-height:80px;margin-top:9px}
+.form-actions{display:flex;gap:8px;margin-top:9px}
+.week-grid{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));gap:8px;overflow-x:auto}
+.day{min-height:150px;border:1px solid var(--line);border-radius:15px;padding:10px;background:#fff}.day-head{font-size:12px;font-weight:900}.day-date{font-size:11px;color:var(--muted);margin-top:2px}
+.event{margin-top:9px;padding:8px;border-radius:10px;background:#edf3ff;color:#315dbd;font-size:11px}.event b{display:block;font-size:11px}.event span{display:block;margin-top:3px;opacity:.8}
+.import-box{margin-top:14px;padding:14px;border:1px dashed #b9c8e5;border-radius:15px;background:#f8fbff}.import-box p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}.import-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.week-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 10px}.week-toolbar .week-title{font-size:12px;font-weight:800;text-align:center;flex:1}.week-toolbar button{white-space:nowrap}.import-status{margin-top:8px;font-size:11px;color:var(--muted)}.event small{display:block;margin-top:4px;color:var(--muted);font-size:10px}
+.profile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.profile-note{font-size:12px;color:var(--muted);line-height:1.55;margin-top:17px}
+.motivation{position:fixed;right:18px;top:18px;width:min(390px,calc(100vw - 36px));background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px 44px 15px 16px;box-shadow:0 22px 60px rgba(20,40,80,.18);z-index:100;animation:motIn .22s ease}.motivation b{display:block;font-size:13px;margin-bottom:5px}.motivation p{margin:0;color:var(--muted);font-size:12px;line-height:1.45}.motivation .close{position:absolute;right:11px;top:9px;border:0;background:transparent;color:#9aa6b9;font-size:22px;line-height:1}.motivation .close:hover{color:var(--navy)}@keyframes motIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.toast{position:fixed;right:18px;bottom:18px;background:#16233b;color:#fff;padding:12px 15px;border-radius:12px;box-shadow:var(--shadow);z-index:99}
+.mobile-nav{display:none}
+.modal-backdrop{position:fixed;inset:0;background:rgba(20,35,59,.35);backdrop-filter:blur(3px);display:grid;place-items:center;padding:18px;z-index:50}
+.modal{width:min(460px,100%);background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 30px 100px rgba(20,40,80,.22)}
+.modal h3{margin:0 0 6px}.modal p{margin:0 0 17px;color:var(--muted);font-size:12px;line-height:1.5}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:15px}
+@media(max-width:980px){.sidebar{width:76px;padding:15px 10px}.brand{justify-content:center}.brand div,.nav span,.side-card{display:none}.main{margin-left:76px;width:calc(100% - 76px);padding:19px}.grid{grid-template-columns:1fr}.week-grid{grid-template-columns:repeat(7,150px)}}
+@media(max-width:650px){
+  .sidebar{display:none}.main{margin-left:0;width:100%;padding:15px 15px 82px}.topbar{margin-bottom:16px}.topbar h1{font-size:24px}.badge{display:none}
+  .mobile-nav{display:flex;position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);z-index:30;justify-content:space-around;padding:7px 3px calc(7px + env(safe-area-inset-bottom))}
+  .mobile-nav button{border:0;background:transparent;color:#6d7a91;font-size:10px;font-weight:700;padding:3px 5px;min-width:54px}.mobile-nav button.active{color:var(--blue)}
+  .hero h2{font-size:27px}.card{padding:17px;border-radius:18px}.form-grid{grid-template-columns:1fr}.profile-grid{grid-template-columns:1fr}.address-grid{grid-template-columns:1fr}
+}
+
+/* ALMAZOV STUDENT 2.1 VISUAL REDESIGN */
+:root{
+  --blue:#1769ff;--blue2:#6d5dfc;--navy:#10203d;--muted:#70809a;
+  --bg:#eef3fb;--card:#ffffff;--line:#dfe7f2;--green:#18a875;--red:#ef5365;
+  --shadow:0 18px 55px rgba(25,55,105,.11);--shadow2:0 10px 30px rgba(23,105,255,.15)
+}
+body{background:radial-gradient(circle at 82% 4%,rgba(95,116,255,.16),transparent 28%),radial-gradient(circle at 8% 88%,rgba(23,105,255,.08),transparent 25%),#eef3fb}
+.sidebar{width:268px;padding:22px 16px;background:linear-gradient(180deg,#101f3b 0%,#172d55 100%);border-right:0;box-shadow:12px 0 40px rgba(12,29,57,.14)}
+.brand{padding:4px 9px 28px;color:#fff}.brand b{font-size:17px;letter-spacing:-.02em}.brand small{color:#aebdd6}.brand img{width:46px;height:46px;border:2px solid rgba(255,255,255,.35);box-shadow:0 8px 25px rgba(0,0,0,.22)}
+.nav{gap:7px}.nav button{color:#aebbd0;padding:13px 14px;border-radius:14px;transition:.18s}.nav button:hover{background:rgba(255,255,255,.08);color:#fff;transform:translateX(2px)}.nav button.active{background:linear-gradient(90deg,#2b72ff,#5d65f6);color:#fff;box-shadow:0 10px 25px rgba(43,114,255,.25)}
+.side-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:17px;padding:13px;color:#fff}.side-card span{color:#aebbd0}.side-btn{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12);color:#dce6f6}.side-btn:hover{background:rgba(255,255,255,.15)}
+.main{margin-left:268px;width:calc(100% - 268px);padding:32px;max-width:1550px}.topbar{margin-bottom:27px}.topbar h1{font-size:32px;letter-spacing:-.04em}.topbar p{font-size:13px}.badge{background:#fff;border:0;box-shadow:0 7px 24px rgba(30,55,100,.08);color:#52627c}
+.card{border:0;border-radius:24px;box-shadow:var(--shadow);padding:23px}.hero{min-height:260px;padding:28px;background:linear-gradient(125deg,#135de8 0%,#3e6df4 48%,#745df5 100%);box-shadow:0 20px 55px rgba(36,91,220,.24)}.hero:before{content:"";position:absolute;width:340px;height:340px;border-radius:50%;right:-110px;bottom:-170px;background:rgba(255,255,255,.08)}.hero:after{width:170px;height:170px;border:24px solid rgba(255,255,255,.13);right:70px;top:-90px}.hero h2{font-size:38px;letter-spacing:-.04em}.hero .eyebrow{font-weight:800}.hero-pill{backdrop-filter:blur(8px);background:rgba(255,255,255,.18)!important}.feature-row{position:relative;z-index:2}.feature-chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:#fff;backdrop-filter:blur(8px)}
+.section-title h3{font-size:19px;letter-spacing:-.02em}.primary{background:linear-gradient(135deg,#1769ff,#5c65f5);box-shadow:0 8px 20px rgba(23,105,255,.18);transition:.18s}.primary:hover{transform:translateY(-1px);box-shadow:0 11px 25px rgba(23,105,255,.25)}.secondary{border-color:#d9e3f0;background:#f8faff}.secondary:hover{background:#eef4ff;color:var(--blue)}
+.today-summary{gap:12px}.today-box{border:0;background:#f6f9fe;box-shadow:inset 0 0 0 1px #e7edf6}.today-box b{font-size:25px;color:var(--navy)}
+.lesson,.lesson-card{padding:15px 0}.lesson-dot{background:linear-gradient(135deg,#1769ff,#7b5df7);box-shadow:0 0 0 5px #edf3ff}.event{background:linear-gradient(135deg,#eef4ff,#f5f1ff);border:1px solid #e0e8fb;color:#315dbd}
+.task{padding:14px 0}.task input{width:18px;height:18px}.priority{font-weight:800}
+.stat{background:linear-gradient(145deg,#f8fbff,#f0f5ff);border:0;box-shadow:inset 0 0 0 1px #e4ebf5}.stat b{font-size:25px;color:var(--navy)}
+.download-card{position:relative;overflow:hidden;margin-top:18px;padding:23px;border:0;border-radius:24px;color:#fff;background:linear-gradient(120deg,#0f2448,#1d4f9c 55%,#5a5fe9);box-shadow:var(--shadow2)}.download-card:after{content:"✦";position:absolute;right:24px;top:7px;font-size:95px;opacity:.08}.download-card h3{font-size:20px}.download-card p{color:#c8d8f2}.download-btn{background:#fff;color:#164baf;border-radius:13px;box-shadow:0 10px 25px rgba(0,0,0,.16);transition:.18s}.download-btn:hover{transform:translateY(-2px);filter:none}
+.import-box{background:linear-gradient(135deg,#f5f9ff,#fbf8ff);border:1px dashed #aebfe0}.week-grid .day{border:0;box-shadow:0 7px 22px rgba(30,55,100,.07)}
+.address-card{border:0;box-shadow:0 8px 25px rgba(30,55,100,.07)}.address-card:hover{transform:translateY(-2px)}
+.faq-list{gap:12px}.faq-item{border:0;box-shadow:0 7px 24px rgba(30,55,100,.07);transition:.18s}.faq-item[open]{box-shadow:0 10px 30px rgba(23,105,255,.10)}.faq-item summary{padding:18px 20px}.faq-item summary:after{content:"+";float:right;color:#7d8ca5;font-size:20px}.faq-item[open] summary:after{content:"−"}.faq-item p{padding:0 20px 20px}.version-card{border:0;box-shadow:var(--shadow)}
+.profile-note,.address-note{background:#f6f9fd;border:1px solid #e4ebf4;border-radius:14px;padding:13px}.field{border-color:#dce5f1;background:#fbfcff}.field:focus{border-color:#7da4ff;box-shadow:0 0 0 4px #eaf1ff}
+.motivation{border:0;box-shadow:0 20px 60px rgba(20,40,80,.2)}
+@media(max-width:980px){.sidebar{width:82px}.main{margin-left:82px;width:calc(100% - 82px)}.brand{justify-content:center}.brand div,.nav span,.side-card{display:none}}
+@media(max-width:650px){.main{margin-left:0;width:100%;padding:17px 14px 86px}.topbar h1{font-size:27px}.hero{min-height:250px;padding:23px}.hero h2{font-size:31px}.card{border-radius:20px;padding:18px}.download-card{border-radius:20px}.mobile-nav{background:rgba(16,31,59,.96);border-top:0}.mobile-nav button{color:#aebbd0}.mobile-nav button.active{color:#fff}.mobile-nav button.active:after{content:"";display:block;height:3px;width:24px;border-radius:3px;background:#5c8cff;margin:4px auto 0}.today-summary{grid-template-columns:1fr 1fr}.quick-actions{grid-template-columns:1fr}}
+
+/* ALMAZOV STUDENT 2.1.1 HOME FIX */
+.grid>div{min-width:0}
+.feature-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:18px}
+.feature-chip{display:inline-flex;align-items:center;white-space:nowrap;padding:7px 10px;border-radius:999px;line-height:1.2;box-sizing:border-box}
+.hero-pill{display:inline-flex;align-items:center;white-space:nowrap;max-width:100%;box-sizing:border-box}
+.today-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.today-box{min-width:0;border-radius:15px;padding:14px 13px;box-sizing:border-box}
+.today-box span{display:block;color:var(--muted);font-size:11px;line-height:1.35}
+.today-box b{display:block;margin-top:5px;line-height:1.1}
+.quick-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.quick-actions button{width:100%;min-width:0;white-space:normal;line-height:1.25}
+.download-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;padding:10px 14px;font-weight:800;line-height:1.2;white-space:nowrap}
+.download-card.hidden-install{display:none!important}
+.section-title{flex-wrap:wrap}
+.primary,.secondary{display:inline-flex;align-items:center;justify-content:center;line-height:1.2;white-space:nowrap}
+.event,.task,.lesson{min-width:0;overflow-wrap:anywhere}
+@media(max-width:980px){.grid{grid-template-columns:1fr}.quick-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){
+  .feature-row{gap:7px;margin-top:15px}
+  .feature-chip{font-size:11px;padding:7px 9px}
+  .hero-pill{font-size:11px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .today-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .today-box{padding:12px 10px}
+  .quick-actions{grid-template-columns:1fr}
+  .download-btn{width:100%;}
+}
+
+/* APK banner: hide only on Home after download; FAQ download remains permanent */
+.download-card{border-radius:24px!important;overflow:hidden}
+.apk-home-download{border-radius:14px!important}
+@media(max-width:650px){.download-card{border-radius:20px!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="logo.png" alt="Логотип Almazov Student">
+      <div><b>Almazov Student</b><small>личный учебный планер</small></div>
+    </div>
+    <nav class="nav">
+      <button class="active" data-page="home">🏠 <span>Главная</span></button>
+      <button data-page="schedule">📅 <span>Расписание</span></button>
+      <button data-page="tasks">✅ <span>Задачи</span></button>
+      <button data-page="addresses">📍 <span>Адреса</span></button>
+      <button data-page="profile">👤 <span>Профиль</span></button>
+      <button data-page="faq">❓ <span>FAQ</span></button>
+    </nav>
+    <div class="side-card">
+      <b id="sideName">Студент</b>
+      <span id="sideStudy">Настрой профиль</span>
+      <button class="side-btn" id="exportData">Экспорт данных</button><button class="side-btn" id="importData">Импорт данных</button><input id="importFile" type="file" accept="application/json" class="hidden"><button class="side-btn" id="resetData">Сбросить мои данные</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div><h1 id="pageTitle">Главная</h1><p id="dateLine"></p></div>
+      <div class="badge">🩺 Almazov Student · 2.0 Beta</div>
+    </header>
+
+    <section id="home" class="page active">
+      <div class="grid">
+        <div>
+          <div class="card hero">
+            <div class="eyebrow">ТВОЙ УЧЕБНЫЙ ДЕНЬ</div>
+            <h2 id="hello">Привет 👋</h2>
+            <p id="studyLine">Настрой профиль — и планер станет твоим.</p>
+            <span class="hero-pill">📚 Планируй. Учись. Не забывай.</span>
+            <div class="feature-row"><span class="feature-chip">📅 Расписание</span><span class="feature-chip">✅ Задачи</span><span class="feature-chip">📍 Адреса</span><span class="feature-chip">💾 Локальные данные</span></div>
+          </div>
+
+          <div class="download-card">
+            <h3>📱 Almazov Student для Android</h3>
+            <p>Скачать APK-версию приложения. Установка выполняется вручную на Android.</p><small class="apk-note">После нажатия плашка исчезнет на этом устройстве.</small>
+            <a id="apkDownloadBtn" class="download-btn" href="https://github.com/R1vIFlow/Almazov_Student_beta/releases/latest/download/Almazov-Student-2.0.apk" target="_blank" rel="noopener noreferrer">⬇️ Скачать APK 2.0</a>
+          </div>
+
+          <div class="card">
+            <div class="section-title"><h3>Сегодня</h3><button class="primary" data-page="schedule">Расписание</button></div>
+            <div id="todayLessons"></div>
+            <div class="today-summary">
+              <div class="today-box"><span>Занятий сегодня</span><b id="todayCount">0</b></div>
+              <div class="today-box"><span>Задач открыто</span><b id="todayOpen">0</b></div>
+              <div class="today-box"><span>Выполнено</span><b id="todayDone">0%</b></div>
+            </div>
+            <div class="quick-actions">
+              <button class="secondary" data-page="schedule">📅 Открыть расписание</button>
+              <button class="secondary" data-page="tasks">✅ Все задачи</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="section-title"><h3>Мои задачи</h3><button class="primary" id="quickAdd">+ Добавить</button></div>
+            <div id="homeTasks"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>Фокус</h3></div>
+            <div class="stat-grid">
+              <div class="stat"><span>Открытых задач</span><b id="openCount">0</b></div>
+              <div class="stat"><span>Выполнено</span><b id="doneCount">0</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="schedule" class="page">
+      <div class="card">
+        <div class="section-title">
+          <div><h3>Расписание</h3><div class="muted" id="scheduleHint" style="font-size:11px;margin-top:4px"></div></div>
+          <button class="secondary" id="editProfileBtn">Мой профиль</button>
+        </div>
+        <div class="import-box">
+          <b>📎 Импорт расписания</b>
+          <p>Выбери файл с расписанием. Поддерживаются PDF, Word (.docx) и обычный текст (.txt). Almazov Student попробует распознать недели, дни, время, предметы и аудитории и отсортирует пары по времени.</p>
+          <div class="import-actions">
+            <button class="primary" id="importScheduleBtn">Выбрать файл</button>
+            <button class="secondary hidden" id="clearScheduleBtn">Удалить импорт</button>
+            <input id="scheduleFile" type="file" accept="application/pdf,.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.txt,text/plain" class="hidden">
+          </div>
+          <div class="import-status" id="scheduleImportStatus">Пока расписание не импортировано.</div>
+        </div>
+        <div class="week-toolbar">
+          <button class="secondary" id="prevWeek">← Предыдущая</button>
+          <div class="week-title" id="weekTitle">Текущая неделя</div>
+          <button class="secondary" id="nextWeek">Следующая →</button>
+        </div>
+        <div class="week-grid" id="weekGrid"></div>
+        <div class="profile-note">Импортированное расписание хранится локально в этом браузере. Сам PDF на сервер не отправляется. Для текущей Beta данные считаются пользовательским импортом и не являются официальной публикацией НМИЦ.</div>
+      </div>
+    </section>
+
+    <section id="tasks" class="page">
+      <div class="card">
+        <div class="section-title"><h3>Задачи</h3><button class="primary" id="addTask">+ Новая задача</button></div>
+        <div id="taskFormWrap" class="hidden">
+          <div class="form-grid">
+            <input id="newTitle" class="field" placeholder="Что нужно сделать?">
+            <input id="newDue" class="field" type="date">
+            <select id="newPriority" class="field"><option value="normal">Обычная</option><option value="high">Срочная</option><option value="low">Низкий приоритет</option></select>
+          </div>
+          <textarea id="newDescription" class="field" placeholder="Комментарий (необязательно)"></textarea>
+          <div class="form-actions"><button class="primary" id="saveTask">Сохранить</button><button class="secondary" id="cancelTask">Отмена</button></div>
+        </div>
+        <div id="allTasks"></div>
+      </div>
+    </section>
+
+    <section id="addresses" class="page">
+      <div class="card">
+        <div class="section-title">
+          <div><h3>📍 Адреса НМИЦ им. В.А. Алмазова</h3><div class="muted" style="font-size:11px;margin-top:4px">Основные площадки, которые могут понадобиться студенту</div></div>
+        </div>
+        <div class="address-grid" id="addressGrid"></div>
+        <div class="address-note">Адреса взяты с официальных страниц НМИЦ Алмазова. Для навигации нажми «Яндекс Карты» — откроется маршрут/поиск по выбранному адресу.</div>
+      </div>
+    </section>
+
+    <section id="faq" class="page">
+      <div class="card">
+        <div class="section-title"><div><h3>❓ Частые вопросы</h3><div class="muted" style="font-size:11px;margin-top:4px">Коротко о работе Almazov Student</div></div></div>
+        <div class="faq-list">
+          <details class="faq-item"><summary>Где хранятся мои данные?</summary><p>Профиль, задачи и импортированное расписание сохраняются локально в браузере на этом устройстве. В текущей Beta автоматической синхронизации между устройствами нет.</p></details>
+          <details class="faq-item"><summary>Могу ли я импортировать своё расписание?</summary><p>Да. В разделе «Расписание» можно выбрать поддерживаемый файл и импортировать его. Расписание обрабатывается на устройстве.</p></details>
+          <details class="faq-item"><summary>Как скачать приложение на Android?</summary><p>Нажми кнопку «Скачать APK 2.0» на главной странице. APK берётся из GitHub Releases проекта.</p></details>
+          <details class="faq-item"><summary>Почему расписание может отличаться?</summary><p>Импортированное расписание является пользовательскими данными и не считается официальной публикацией НМИЦ. Проверяй актуальность исходного расписания.</p></details>
+          <details class="faq-item"><summary>Будет ли синхронизация между телефоном и компьютером?</summary><p>Это план для будущей серверной версии. В текущей Beta данные остаются локальными.</p></details>
+          <details class="faq-item"><summary>Куда сообщить об ошибке или предложить идею?</summary><p>Используй кнопку поддержки в профиле и напиши в Telegram проекта.</p></details>
+        </div>
+      </div>
+      <div class="version-card" style="margin-top:14px"><div><b>Almazov Student 2.0 Beta</b><br><small>Учебный планер для студентов</small></div><a class="download-btn" href="https://github.com/R1vIFlow/Almazov_Student_beta/releases/latest/download/Almazov-Student-2.0.apk" target="_blank" rel="noopener noreferrer">📲 Скачать APK</a></div>
+    </section>
+
+    <section id="profile" class="page">
+      <div class="card">
+        <div class="section-title"><div><h3>Профиль</h3><div class="muted" style="font-size:11px;margin-top:4px">Данные сохраняются только в браузере на этом устройстве.</div></div><button class="primary" id="saveProfile">Сохранить</button></div>
+        <div class="profile-grid">
+          <div><label class="muted" style="font-size:11px">Имя</label><input id="pName" class="field" style="margin-top:5px"></div>
+          <div><label class="muted" style="font-size:11px">Специальность</label><select id="pSpecialty" class="field" style="margin-top:5px"><option value="31.05.01">Лечебное дело</option><option value="31.05.02">Педиатрия</option><option value="37.05.01">Клиническая психология</option></select></div>
+          <div><label class="muted" style="font-size:11px">Курс</label><select id="pCourse" class="field" style="margin-top:5px"></select></div>
+          <div><label class="muted" style="font-size:11px">Группа</label><input id="pGroup" class="field" placeholder="Например, 101" style="margin-top:5px"></div>
+        </div>
+        <div class="profile-note">
+          Это версия Almazov Student 2.0 Beta. Здесь намеренно нет оценок, преподавателей и материалов — только планер, задачи и импорт расписания. Когда проект будет согласован и появится серверная версия, профиль можно будет связать с аккаунтом и расписанием конкретной группы.
+        </div>
+        <div class="card" style="margin-top:18px;padding:16px;background:#f8fbff;box-shadow:none">
+          <div class="section-title" style="margin-bottom:6px"><div><h3>💬 Поддержка проекта</h3><div class="muted" style="font-size:11px;margin-top:4px">Нашли ошибку или есть идея для Almazov Student?</div></div><a class="primary" href="https://t.me/R1vlFlow_GY" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Написать в Telegram</a></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="mobile-nav">
+    <button class="active" data-page="home">🏠<br>Главная</button>
+    <button data-page="schedule">📅<br>Расписание</button>
+    <button data-page="tasks">✅<br>Задачи</button>
+    <button data-page="addresses">📍<br>Адреса</button>
+    <button data-page="profile">👤<br>Профиль</button>
+    <button data-page="faq">❓<br>FAQ</button>
+  </nav>
+</div>
+
+<div id="modalBackdrop" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3>Добро пожаловать в Almazov Student</h3>
+    <p>Это бесплатная стартовая версия. Настрой имя, специальность, курс и группу — данные будут храниться локально в этом браузере.</p>
+    <div class="profile-grid">
+      <input id="mName" class="field" placeholder="Имя">
+      <select id="mSpecialty" class="field">
+        <option value="31.05.01">Лечебное дело</option>
+        <option value="31.05.02">Педиатрия</option>
+        <option value="37.05.01">Клиническая психология</option>
+      </select>
+      <select id="mCourse" class="field"></select>
+      <input id="mGroup" class="field" placeholder="Группа">
+    </div>
+    <div class="modal-actions"><button class="primary" id="mSave">Начать</button></div>
+  </div>
+</div>
+
+<div id="motivation" class="motivation hidden" role="status" aria-live="polite"><button class="close" id="closeMotivation" aria-label="Закрыть">×</button><b id="motivationTitle">💙 Минутка мотивации</b><p id="motivationText"></p></div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+const STORAGE_KEY="almazov_student_static_v1_0";
+const specialtyNames={
+  "31.05.01":"Лечебное дело",
+  "31.05.02":"Педиатрия",
+  "37.05.01":"Клиническая психология"
+};
+const weekdays=["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
+let data=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null")||{
+  profile:{name:"",specialty:"31.05.01",course:1,group:""},
+  tasks:[],
+  schedule:null
+};
+
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function toast(msg){const x=document.getElementById("toast");x.textContent=msg;x.classList.remove("hidden");clearTimeout(window.__toast);window.__toast=setTimeout(()=>x.classList.add("hidden"),2200)}
+function dateText(){return new Date().toLocaleDateString("ru-RU",{weekday:"long",day:"numeric",month:"long"}).replace(/^./,c=>c.toUpperCase())}
+
+function go(page){
+  document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id===page));
+  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+  document.getElementById("pageTitle").textContent={home:"Главная",schedule:"Расписание",tasks:"Задачи",addresses:"Адреса",profile:"Профиль",faq:"FAQ"}[page];
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
+
+function updateV2Dashboard(lessons){
+  const open=data.tasks.filter(t=>!t.done).length;
+  const done=data.tasks.length?Math.round(data.tasks.filter(t=>t.done).length/data.tasks.length*100):0;
+  const a=document.getElementById("todayCount"),b=document.getElementById("todayOpen"),c=document.getElementById("todayDone");
+  if(a)a.textContent=lessons.length; if(b)b.textContent=open; if(c)c.textContent=done+"%";
+}
+
+function render(){
+  const p=data.profile;
+  document.getElementById("dateLine").textContent=dateText();
+  document.getElementById("hello").textContent=p.name?`Привет, ${p.name}!`:"Привет 👋";
+  document.getElementById("studyLine").textContent=p.name?`${specialtyNames[p.specialty]} · ${p.course} курс${p.group?` · группа ${p.group}`:""}`:"Настрой профиль — и планер станет твоим.";
+  document.getElementById("sideName").textContent=p.name||"Студент";
+  document.getElementById("sideStudy").textContent=`${specialtyNames[p.specialty]} · ${p.course} курс${p.group?` · ${p.group}`:""}`;
+  document.getElementById("scheduleHint").textContent=`${specialtyNames[p.specialty]} · ${p.course} курс${p.group?` · группа ${p.group}`:""}`;
+
+  document.getElementById("pName").value=p.name;
+  document.getElementById("pSpecialty").value=p.specialty;
+  document.getElementById("pCourse").value=p.course;
+  document.getElementById("pGroup").value=p.group;
+
+  renderTasks(); renderSchedule(); renderAddresses();
+}
+
+const campusAddresses=[
+  {name:"Институт медицинского образования",address:"Санкт-Петербург, Коломяжский проспект, д. 21"},
+  {name:"Главный клинический комплекс",address:"Санкт-Петербург, ул. Аккуратова, д. 2"},
+  {name:"Специализированный перинатальный центр",address:"Санкт-Петербург, ул. Аккуратова, д. 2, лит. Б"},
+  {name:"Лечебно-реабилитационный комплекс",address:"Санкт-Петербург, пр. Пархоменко, д. 15"},
+  {name:"Детский лечебно-реабилитационный комплекс",address:"Санкт-Петербург, Коломяжский проспект, д. 21, корп. 2"},
+  {name:"РНХИ им. проф. А. Л. Поленова",address:"Санкт-Петербург, ул. Маяковского, д. 12"},
+  {name:"Комплекс «Солнечный»",address:"Санкт-Петербург, пос. Солнечное, ул. Средняя, д. 6Б"}
+];
+function renderAddresses(){
+  const el=document.getElementById("addressGrid");
+  if(!el)return;
+  el.innerHTML=campusAddresses.map((x,i)=>{
+    const map="https://yandex.ru/maps/?text="+encodeURIComponent(x.address);
+    return `<article class="address-card"><h4>${esc(x.name)}</h4><p>${esc(x.address)}</p><div class="address-actions"><a class="map-btn" href="${map}" target="_blank" rel="noopener noreferrer">🗺️ Яндекс Карты</a><button class="copy-btn" onclick="copyAddress(${i})">📋 Копировать</button></div></article>`;
+  }).join("");
+}
+window.copyAddress=async i=>{
+  const x=campusAddresses[i]; if(!x)return;
+  try{await navigator.clipboard.writeText(x.address);toast("Адрес скопирован");}
+  catch(e){toast("Не удалось скопировать адрес");}
+};
+
+function renderTasks(){
+  const all=data.tasks;
+  const make=t=>`<div class="task ${t.done?"done":""}">
+    <input type="checkbox" ${t.done?"checked":""} onchange="toggleTask('${t.id}',this.checked)">
+    <div class="task-body"><div class="task-title">${esc(t.title)}</div>
+    ${t.due?`<div class="task-meta">до ${esc(t.due)}${t.description?` · ${esc(t.description)}`:""}</div>`:""}
+    </div>
+    <span class="priority ${t.priority}">${t.priority==="high"?"срочно":t.priority==="low"?"низкий":"обычная"}</span>
+    <button class="icon-btn" onclick="deleteTask('${t.id}')" aria-label="Удалить">×</button>
+  </div>`;
+  document.getElementById("allTasks").innerHTML=all.length?all.map(make).join(""):'<div class="empty">Пока нет задач. Добавь первую — и начнём 🩺</div>';
+  document.getElementById("homeTasks").innerHTML=all.slice().sort((a,b)=>Number(a.done)-Number(b.done)).slice(0,5).map(make).join("")||'<div class="empty">Здесь появятся твои задачи.</div>';
+  document.getElementById("openCount").textContent=all.filter(x=>!x.done).length;
+  document.getElementById("doneCount").textContent=all.filter(x=>x.done).length;
+}
+window.toggleTask=(id,done)=>{const t=data.tasks.find(x=>x.id===id);if(t){t.done=done;save();render()}};
+window.deleteTask=id=>{if(!confirm("Удалить задачу?"))return;data.tasks=data.tasks.filter(x=>x.id!==id);save();render();toast("Задача удалена")};
+
+let scheduleViewDate=new Date();
+
+function isoDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function startOfWeek(d){const x=new Date(d);const day=(x.getDay()+6)%7;x.setHours(0,0,0,0);x.setDate(x.getDate()-day);return x}
+function formatRange(a,b){return `${a.toLocaleDateString("ru-RU",{day:"numeric",month:"long"})} — ${b.toLocaleDateString("ru-RU",{day:"numeric",month:"long"})}`}
+function timeToMinutes(value){
+  const m=String(value||"").match(/(\d{1,2})\s*[:. ]\s*(\d{2})/);
+  if(!m)return Number.MAX_SAFE_INTEGER;
+  return Number(m[1])*60+Number(m[2]);
+}
+function compareScheduleEvents(a,b){
+  const dayA=Number(a.weekday), dayB=Number(b.weekday);
+  if(dayA!==dayB)return dayA-dayB;
+  const startA=timeToMinutes(a.start), startB=timeToMinutes(b.start);
+  if(startA!==startB)return startA-startB;
+  const endA=timeToMinutes(a.end), endB=timeToMinutes(b.end);
+  return endA-endB;
+}
+function sortScheduleEvents(events){
+  return events.slice().sort(compareScheduleEvents);
+}
+
+function renderSchedule(){
+  const imported=Array.isArray(data.schedule?.weeks)?data.schedule:null;
+  const clearBtn=document.getElementById("clearScheduleBtn");
+  const status=document.getElementById("scheduleImportStatus");
+  if(imported){
+    clearBtn.classList.remove("hidden");
+    status.textContent=`Импортировано недель: ${imported.weeks.length}${imported.sourceName?` · ${imported.sourceName}`:""}`;
+  }else{
+    clearBtn.classList.add("hidden");
+    status.textContent="Пока расписание не импортировано.";
+  }
+
+  const monday=startOfWeek(scheduleViewDate);
+  const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
+  document.getElementById("weekTitle").textContent=formatRange(monday,sunday);
+
+  const names=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+  const currentWeek=imported?.weeks.find(w=>w.start===isoDate(monday));
+  const events=currentWeek?.events||[];
+
+  document.getElementById("weekGrid").innerHTML=names.map((n,i)=>{
+    const d=new Date(monday);d.setDate(monday.getDate()+i);
+    const dayEvents=sortScheduleEvents(events.filter(e=>Number(e.weekday)===i));
+    const html=dayEvents.map(e=>`<div class="event"><b>${esc(e.start)}–${esc(e.end)}</b><span>${esc(e.subject)}</span>${e.location?`<small>📍 ${esc(e.location)}</small>`:""}</div>`).join("");
+    return `<div class="day"><div class="day-head">${n}</div><div class="day-date">${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}</div>${html||'<div class="empty" style="padding:22px 0 5px;font-size:11px">свободно</div>'}</div>`;
+  }).join("");
+
+  if(!imported){
+    // Keep a harmless empty starter view instead of pretending this is an official timetable.
+    document.getElementById("weekGrid").querySelectorAll(".day").forEach(day=>{
+      const e=day.querySelector(".empty");
+      if(e)e.textContent="импортируй PDF";
+    });
+  }
+}
+
+function normalizeCellText(items){
+  const clean=items.filter(x=>x.str&&x.str.trim());
+  const lines=[];
+  for(const item of clean){
+    const top=item.top;
+    let line=lines.find(l=>Math.abs(l.top-top)<=2.2);
+    if(!line){line={top,items:[]};lines.push(line)}
+    line.items.push(item);
+  }
+  lines.sort((a,b)=>a.top-b.top);
+  const out=[];
+  for(const line of lines){
+    line.items.sort((a,b)=>a.x-b.x);
+    let str="";
+    let prev=null;
+    for(const it of line.items){
+      const txt=it.str.trim();
+      if(!txt)continue;
+      if(prev===null){str=txt}
+      else{
+        const gap=it.x-(prev.x+prev.w);
+        const punct=/^[,.;:!?%)\]]/.test(txt) || /[(\[]$/.test(str);
+        str += (gap<1.25 || punct ? "" : " ")+txt;
+      }
+      prev=it;
+    }
+    if(str)out.push(str);
+  }
+  return out.join(" ").replace(/\s+/g," ").replace(/\(\s+/g,"(").replace(/\s+\)/g,")").replace(/\s+,/g,",").trim();
+}
+
+function parseDateRange(text, year){
+  const m=text.match(/^(\d{1,2})\.(\d{1,2})-(\d{1,2})\.(\d{1,2})$/);
+  if(!m)return null;
+  let y1=year, y2=year;
+  if(Number(m[4])<Number(m[2]))y2=year+1;
+  const start=new Date(y1,Number(m[2])-1,Number(m[1]));
+  const end=new Date(y2,Number(m[4])-1,Number(m[3]));
+  return {start:isoDate(start),end:isoDate(end)};
+}
+
+async function loadPdfJs(){
+  if(window.__pdfjsPromise)return window.__pdfjsPromise;
+  window.__pdfjsPromise=import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs").then(pdfjs=>{
+    pdfjs.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
+    return pdfjs;
+  });
+  return window.__pdfjsPromise;
+}
+
+async function loadMammoth(){
+  if(window.__mammothPromise)return window.__mammothPromise;
+  window.__mammothPromise=import("https://cdn.jsdelivr.net/npm/mammoth@1.8.0/+esm").then(m=>m.default||m);
+  return window.__mammothPromise;
+}
+
+function parseTimeRange(text){
+  const m=text.match(/\b(\d{1,2}):([0-5]\d)\s*[-–—]\s*(\d{1,2}):([0-5]\d)\b/);
+  if(!m)return null;
+  const start=`${String(Number(m[1])).padStart(2,"0")}:${m[2]}`;
+  const end=`${String(Number(m[3])).padStart(2,"0")}:${m[4]}`;
+  return {start,end};
+}
+
+function parseWeekHeader(text){
+  const m=text.match(/\b(\d{1,2}\.\d{1,2})\s*[-–—]\s*(\d{1,2}\.\d{1,2})\b/);
+  if(!m)return null;
+  return parseDateRange(`${m[1]}-${m[2]}`,new Date().getFullYear());
+}
+
+function makeTextSchedule(text,fileName){
+  const lines=String(text||"").replace(/\r/g,"").split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const dayMap={понедельник:0,вторник:1,среда:2,четверг:3,пятница:4,суббота:5,воскресенье:6};
+  const weeks=[]; let currentWeek=null; let currentDay=null; let total=0;
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    const wr=parseWeekHeader(line);
+    if(wr){ currentWeek={start:wr.start,end:wr.end,events:[]}; weeks.push(currentWeek); currentDay=null; continue; }
+    const dayKey=line.toLowerCase().replace(/[:.]+$/g,"");
+    if(dayMap[dayKey]!==undefined){ currentDay=dayMap[dayKey]; if(!currentWeek){ const now=startOfWeek(new Date()); const end=new Date(now); end.setDate(now.getDate()+6); currentWeek={start:isoDate(now),end:isoDate(end),events:[]}; weeks.push(currentWeek); } continue; }
+    const tm=parseTimeRange(line);
+    if(!tm || currentDay===null)continue;
+    let subject=line.replace(/\b\d{1,2}:\d{2}\s*[-–—]\s*\d{1,2}:\d{2}\b/,"").trim().replace(/^[-–—:|]+|[-–—:|]+$/g,"").trim();
+    if(!subject && lines[i+1]) subject=lines[i+1].trim();
+    let location="";
+    const loc=subject.match(/\(([^()]*(?:ауд\.?|каб\.?|зал|д\.)[^()]*)\)/i);
+    if(loc){location=loc[1].trim();subject=subject.replace(loc[0],"").trim();}
+    if(!subject)subject="Занятие";
+    currentWeek.events.push({weekday:currentDay,start:tm.start,end:tm.end,subject,location}); total++;
+  }
+  weeks.forEach(w=>w.events.sort(compareScheduleEvents));
+  if(!total)throw new Error("Не удалось найти строки с временем и днями недели");
+  return {sourceName:fileName,weeks,importedAt:new Date().toISOString()};
+}
+
+async function parseScheduleDocx(file){
+  const mammoth=await loadMammoth();
+  const bytes=await file.arrayBuffer();
+  const result=await mammoth.extractRawText({arrayBuffer:bytes});
+  return makeTextSchedule(result.value,file.name);
+}
+
+async function parseScheduleTxt(file){
+  return makeTextSchedule(await file.text(),file.name);
+}
+
+async function parseSchedulePdf(file){
+  const pdfjs=await loadPdfJs();
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  const pdf=await pdfjs.getDocument({data:bytes}).promise;
+  if(pdf.numPages<1)throw new Error("empty pdf");
+  const page=await pdf.getPage(1);
+  const viewport=page.getViewport({scale:1});
+  const content=await page.getTextContent({normalizeWhitespace:false});
+  const items=content.items.map(it=>{
+    const x=it.transform[4];
+    const h=Math.abs(it.height||Math.hypot(it.transform[2],it.transform[3])||0);
+    const top=viewport.height-it.transform[5]-h;
+    return {str:it.str||"",x,top,w:Math.abs(it.width||0),h};
+  }).filter(it=>it.str.trim());
+
+  const headerRe=/^\d{1,2}\.\d{1,2}-\d{1,2}\.\d{1,2}$/;
+  const headers=items.filter(it=>headerRe.test(it.str.trim()) && it.top<80).sort((a,b)=>a.x-b.x);
+  if(headers.length<2)throw new Error("Не удалось найти строки с неделями");
+  const year=new Date().getFullYear();
+  const columns=headers.map(h=>({text:h.str.trim(),x:h.x+h.w/2,date:parseDateRange(h.str.trim(),year)})).filter(x=>x.date);
+  if(columns.length<2)throw new Error("Не удалось определить недели");
+
+  const timeRe=/^\d{1,2}:\d{2}-\d{1,2}:\d{2}$/;
+  const rows=items.filter(it=>timeRe.test(it.str.trim()) && it.x<100).sort((a,b)=>a.top-b.top);
+  if(rows.length<10)throw new Error("Не удалось определить строки времени");
+
+  const weekdays={"понедельник":0,"вторник":1,"среда":2,"четверг":3,"пятница":4,"суббота":5};
+  const dayLabels=items.filter(it=>weekdays[it.str.trim().toLowerCase()]!==undefined && it.x<75);
+  const rowDay=(rowTop)=>{
+    let best=0,bestDist=Infinity;
+    for(const d of dayLabels){const dist=Math.abs(d.top-rowTop);if(dist<bestDist){bestDist=dist;best=weekdays[d.str.trim().toLowerCase()]}}
+    return best;
+  };
+
+  // The PDF is a Google Sheets table: each weekly column starts at the same x coordinate as its header.
+  // Instead of cutting rows by fixed y bands (wrapped text can cross the time label), group each column's text
+  // into vertical clusters and assign each cluster to the nearest time row.
+  const starts=headers.map(h=>h.x);
+  const parsedWeeks=columns.map(c=>({start:c.date.start,end:c.date.end,events:[]}));
+
+  for(let c=0;c<columns.length;c++){
+    const left=starts[c]-0.5;
+    const right=c===starts.length-1?Infinity:starts[c+1]-0.5;
+    const colItems=items.filter(it=>it.x>=left && it.x<right && it.top>58);
+    colItems.sort((a,b)=>a.top-b.top || a.x-b.x);
+
+    const lines=[];
+    for(const item of colItems){
+      let line=lines.find(l=>Math.abs(l.top-item.top)<=2.2);
+      if(!line){line={top:item.top,items:[]};lines.push(line)}
+      line.items.push(item);
+    }
+    lines.sort((a,b)=>a.top-b.top);
+
+    const clusters=[];
+    for(const line of lines){
+      const last=clusters[clusters.length-1];
+      if(!last || line.top-last.lastTop>5.0){
+        clusters.push({top:line.top,lastTop:line.top,lines:[line]});
+      }else{
+        last.lines.push(line);last.lastTop=line.top;
+      }
+    }
+
+    for(const cluster of clusters){
+      const clusterItems=cluster.lines.flatMap(l=>l.items);
+      const text=normalizeCellText(clusterItems);
+      if(!text || headerRe.test(text))continue;
+      const center=(cluster.top+cluster.lastTop)/2;
+      let nearest=0,dist=Infinity;
+      for(let r=0;r<rows.length;r++){
+        const d=Math.abs(rows[r].top-center);
+        if(d<dist){dist=d;nearest=r}
+      }
+      const row=rows[nearest];
+      // Ignore text that is far outside the timetable body.
+      if(dist>18)continue;
+      const weekday=rowDay(row.top);
+      const parts=row.str.split("-");
+      const startTime=parts[0],endTime=parts[1];
+      let location="";
+      const loc=text.match(/\(([^()]*(?:ауд\.|д\.|зал)[^()]*)\)/i);
+      if(loc)location=loc[1].replace(/\s+/g," ").trim();
+      const cleanSubject=text.replace(/\s*\([^)]*(?:ауд\.|зал|д\.)[^)]*\)\s*$/i,"").trim() || text;
+      parsedWeeks[c].events.push({weekday,start:startTime,end:endTime,subject:cleanSubject,location});
+    }
+  }
+
+  parsedWeeks.forEach(w=>w.events.sort(compareScheduleEvents));
+  const total=parsedWeeks.reduce((n,w)=>n+w.events.length,0);
+  if(total<10)throw new Error("PDF распознан, но занятий найдено слишком мало");
+  return {sourceName:file.name,weeks:parsedWeeks,importedAt:new Date().toISOString()};
+}
+
+function fillCourses(sel){sel.innerHTML=[1,2,3,4,5,6].map(x=>`<option value="${x}">${x} курс</option>`).join("")}
+fillCourses(document.getElementById("pCourse"));fillCourses(document.getElementById("mCourse"));
+
+document.getElementById("addTask").onclick=()=>{document.getElementById("taskFormWrap").classList.toggle("hidden");document.getElementById("newTitle").focus()};
+document.getElementById("quickAdd").onclick=()=>{go("tasks");document.getElementById("taskFormWrap").classList.remove("hidden");document.getElementById("newTitle").focus()};
+document.getElementById("cancelTask").onclick=()=>document.getElementById("taskFormWrap").classList.add("hidden");
+document.getElementById("saveTask").onclick=()=>{
+  const title=document.getElementById("newTitle").value.trim();
+  if(!title){toast("Напиши, что нужно сделать");return}
+  data.tasks.unshift({
+    id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),
+    title,
+    due:document.getElementById("newDue").value,
+    priority:document.getElementById("newPriority").value,
+    description:document.getElementById("newDescription").value.trim(),
+    done:false
+  });
+  save();
+  document.getElementById("newTitle").value="";
+  document.getElementById("newDue").value="";
+  document.getElementById("newDescription").value="";
+  document.getElementById("newPriority").value="normal";
+  document.getElementById("taskFormWrap").classList.add("hidden");
+  render();toast("Задача добавлена");
+};
+
+function saveProfileValues(prefix){
+  const p=data.profile;
+  p.name=document.getElementById(prefix+"Name").value.trim();
+  p.specialty=document.getElementById(prefix+"Specialty").value;
+  p.course=Number(document.getElementById(prefix+"Course").value);
+  p.group=document.getElementById(prefix+"Group").value.trim();
+  save();render();toast("Профиль сохранён");
+}
+document.getElementById("saveProfile").onclick=()=>saveProfileValues("p");
+document.getElementById("editProfileBtn").onclick=()=>go("profile");
+
+// Backup: export the current local data as a JSON file.
+document.getElementById("exportData").onclick=()=>{
+  try{
+    const payload={
+      app:"Almazov Student",
+      version:2,
+      exportedAt:new Date().toISOString(),
+      data
+    };
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=`almazov-student-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    toast("Резервная копия скачивается");
+  }catch(e){
+    console.error(e);
+    toast("Не удалось экспортировать данные");
+  }
+};
+
+// Backup: choose a JSON file and restore its profile/tasks.
+document.getElementById("importData").onclick=()=>document.getElementById("importFile").click();
+document.getElementById("importFile").addEventListener("change",async e=>{
+  const file=e.target.files?.[0];
+  if(!file)return;
+  try{
+    const text=await file.text();
+    const parsed=JSON.parse(text);
+    const imported=parsed?.data ?? parsed;
+    if(!imported || typeof imported!=="object" || !imported.profile || !Array.isArray(imported.tasks)){
+      throw new Error("invalid backup");
+    }
+    if(!imported.profile.name || typeof imported.profile.name!=="string") throw new Error("invalid profile");
+    if(!specialtyNames[imported.profile.specialty]) throw new Error("invalid specialty");
+    const course=Number(imported.profile.course);
+    if(!Number.isInteger(course) || course<1 || course>6) throw new Error("invalid course");
+    data={
+      profile:{
+        name:imported.profile.name.trim(),
+        specialty:imported.profile.specialty,
+        course,
+        group:String(imported.profile.group??"").trim()
+      },
+      tasks:imported.tasks.map(t=>({
+        id:String(t.id ?? (crypto.randomUUID?crypto.randomUUID():Date.now()+Math.random())),
+        title:String(t.title ?? "").trim(),
+        due:String(t.due ?? ""),
+        priority:["normal","high","low"].includes(t.priority)?t.priority:"normal",
+        description:String(t.description ?? ""),
+        done:Boolean(t.done)
+      })).filter(t=>t.title),
+      schedule:(imported.schedule && Array.isArray(imported.schedule.weeks))?imported.schedule:null
+    };
+    save();
+    render();
+    toast("Данные успешно импортированы");
+  }catch(err){
+    console.error(err);
+    toast("Не удалось импортировать: нужен JSON-файл Almazov Student");
+  }finally{
+    e.target.value="";
+  }
+});
+
+document.getElementById("prevWeek").onclick=()=>{scheduleViewDate.setDate(scheduleViewDate.getDate()-7);renderSchedule()};
+document.getElementById("nextWeek").onclick=()=>{scheduleViewDate.setDate(scheduleViewDate.getDate()+7);renderSchedule()};
+document.getElementById("importScheduleBtn").onclick=()=>document.getElementById("scheduleFile").click();
+document.getElementById("scheduleFile").addEventListener("change",async e=>{
+  const file=e.target.files?.[0];
+  if(!file)return;
+  const status=document.getElementById("scheduleImportStatus");
+  const btn=document.getElementById("importScheduleBtn");
+  const ext=file.name.toLowerCase().split(".").pop();
+  btn.disabled=true;btn.textContent="Распознаю…";status.textContent="Читаю файл расписания. Это может занять несколько секунд…";
+  try{
+    let schedule;
+    if(ext==="pdf") schedule=await parseSchedulePdf(file);
+    else if(ext==="docx") schedule=await parseScheduleDocx(file);
+    else if(ext==="txt") schedule=await parseScheduleTxt(file);
+    else throw new Error("unsupported format");
+    schedule.weeks.forEach(w=>w.events.sort(compareScheduleEvents));
+    data.schedule=schedule;
+    save();
+    const first=schedule.weeks[0]?.start;
+    if(first)scheduleViewDate=new Date(first+"T12:00:00");
+    render();
+    toast(`Расписание импортировано: ${schedule.weeks.length} недель`);
+  }catch(err){
+    console.error(err);
+    status.textContent="Не удалось распознать файл. Проверь формат и структуру расписания.";
+    toast("Не удалось импортировать расписание");
+  }finally{
+    btn.disabled=false;btn.textContent="Выбрать файл";e.target.value="";
+  }
+});
+document.getElementById("clearScheduleBtn").onclick=()=>{
+  if(!confirm("Удалить импортированное расписание?"))return;
+  data.schedule=null;save();scheduleViewDate=new Date();render();toast("Расписание удалено");
+};
+
+document.getElementById("resetData").onclick=()=>{
+  if(!confirm("Удалить все локальные задачи и данные профиля?"))return;
+  localStorage.removeItem(STORAGE_KEY);location.reload();
+};
+
+function showFirstStart(){
+  if(!data.profile.name){
+    document.getElementById("mCourse").value=data.profile.course;
+    document.getElementById("mSpecialty").value=data.profile.specialty;
+    document.getElementById("modalBackdrop").classList.remove("hidden");
+  }
+}
+document.getElementById("mSave").onclick=()=>{
+  const name=document.getElementById("mName").value.trim();
+  if(!name){toast("Напиши имя");return}
+  data.profile={name,specialty:document.getElementById("mSpecialty").value,course:Number(document.getElementById("mCourse").value),group:document.getElementById("mGroup").value.trim()};
+  save();document.getElementById("modalBackdrop").classList.add("hidden");render();toast("Добро пожаловать в Almazov Student");setTimeout(showMotivation,700);
+};
+
+const motivationPhrases=[
+  "Даже один небольшой шаг сегодня — это движение вперёд.",
+  "Не обязательно выучить всё сразу. Разбери следующий пункт — и уже будет прогресс.",
+  "Будущий врач тоже когда-то впервые открыл эту тему. У тебя получится.",
+  "Одна пара, одна тема, один шаг за раз.",
+  "Ошибки — часть обучения. Главное — продолжать.",
+  "Ты не обязан быть идеальным. Достаточно не останавливаться."
+];
+let motivationTimer=null;
+function showMotivation(){
+  if(sessionStorage.getItem("almazov_motivation_shown"))return;
+  sessionStorage.setItem("almazov_motivation_shown","1");
+  const box=document.getElementById("motivation");
+  document.getElementById("motivationText").textContent=motivationPhrases[Math.floor(Math.random()*motivationPhrases.length)];
+  box.classList.remove("hidden");
+  clearTimeout(motivationTimer);
+  motivationTimer=setTimeout(()=>box.classList.add("hidden"),10000);
+}
+document.getElementById("closeMotivation").onclick=()=>{clearTimeout(motivationTimer);document.getElementById("motivation").classList.add("hidden")};
+render();showFirstStart();
+if(data.profile.name)setTimeout(showMotivation,1800);
+
+// PWA: register the service worker when the app is served over HTTPS (GitHub Pages).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('PWA service worker:', err));
+  });
+}
+
+  // APK card: браузер не может надёжно определить факт установки Android-приложения.
+  // Поэтому после скачивания скрываем плашку на этом устройстве. Состояние сохраняется в localStorage.
+  const apkCard = document.querySelector('.download-card');
+  const apkBtn = document.getElementById('apkDownloadBtn');
+  if (apkCard && apkBtn) {
+    try {
+      if (localStorage.getItem('almazov_apk_downloaded') === '1') apkCard.classList.add('hidden-install');
+    } catch(e) {}
+    apkBtn.addEventListener('click', () => {
+      try { localStorage.setItem('almazov_apk_downloaded', '1'); } catch(e) {}
+      setTimeout(() => apkCard.classList.add('hidden-install'), 700);
+    });
+  }
+</script>
+
+<script>
+(function(){
+  const KEY='almazov_apk_downloaded';
+  const card=document.querySelector('.download-card');
+  const btn=document.querySelector('.apk-home-download');
+  if(card && localStorage.getItem(KEY)==='1') card.classList.add('hidden');
+  if(btn){
+    btn.addEventListener('click',function(){
+      localStorage.setItem(KEY,'1');
+      if(card) card.classList.add('hidden');
+    });
+  }
+})();
+</script>
+</body>
+</html>
