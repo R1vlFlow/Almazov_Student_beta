@@ -6,6 +6,10 @@
 <meta name="theme-color" content="#2f65d5">
 <meta name="description" content="Almazov Student — учебный планер для студентов НМИЦ им. В.А. Алмазова.">
 <link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Almazov Student</title>
 <style>
 :root{
@@ -772,6 +776,13 @@ function showMotivation(){
 document.getElementById("closeMotivation").onclick=()=>{clearTimeout(motivationTimer);document.getElementById("motivation").classList.add("hidden")};
 render();showFirstStart();
 if(data.profile.name)setTimeout(showMotivation,1800);
+
+// PWA: register the service worker when the app is served over HTTPS (GitHub Pages).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('PWA service worker:', err));
+  });
+}
 </script>
 </body>
 </html>
