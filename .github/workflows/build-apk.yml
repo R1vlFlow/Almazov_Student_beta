@@ -12,35 +12,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      # 1. Получаем код из репозитория
       - name: Checkout
         uses: actions/checkout@v4
 
+
+      # 2. Java 17
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
 
+      # 3. Android SDK
+      # ВАЖНО: используем v4, а не v3
+      # и не устанавливаем deprecated package "tools"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+
+
+      # 4. Устанавливаем нужные Android SDK компоненты
       - name: Install Android SDK packages
         run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          sdkmanager "platforms;android-35"
+          sdkmanager "build-tools;35.0.0"
 
+
+      # 5. Создаём Android-проект
       - name: Create Android project
+        shell: bash
         run: |
+
           mkdir -p app/src/main/java/com/almazov/student
           mkdir -p app/src/main/assets
           mkdir -p app/src/main/res/values
 
+
+          # Копируем сайт
           cp index.html app/src/main/assets/index.html
 
+
+          # Если есть logo.png — тоже помещаем его в APK
           if [ -f logo.png ]; then
             cp logo.png app/src/main/assets/logo.png
           fi
 
+
+          # settings.gradle
           cat > settings.gradle <<'EOF'
           pluginManagement {
               repositories {
@@ -52,6 +74,7 @@ jobs:
 
           dependencyResolutionManagement {
               repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+
               repositories {
                   google()
                   mavenCentral()
@@ -59,15 +82,20 @@ jobs:
           }
 
           rootProject.name = "AlmazovStudent"
+
           include(":app")
           EOF
 
+
+          # Главный build.gradle
           cat > build.gradle <<'EOF'
           plugins {
               id 'com.android.application' version '8.7.3' apply false
           }
           EOF
 
+
+          # app/build.gradle
           cat > app/build.gradle <<'EOF'
           plugins {
               id 'com.android.application'
@@ -75,18 +103,23 @@ jobs:
 
           android {
               namespace 'com.almazov.student'
+
               compileSdk 35
 
               defaultConfig {
                   applicationId 'com.almazov.student'
+
                   minSdk 23
                   targetSdk 35
+
                   versionCode 1
                   versionName '1.0'
               }
           }
           EOF
 
+
+          # AndroidManifest.xml
           cat > app/src/main/AndroidManifest.xml <<'EOF'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -104,8 +137,12 @@ jobs:
                       android:exported="true">
 
                       <intent-filter>
+
                           <action android:name="android.intent.action.MAIN" />
-                          <category android:name="android.intent.category.LAUNCHER" />
+
+                          <category
+                              android:name="android.intent.category.LAUNCHER" />
+
                       </intent-filter>
 
                   </activity>
@@ -115,19 +152,44 @@ jobs:
           </manifest>
           EOF
 
+
+          # Стиль приложения
           cat > app/src/main/res/values/styles.xml <<'EOF'
           <resources>
-              <style name="AppTheme"
-                     parent="android:style/Theme.Material.Light.NoActionBar">
+
+              <style
+                  name="AppTheme"
+                  parent="android:style/Theme.Material.Light.NoActionBar">
+
                   <item name="android:fontFamily">sans</item>
-                  <item name="android:colorAccent">#1976D2</item>
-                  <item name="android:navigationBarColor">#FFFFFF</item>
-                  <item name="android:statusBarColor">#FFFFFF</item>
-                  <item name="android:windowLightStatusBar">true</item>
+
+                  <item
+                      name="android:colorAccent">
+                      #1976D2
+                  </item>
+
+                  <item
+                      name="android:navigationBarColor">
+                      #FFFFFF
+                  </item>
+
+                  <item
+                      name="android:statusBarColor">
+                      #FFFFFF
+                  </item>
+
+                  <item
+                      name="android:windowLightStatusBar">
+                      true
+                  </item>
+
               </style>
+
           </resources>
           EOF
 
+
+          # MainActivity.java
           cat > app/src/main/java/com/almazov/student/MainActivity.java <<'EOF'
           package com.almazov.student;
 
@@ -146,42 +208,71 @@ jobs:
                   super.onCreate(savedInstanceState);
 
                   webView = new WebView(this);
+
                   setContentView(webView);
 
                   WebSettings settings = webView.getSettings();
+
                   settings.setJavaScriptEnabled(true);
                   settings.setDomStorageEnabled(true);
+
                   settings.setAllowFileAccess(true);
                   settings.setAllowContentAccess(true);
 
-                  webView.setWebViewClient(new WebViewClient());
-                  webView.loadUrl("file:///android_asset/index.html");
+                  webView.setWebViewClient(
+                      new WebViewClient()
+                  );
+
+                  webView.loadUrl(
+                      "file:///android_asset/index.html"
+                  );
               }
+
 
               @Override
               public void onBackPressed() {
+
                   if (webView.canGoBack()) {
+
                       webView.goBack();
+
                   } else {
+
                       super.onBackPressed();
+
                   }
               }
           }
           EOF
 
+
+      # 6. Gradle
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+
+      # 7. Собираем APK
       - name: Build APK
-        run: gradle assembleDebug
-
-      - name: Rename APK
         run: |
-          mkdir -p release
-          cp app/build/outputs/apk/debug/app-debug.apk "release/Almazov-Student.apk"
+          gradle assembleDebug
 
+
+      # 8. Переименовываем APK
+      - name: Prepare APK
+        run: |
+
+          mkdir -p release
+
+          cp \
+            app/build/outputs/apk/debug/app-debug.apk \
+            release/Almazov-Student.apk
+
+
+      # 9. Загружаем APK как Artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
+
         with:
           name: Almazov-Student-APK
+
           path: release/Almazov-Student.apk
