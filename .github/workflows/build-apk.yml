@@ -13,7 +13,7 @@ jobs:
     steps:
 
       # ==========================================
-      # 1. Repository
+      # 1. Получаем файлы репозитория
       # ==========================================
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -41,41 +41,58 @@ jobs:
       - name: Install Android SDK packages
         run: |
           yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+          sdkmanager \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
 
       # ==========================================
-      # 4. Check website files
+      # 4. Проверяем файлы сайта и иконку
       # ==========================================
-      - name: Check website files
+      - name: Check project files
         run: |
-          echo "===== Repository ====="
+
+          echo "======================================"
+          echo "PROJECT FILES"
+          echo "======================================"
+
           ls -la
 
-          echo "===== Checking index.html ====="
+          echo ""
+          echo "Checking index.html..."
+
           test -f index.html
+
           wc -c index.html
 
-          echo "===== Checking logo.png ====="
-          test -f logo.png
-          file logo.png
+
+          echo ""
+          echo "Checking app_icon.png..."
+
+          test -f app_icon.png
+
+          file app_icon.png
 
 
       # ==========================================
-      # 5. Create Android project
+      # 5. Создаём Android-проект
       # ==========================================
       - name: Create Android project
         run: |
 
           mkdir -p app/src/main/java/com/almazov/student
+
           mkdir -p app/src/main/res/drawable
+
           mkdir -p app/src/main/res/values
+
           mkdir -p app/src/main/assets
 
 
-          # --------------------------------------
+          # ======================================
           # settings.gradle
-          # --------------------------------------
+          # ======================================
 
           cat > settings.gradle <<'EOF'
           pluginManagement {
@@ -87,7 +104,9 @@ jobs:
           }
 
           dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositoriesMode.set(
+                  RepositoriesMode.FAIL_ON_PROJECT_REPOS
+              )
 
               repositories {
                   google()
@@ -101,9 +120,9 @@ jobs:
           EOF
 
 
-          # --------------------------------------
+          # ======================================
           # build.gradle
-          # --------------------------------------
+          # ======================================
 
           cat > build.gradle <<'EOF'
           plugins {
@@ -112,9 +131,9 @@ jobs:
           EOF
 
 
-          # --------------------------------------
+          # ======================================
           # gradle.properties
-          # --------------------------------------
+          # ======================================
 
           cat > gradle.properties <<'EOF'
           org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
@@ -123,9 +142,9 @@ jobs:
           EOF
 
 
-          # --------------------------------------
+          # ======================================
           # app/build.gradle
-          # --------------------------------------
+          # ======================================
 
           cat > app/build.gradle <<'EOF'
           plugins {
@@ -138,6 +157,7 @@ jobs:
 
               compileSdk 35
 
+
               defaultConfig {
 
                   applicationId 'com.almazov.student'
@@ -146,10 +166,11 @@ jobs:
 
                   targetSdk 35
 
-                  versionCode 31
+                  versionCode 32
 
                   versionName '3.1.3'
               }
+
 
               buildTypes {
 
@@ -169,6 +190,7 @@ jobs:
               }
           }
 
+
           dependencies {
 
               implementation 'androidx.appcompat:appcompat:1.7.0'
@@ -178,18 +200,18 @@ jobs:
           EOF
 
 
-          # --------------------------------------
+          # ======================================
           # ProGuard
-          # --------------------------------------
+          # ======================================
 
           cat > app/proguard-rules.pro <<'EOF'
           # Almazov Student
           EOF
 
 
-          # --------------------------------------
-          # AndroidManifest
-          # --------------------------------------
+          # ======================================
+          # AndroidManifest.xml
+          # ======================================
 
           cat > app/src/main/AndroidManifest.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -197,8 +219,10 @@ jobs:
           <manifest
               xmlns:android="http://schemas.android.com/apk/res/android">
 
+
               <uses-permission
                   android:name="android.permission.INTERNET" />
+
 
               <application
 
@@ -206,11 +230,11 @@ jobs:
 
                   android:hardwareAccelerated="true"
 
-                  android:icon="@drawable/app_logo"
+                  android:icon="@drawable/app_icon"
 
                   android:label="Almazov Student"
 
-                  android:roundIcon="@drawable/app_logo"
+                  android:roundIcon="@drawable/app_icon"
 
                   android:supportsRtl="true"
 
@@ -218,13 +242,18 @@ jobs:
 
                   android:usesCleartextTraffic="true">
 
+
                   <activity
 
                       android:name=".MainActivity"
 
-                      android:configChanges="orientation|screenSize|keyboardHidden"
+                      android:configChanges="
+                          orientation|
+                          screenSize|
+                          keyboardHidden"
 
                       android:exported="true">
+
 
                       <intent-filter>
 
@@ -236,17 +265,20 @@ jobs:
 
                       </intent-filter>
 
+
                   </activity>
 
+
               </application>
+
 
           </manifest>
           EOF
 
 
-          # --------------------------------------
+          # ======================================
           # Theme
-          # --------------------------------------
+          # ======================================
 
           cat > app/src/main/res/values/styles.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -257,7 +289,9 @@ jobs:
                   name="AppTheme"
                   parent="Theme.AppCompat.Light.NoActionBar">
 
-                  <item name="android:fontFamily">sans</item>
+                  <item name="android:fontFamily">
+                      sans
+                  </item>
 
                   <item name="android:colorAccent">
                       #6C63FF
@@ -281,50 +315,77 @@ jobs:
           EOF
 
 
-          # --------------------------------------
-          # Copy website
-          # --------------------------------------
+          # ======================================
+          # Копируем сайт
+          # ======================================
 
-          cp index.html app/src/main/assets/index.html
+          cp index.html \
+             app/src/main/assets/index.html
 
-          cp logo.png app/src/main/res/drawable/app_logo.png
+
+          # ======================================
+          # НОВАЯ ИКОНКА ПРИЛОЖЕНИЯ
+          # ======================================
+
+          cp app_icon.png \
+             app/src/main/res/drawable/app_icon.png
 
 
-          # --------------------------------------
+          # ======================================
           # MainActivity.java
-          # --------------------------------------
+          # ======================================
 
           cat > app/src/main/java/com/almazov/student/MainActivity.java <<'EOF'
           package com.almazov.student;
 
+
           import android.app.Activity;
+
           import android.content.ActivityNotFoundException;
+
           import android.content.Intent;
+
           import android.net.Uri;
+
           import android.os.Bundle;
+
           import android.webkit.ValueCallback;
+
           import android.webkit.WebChromeClient;
+
           import android.webkit.WebResourceRequest;
+
           import android.webkit.WebSettings;
+
           import android.webkit.WebView;
+
           import android.webkit.WebViewClient;
+
 
           public class MainActivity extends Activity {
 
+
               private WebView webView;
 
-              private ValueCallback<Uri[]> filePathCallback;
+
+              private ValueCallback<Uri[]>
+                      filePathCallback;
+
 
               private static final int
                       FILE_CHOOSER_REQUEST_CODE = 1001;
 
 
               @Override
-              protected void onCreate(Bundle savedInstanceState) {
+
+              protected void onCreate(
+                      Bundle savedInstanceState) {
 
                   super.onCreate(savedInstanceState);
 
+
                   webView = new WebView(this);
+
 
                   setContentView(webView);
 
@@ -332,158 +393,228 @@ jobs:
                   WebSettings settings =
                           webView.getSettings();
 
+
                   settings.setJavaScriptEnabled(true);
+
 
                   settings.setDomStorageEnabled(true);
 
+
                   settings.setAllowFileAccess(true);
+
 
                   settings.setAllowContentAccess(true);
 
+
                   settings.setDatabaseEnabled(true);
+
 
                   settings.setSupportZoom(false);
 
+
                   settings.setBuiltInZoomControls(false);
+
 
                   settings.setDisplayZoomControls(false);
 
 
+                  settings.setMediaPlaybackRequiresUserGesture(
+                          false
+                  );
+
+
+                  // =================================
+                  // WebView navigation
+                  // =================================
+
                   webView.setWebViewClient(
                           new WebViewClient() {
 
+
                       @Override
-                      public boolean shouldOverrideUrlLoading(
+
+                      public boolean
+                      shouldOverrideUrlLoading(
+
                               WebView view,
+
                               WebResourceRequest request) {
 
+
                           return openExternalLink(
-                                  request.getUrl().toString()
+
+                              request.getUrl()
+                                     .toString()
+
                           );
                       }
 
 
                       @Override
-                      public boolean shouldOverrideUrlLoading(
+
+                      public boolean
+                      shouldOverrideUrlLoading(
+
                               WebView view,
+
                               String url) {
+
 
                           return openExternalLink(url);
                       }
+
                   });
 
 
+                  // =================================
+                  // File chooser
+                  // =================================
+
                   webView.setWebChromeClient(
+
                           new WebChromeClient() {
 
+
                       @Override
-                      public boolean onShowFileChooser(
+
+                      public boolean
+                      onShowFileChooser(
+
                               WebView webView,
+
                               ValueCallback<Uri[]> callback,
+
                               FileChooserParams params) {
+
 
                           if (filePathCallback != null) {
 
                               filePathCallback
-                                      .onReceiveValue(null);
+                                  .onReceiveValue(null);
+
                           }
+
 
                           filePathCallback = callback;
 
+
                           try {
+
 
                               Intent intent =
                                       params.createIntent();
 
+
                               startActivityForResult(
 
-                                      Intent.createChooser(
-                                              intent,
-                                              "Выберите файл"
-                                      ),
+                                  Intent.createChooser(
 
-                                      FILE_CHOOSER_REQUEST_CODE
+                                      intent,
+
+                                      "Выберите файл"
+
+                                  ),
+
+                                  FILE_CHOOSER_REQUEST_CODE
+
                               );
+
 
                           } catch (
                                   ActivityNotFoundException e) {
 
+
                               filePathCallback = null;
+
 
                               return false;
                           }
 
+
                           return true;
                       }
+
                   });
 
 
+                  // =================================
+                  // Launch website
+                  // =================================
+
                   webView.loadUrl(
-                          "file:///android_asset/index.html"
+                      "file:///android_asset/index.html"
                   );
               }
 
 
+              // =====================================
+              // External links
+              // =====================================
+
               private boolean openExternalLink(
                       String url) {
 
+
                   if (url == null) {
+
                       return false;
                   }
 
 
                   if (
+
                       url.startsWith("http://")
+
                       ||
+
                       url.startsWith("https://")
-                  ) {
 
-                      try {
+                      ||
 
-                          Intent intent =
-                                  new Intent(
-                                          Intent.ACTION_VIEW,
-                                          Uri.parse(url)
-                                  );
-
-                          startActivity(intent);
-
-                          return true;
-
-                      } catch (
-                              ActivityNotFoundException e) {
-
-                          return false;
-                      }
-                  }
-
-
-                  if (
                       url.startsWith("tg://")
+
                       ||
+
                       url.startsWith("yandexmaps://")
+
                       ||
+
                       url.startsWith("geo:")
+
                       ||
+
                       url.startsWith("mailto:")
+
                       ||
+
                       url.startsWith("tel:")
+
                   ) {
+
 
                       try {
 
+
                           Intent intent =
-                                  new Intent(
-                                          Intent.ACTION_VIEW,
-                                          Uri.parse(url)
-                                  );
+
+                              new Intent(
+
+                                  Intent.ACTION_VIEW,
+
+                                  Uri.parse(url)
+
+                              );
+
 
                           startActivity(intent);
 
+
                           return true;
+
 
                       } catch (
                               ActivityNotFoundException e) {
+
 
                           return false;
                       }
@@ -494,28 +625,46 @@ jobs:
               }
 
 
+              // =====================================
+              // File chooser result
+              // =====================================
+
               @Override
+
               protected void onActivityResult(
+
                       int requestCode,
+
                       int resultCode,
+
                       Intent data) {
 
+
                   super.onActivityResult(
-                          requestCode,
-                          resultCode,
-                          data
+
+                      requestCode,
+
+                      resultCode,
+
+                      data
+
                   );
 
 
                   if (
+
                       requestCode !=
+
                       FILE_CHOOSER_REQUEST_CODE
+
                   ) {
+
                       return;
                   }
 
 
                   if (filePathCallback == null) {
+
                       return;
                   }
 
@@ -523,70 +672,131 @@ jobs:
                   Uri[] results = null;
 
 
-                  if (resultCode == RESULT_OK && data != null) {
+                  if (
+
+                      resultCode == RESULT_OK
+
+                      &&
+
+                      data != null
+
+                  ) {
+
 
                       if (data.getClipData() != null) {
 
+
                           int count =
-                                  data.getClipData()
-                                     .getItemCount();
 
-                          results = new Uri[count];
+                              data.getClipData()
+                                  .getItemCount();
 
 
-                          for (int i = 0; i < count; i++) {
+                          results =
+                              new Uri[count];
+
+
+                          for (
+
+                              int i = 0;
+
+                              i < count;
+
+                              i++
+
+                          ) {
+
 
                               results[i] =
-                                      data.getClipData()
-                                          .getItemAt(i)
-                                          .getUri();
+
+                                  data.getClipData()
+
+                                      .getItemAt(i)
+
+                                      .getUri();
                           }
 
-                      } else if (data.getData() != null) {
+
+                      } else if (
+
+                          data.getData() != null
+
+                      ) {
+
 
                           results = new Uri[] {
-                                  data.getData()
+
+                              data.getData()
+
                           };
                       }
                   }
 
 
-                  filePathCallback.onReceiveValue(results);
+                  filePathCallback
+                      .onReceiveValue(results);
+
 
                   filePathCallback = null;
               }
 
 
+              // =====================================
+              // Android Back button
+              // =====================================
+
               @Override
+
               public void onBackPressed() {
 
+
                   if (
+
                       webView != null
+
                       &&
+
                       webView.canGoBack()
+
                   ) {
+
 
                       webView.goBack();
 
+
                   } else {
+
 
                       super.onBackPressed();
                   }
               }
 
 
+              // =====================================
+              // Cleanup
+              // =====================================
+
               @Override
+
               protected void onDestroy() {
+
 
                   if (webView != null) {
 
-                      webView.loadUrl("about:blank");
+
+                      webView.loadUrl(
+                          "about:blank"
+                      );
+
 
                       webView.stopLoading();
 
+
                       webView.setWebChromeClient(null);
 
+
                       webView.setWebViewClient(null);
+
 
                       webView.destroy();
                   }
@@ -594,29 +804,49 @@ jobs:
 
                   super.onDestroy();
               }
+
           }
           EOF
 
 
       # ==========================================
-      # 6. Check generated Android project
+      # 6. Проверяем Android-проект
       # ==========================================
       - name: Check Android project
         run: |
-          echo "===== Android project ====="
-          find app -maxdepth 6 -type f | sort
 
-          echo "===== MainActivity ====="
-          test -f app/src/main/java/com/almazov/student/MainActivity.java
+          echo "======================================"
+          echo "ANDROID PROJECT"
+          echo "======================================"
 
-          echo "===== AndroidManifest ====="
-          test -f app/src/main/AndroidManifest.xml
+          find app \
+            -maxdepth 8 \
+            -type f \
+            | sort
 
-          echo "===== Website asset ====="
-          test -f app/src/main/assets/index.html
 
-          echo "===== Logo ====="
-          test -f app/src/main/res/drawable/app_logo.png
+          echo ""
+          echo "Checking files..."
+
+
+          test -f \
+            app/src/main/assets/index.html
+
+
+          test -f \
+            app/src/main/res/drawable/app_icon.png
+
+
+          test -f \
+            app/src/main/AndroidManifest.xml
+
+
+          test -f \
+            app/src/main/java/com/almazov/student/MainActivity.java
+
+
+          echo ""
+          echo "All required files found."
 
 
       # ==========================================
@@ -627,77 +857,173 @@ jobs:
 
 
       # ==========================================
-      # 8. Build
+      # 8. Собираем unsigned APK
       # ==========================================
-      - name: Build Release APK
+      - name: Build unsigned release APK
         run: |
-          gradle :app:assembleRelease \
+
+          gradle \
+            :app:assembleRelease \
             --no-daemon \
             --stacktrace \
             --info
 
 
       # ==========================================
-      # 9. Find APK
+      # 9. Ищем APK
       # ==========================================
       - name: Find generated APK
         run: |
 
           echo "======================================"
-          echo "SEARCHING FOR GENERATED APK"
+
+          echo "SEARCHING FOR APK"
+
           echo "======================================"
 
-          find . \
+
+          find app/build/outputs \
             -type f \
-            \( -name "*.apk" -o -name "*.aab" \) \
+            -name "*.apk" \
             -print
 
 
       # ==========================================
-      # 10. Prepare release APK
+      # 10. Подписываем APK
       # ==========================================
-      - name: Prepare APK
+      - name: Sign APK
         run: |
+
+          set -e
+
+
+          UNSIGNED_APK="$(
+            find app/build/outputs \
+              -type f \
+              -name "*.apk" \
+              | head -n 1
+          )"
+
+
+          if [ -z "$UNSIGNED_APK" ]; then
+
+              echo ""
+              echo "ERROR:"
+              echo "APK was not generated."
+
+              echo ""
+
+              find app/build \
+                -maxdepth 10 \
+                -type f \
+                2>/dev/null || true
+
+              exit 1
+          fi
+
+
+          echo ""
+          echo "Unsigned APK:"
+          echo "$UNSIGNED_APK"
+
 
           mkdir -p release
 
-          APK_PATH=$(find app/build/outputs \
-            -type f \
-            -name "*.apk" \
-            | head -n 1)
 
-          if [ -z "$APK_PATH" ]; then
+          # ======================================
+          # Создаём ключ подписи
+          # ======================================
 
-            echo "ERROR: APK was not generated."
+          KEYSTORE="$RUNNER_TEMP/almazov-student-release.jks"
 
-            echo ""
-            echo "Build directory:"
-            find app/build -maxdepth 8 -type f \
-              2>/dev/null || true
 
-            exit 1
-          fi
+          keytool \
+            -genkeypair \
+            -keystore "$KEYSTORE" \
+            -storepass "almazov123" \
+            -keypass "almazov123" \
+            -alias "almazov-student" \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Almazov Student, OU=Almazov Student, O=Almazov Student, L=Saint Petersburg, ST=SPb, C=RU"
 
-          echo "APK found:"
-          echo "$APK_PATH"
 
-          cp "$APK_PATH" \
+          # ======================================
+          # Android build tools
+          # ======================================
+
+          ZIPALIGN="$ANDROID_HOME/build-tools/35.0.0/zipalign"
+
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+
+
+          # ======================================
+          # Zipalign
+          # ======================================
+
+          "$ZIPALIGN" \
+            -f \
+            4 \
+            "$UNSIGNED_APK" \
+            release/Almazov-Student-3.1.3-aligned.apk
+
+
+          # ======================================
+          # Sign
+          # ======================================
+
+          "$APKSIGNER" sign \
+
+            --ks "$KEYSTORE" \
+
+            --ks-pass pass:almazov123 \
+
+            --key-pass pass:almazov123 \
+
+            --ks-key-alias almazov-student \
+
+            --out release/Almazov-Student-3.1.3.apk \
+
+            release/Almazov-Student-3.1.3-aligned.apk
+
+
+          # ======================================
+          # Проверяем подпись
+          # ======================================
+
+          "$APKSIGNER" verify \
+            --verbose \
             release/Almazov-Student-3.1.3.apk
 
+
+          rm -f \
+            release/Almazov-Student-3.1.3-aligned.apk
+
+
           echo ""
-          echo "Final APK:"
-          ls -lh release/Almazov-Student-3.1.3.apk
+          echo "======================================"
+
+          echo "FINAL APK"
+
+          echo "======================================"
+
+
+          ls -lh \
+            release/Almazov-Student-3.1.3.apk
 
 
       # ==========================================
-      # 11. Upload artifact
+      # 11. Загружаем APK
       # ==========================================
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
 
         with:
+
           name: Almazov-Student-3.1.3-APK
 
-          path: release/Almazov-Student-3.1.3.apk
+          path: |
+            release/Almazov-Student-3.1.3.apk
 
           if-no-files-found: error
