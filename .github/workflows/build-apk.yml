@@ -24,22 +24,22 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK
+      - name: Install Android SDK packages
         run: |
+          yes | sdkmanager --licenses || true
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Create Android project
         run: |
           mkdir -p app/src/main/java/com/almazov/student
           mkdir -p app/src/main/assets
-          mkdir -p app/src/main/res/drawable
-          mkdir -p app/src/main/res/mipmap-hdpi
-          mkdir -p app/src/main/res/mipmap-mdpi
-          mkdir -p app/src/main/res/mipmap-xhdpi
-          mkdir -p app/src/main/res/mipmap-xxhdpi
-          mkdir -p app/src/main/res/mipmap-xxxhdpi
+          mkdir -p app/src/main/res/values
 
           cp index.html app/src/main/assets/index.html
+
+          if [ -f logo.png ]; then
+            cp logo.png app/src/main/assets/logo.png
+          fi
 
           cat > settings.gradle <<'EOF'
           pluginManagement {
@@ -115,11 +115,10 @@ jobs:
           </manifest>
           EOF
 
-          mkdir -p app/src/main/res/values
-
           cat > app/src/main/res/values/styles.xml <<'EOF'
           <resources>
-              <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+              <style name="AppTheme"
+                     parent="android:style/Theme.Material.Light.NoActionBar">
                   <item name="android:fontFamily">sans</item>
                   <item name="android:colorAccent">#1976D2</item>
                   <item name="android:navigationBarColor">#FFFFFF</item>
@@ -156,7 +155,6 @@ jobs:
                   settings.setAllowContentAccess(true);
 
                   webView.setWebViewClient(new WebViewClient());
-
                   webView.loadUrl("file:///android_asset/index.html");
               }
 
@@ -171,7 +169,7 @@ jobs:
           }
           EOF
 
-      - name: Install Gradle
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build APK
@@ -180,10 +178,10 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p release
-          cp app/build/outputs/apk/debug/app-debug.apk "release/Almazov Student.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "release/Almazov-Student.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Almazov-Student-APK
-          path: release/Almazov Student.apk
+          path: release/Almazov-Student.apk
