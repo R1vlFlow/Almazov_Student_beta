@@ -1,0 +1,508 @@
+name: Build Almazov Student APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      # --------------------------------------------------
+      # 1. Получаем файлы репозитория
+      # --------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # --------------------------------------------------
+      # 2. Java 17
+      # --------------------------------------------------
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # --------------------------------------------------
+      # 3. Android SDK
+      # --------------------------------------------------
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+
+      - name: Install Android SDK 35
+        run: |
+          yes | sdkmanager --licenses || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      # --------------------------------------------------
+      # 4. Проверяем основные файлы сайта
+      # --------------------------------------------------
+      - name: Check project files
+        run: |
+          echo "Repository contents:"
+          ls -la
+
+          test -f index.html
+          test -f logo.png
+
+          echo "index.html found"
+          echo "logo.png found"
+
+      # --------------------------------------------------
+      # 5. Создаём Android-проект
+      # --------------------------------------------------
+      - name: Create Android project
+        run: |
+          mkdir -p app/src/main/java/com/almazov/student
+          mkdir -p app/src/main/res/drawable
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/assets
+
+          # -----------------------------
+          # settings.gradle
+          # -----------------------------
+          cat > settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.name = "AlmazovStudent"
+          include(":app")
+          EOF
+
+          # -----------------------------
+          # root build.gradle
+          # -----------------------------
+          cat > build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.7.3' apply false
+          }
+          EOF
+
+          # -----------------------------
+          # gradle.properties
+          # -----------------------------
+          cat > gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          android.nonTransitiveRClass=true
+          EOF
+
+          # -----------------------------
+          # app/build.gradle
+          # -----------------------------
+          cat > app/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'com.almazov.student'
+              compileSdk 35
+
+              defaultConfig {
+                  applicationId 'com.almazov.student'
+                  minSdk 23
+                  targetSdk 35
+
+                  versionCode 31
+                  versionName '3.1.3'
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                      shrinkResources false
+
+                      proguardFiles(
+                          getDefaultProguardFile('proguard-android-optimize.txt'),
+                          'proguard-rules.pro'
+                      )
+                  }
+              }
+          }
+
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.7.0'
+              implementation 'androidx.activity:activity:1.10.1'
+          }
+          EOF
+
+          # -----------------------------
+          # ProGuard
+          # -----------------------------
+          cat > app/proguard-rules.pro <<'EOF'
+          # Almazov Student
+          # No custom ProGuard rules required.
+          EOF
+
+          # -----------------------------
+          # AndroidManifest.xml
+          # -----------------------------
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+
+              <application
+                  android:allowBackup="true"
+                  android:hardwareAccelerated="true"
+                  android:icon="@drawable/app_logo"
+                  android:label="Almazov Student"
+                  android:roundIcon="@drawable/app_logo"
+                  android:supportsRtl="true"
+                  android:theme="@style/AppTheme"
+                  android:usesCleartextTraffic="true">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:configChanges="orientation|screenSize|keyboardHidden"
+                      android:exported="true">
+
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+
+                  </activity>
+
+              </application>
+
+          </manifest>
+          EOF
+
+          # -----------------------------
+          # Theme
+          # -----------------------------
+          cat > app/src/main/res/values/styles.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+
+              <style name="AppTheme"
+                  parent="Theme.AppCompat.Light.NoActionBar">
+
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:windowActionModeOverlay">true</item>
+                  <item name="android:colorAccent">#6C63FF</item>
+                  <item name="android:navigationBarColor">#0B1020</item>
+                  <item name="android:statusBarColor">#0B1020</item>
+                  <item name="android:windowLightStatusBar">false</item>
+
+              </style>
+
+          </resources>
+          EOF
+
+          # --------------------------------------------------
+          # Копируем сайт внутрь APK
+          # --------------------------------------------------
+          cp index.html app/src/main/assets/index.html
+          cp logo.png app/src/main/res/drawable/app_logo.png
+
+          # --------------------------------------------------
+          # MainActivity.java
+          # --------------------------------------------------
+          cat > app/src/main/java/com/almazov/student/MainActivity.java <<'EOF'
+          package com.almazov.student;
+
+          import android.app.Activity;
+          import android.content.ActivityNotFoundException;
+          import android.content.Intent;
+          import android.net.Uri;
+          import android.os.Bundle;
+          import android.webkit.ValueCallback;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebResourceRequest;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+
+          public class MainActivity extends Activity {
+
+              private WebView webView;
+
+              private ValueCallback<Uri[]> filePathCallback;
+
+              private static final int FILE_CHOOSER_REQUEST_CODE = 1001;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+
+                  webView = new WebView(this);
+
+                  setContentView(webView);
+
+                  WebSettings settings = webView.getSettings();
+
+                  settings.setJavaScriptEnabled(true);
+                  settings.setDomStorageEnabled(true);
+
+                  settings.setAllowFileAccess(true);
+                  settings.setAllowContentAccess(true);
+
+                  settings.setDatabaseEnabled(true);
+
+                  settings.setBuiltInZoomControls(false);
+                  settings.setDisplayZoomControls(false);
+
+                  settings.setSupportZoom(false);
+
+                  settings.setMediaPlaybackRequiresUserGesture(false);
+
+                  webView.setWebViewClient(new WebViewClient() {
+
+                      @Override
+                      public boolean shouldOverrideUrlLoading(
+                              WebView view,
+                              WebResourceRequest request) {
+
+                          String url = request.getUrl().toString();
+
+                          return openExternalLink(url);
+                      }
+
+                      @Override
+                      public boolean shouldOverrideUrlLoading(
+                              WebView view,
+                              String url) {
+
+                          return openExternalLink(url);
+                      }
+                  });
+
+                  webView.setWebChromeClient(new WebChromeClient() {
+
+                      @Override
+                      public boolean onShowFileChooser(
+                              WebView webView,
+                              ValueCallback<Uri[]> filePathCallback,
+                              FileChooserParams fileChooserParams) {
+
+                          if (MainActivity.this.filePathCallback != null) {
+                              MainActivity.this.filePathCallback.onReceiveValue(null);
+                          }
+
+                          MainActivity.this.filePathCallback = filePathCallback;
+
+                          try {
+
+                              Intent intent =
+                                      fileChooserParams.createIntent();
+
+                              startActivityForResult(
+                                      Intent.createChooser(
+                                              intent,
+                                              "Выберите файл"
+                                      ),
+                                      FILE_CHOOSER_REQUEST_CODE
+                              );
+
+                          } catch (ActivityNotFoundException e) {
+
+                              MainActivity.this.filePathCallback = null;
+
+                              return false;
+                          }
+
+                          return true;
+                      }
+                  });
+
+                  webView.loadUrl("file:///android_asset/index.html");
+              }
+
+              private boolean openExternalLink(String url) {
+
+                  if (url == null) {
+                      return false;
+                  }
+
+                  if (url.startsWith("http://")
+                          || url.startsWith("https://")) {
+
+                      try {
+
+                          Intent intent =
+                                  new Intent(
+                                          Intent.ACTION_VIEW,
+                                          Uri.parse(url)
+                                  );
+
+                          startActivity(intent);
+
+                          return true;
+
+                      } catch (ActivityNotFoundException e) {
+
+                          return false;
+                      }
+                  }
+
+                  if (url.startsWith("tg://")
+                          || url.startsWith("yandexmaps://")
+                          || url.startsWith("geo:")
+                          || url.startsWith("mailto:")
+                          || url.startsWith("tel:")) {
+
+                      try {
+
+                          Intent intent =
+                                  new Intent(
+                                          Intent.ACTION_VIEW,
+                                          Uri.parse(url)
+                                  );
+
+                          startActivity(intent);
+
+                          return true;
+
+                      } catch (ActivityNotFoundException e) {
+
+                          return false;
+                      }
+                  }
+
+                  return false;
+              }
+
+              @Override
+              protected void onActivityResult(
+                      int requestCode,
+                      int resultCode,
+                      Intent data) {
+
+                  super.onActivityResult(
+                          requestCode,
+                          resultCode,
+                          data
+                  );
+
+                  if (requestCode != FILE_CHOOSER_REQUEST_CODE) {
+                      return;
+                  }
+
+                  if (filePathCallback == null) {
+                      return;
+                  }
+
+                  Uri[] results = null;
+
+                  if (resultCode == RESULT_OK) {
+
+                      if (data != null) {
+
+                          String dataString = data.getDataString();
+
+                          if (dataString != null) {
+
+                              results = new Uri[]{
+                                      Uri.parse(dataString)
+                              };
+
+                          } else if (data.getClipData() != null) {
+
+                              int count =
+                                      data.getClipData().getItemCount();
+
+                              results = new Uri[count];
+
+                              for (int i = 0; i < count; i++) {
+
+                                  results[i] =
+                                          data.getClipData()
+                                              .getItemAt(i)
+                                              .getUri();
+                              }
+                          }
+                      }
+                  }
+
+                  filePathCallback.onReceiveValue(results);
+
+                  filePathCallback = null;
+              }
+
+              @Override
+              public void onBackPressed() {
+
+                  if (webView != null && webView.canGoBack()) {
+
+                      webView.goBack();
+
+                  } else {
+
+                      super.onBackPressed();
+                  }
+              }
+
+              @Override
+              protected void onDestroy() {
+
+                  if (webView != null) {
+
+                      webView.loadUrl("about:blank");
+                      webView.stopLoading();
+                      webView.setWebChromeClient(null);
+                      webView.setWebViewClient(null);
+                      webView.destroy();
+
+                  }
+
+                  super.onDestroy();
+              }
+          }
+          EOF
+
+      # --------------------------------------------------
+      # 6. Устанавливаем Gradle
+      # --------------------------------------------------
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # --------------------------------------------------
+      # 7. Build APK
+      # --------------------------------------------------
+      - name: Build release APK
+        run: |
+          gradle assembleRelease --no-daemon --stacktrace
+
+      # --------------------------------------------------
+      # 8. Переименовываем APK
+      # --------------------------------------------------
+      - name: Prepare APK
+        run: |
+          mkdir -p release
+
+          cp app/build/outputs/apk/release/app-release.apk \
+             release/Almazov-Student-3.1.3.apk
+
+          ls -lh release/Almazov-Student-3.1.3.apk
+
+      # --------------------------------------------------
+      # 9. Загружаем APK в GitHub Actions
+      # --------------------------------------------------
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Almazov-Student-3.1.3-APK
+          path: release/Almazov-Student-3.1.3.apk
+          if-no-files-found: error
