@@ -1,4 +1,4 @@
-const VERSION='almazov-student-3.1.33';
+const VERSION='almazov-student-3.1.34';
 const STATIC=['./','./index.html','./offline.html','./404.html','./manifest.webmanifest','./logo.webp','./logo.png','./sw.js','./COPYRIGHT.md','./LICENSE.txt','./PRIVACY.md'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(VERSION).then(c=>c.addAll(STATIC)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
