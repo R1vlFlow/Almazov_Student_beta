@@ -1,0 +1,9 @@
+ALMAZOV STUDENT — PROPRIETARY LICENSE NOTICE
+
+Copyright (c) 2026 R1vlFlow. All rights reserved.
+
+No permission is granted to copy, modify, publish, distribute, sublicense, sell, or create derivative works from the original Almazov Student source code, original visual design, original texts, or original assets without prior written permission from the copyright holder.
+
+Third-party components remain subject to their own licenses. This notice does not transfer or restrict rights that belong to third parties.
+
+Almazov Student is an independent beta project and is not an official application of NMITs named after V.A. Almazov.
