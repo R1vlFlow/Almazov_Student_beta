@@ -1,5 +1,41 @@
-const CACHE_NAME='almazov-student-3.1.29';
-const SHELL=['./index.html','./offline.html','./404.html','./logo.webp','./manifest.webmanifest'];
-self.addEventListener('install',event=>{self.skipWaiting();event.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(SHELL).catch(()=>{})));});
-self.addEventListener('activate',event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)));await self.clients.claim();})());});
-self.addEventListener('fetch',event=>{const req=event.request;if(req.method!=='GET')return;const url=new URL(req.url);if(url.origin!==self.location.origin)return;if(req.mode==='navigate'){event.respondWith((async()=>{const cached=await caches.match('./index.html');const update=fetch(req,{cache:'no-store'}).then(async fresh=>{if(fresh.ok){const cache=await caches.open(CACHE_NAME);await cache.put('./index.html',fresh.clone());}}).catch(()=>{});if(cached){event.waitUntil(update);return cached;}try{const fresh=await fetch(req,{cache:'no-store'});const cache=await caches.open(CACHE_NAME);await cache.put('./index.html',fresh.clone());return fresh;}catch(e){return (await caches.match('./offline.html'))||Response.error();}})());return;}event.respondWith((async()=>{const cached=await caches.match(req);if(cached)return cached;try{const fresh=await fetch(req);if(fresh.ok)caches.open(CACHE_NAME).then(c=>c.put(req,fresh.clone()));return fresh;}catch(e){return Response.error();}})());});
+const VERSION='almazov-student-3.1.30';
+const STATIC=[
+  './','./index.html','./offline.html','./404.html','./manifest.webmanifest','./logo.webp','./logo.png','./sw.js'
+];
+self.addEventListener('install',event=>{
+  event.waitUntil(caches.open(VERSION).then(c=>c.addAll(STATIC)).then(()=>self.skipWaiting()));
+});
+self.addEventListener('activate',event=>{
+  event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+});
+self.addEventListener('message',event=>{if(event.data==='SKIP_WAITING')self.skipWaiting()});
+async function networkFirst(request){
+  const cache=await caches.open(VERSION);
+  try{
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),3500);
+    const response=await fetch(request,{signal:controller.signal,cache:'no-store'});
+    clearTimeout(timer);
+    if(response&&response.ok)cache.put(request,response.clone());
+    return response;
+  }catch(e){
+    return (await cache.match(request)) || (await cache.match('./index.html')) || (await cache.match('./offline.html'));
+  }
+}
+async function cacheFirst(request){
+  const cache=await caches.open(VERSION);
+  const cached=await cache.match(request);
+  if(cached)return cached;
+  try{const response=await fetch(request);if(response&&response.ok)cache.put(request,response.clone());return response}catch(e){return Response.error()}
+}
+self.addEventListener('fetch',event=>{
+  const req=event.request;
+  if(req.method!=='GET')return;
+  const url=new URL(req.url);
+  if(url.origin!==location.origin)return;
+  if(req.mode==='navigate'){
+    event.respondWith(networkFirst(req).then(async response=>response||new Response('',{status:503})));
+    return;
+  }
+  event.respondWith(cacheFirst(req));
+});
