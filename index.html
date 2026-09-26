@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#071632"><meta name="description" content="Almazov Student — учебный планер"><link rel="preload" as="image" href="logo.webp" fetchpriority="high">
-<link rel="manifest" href="manifest.webmanifest"><title>Almazov Student — 3.1.30</title>
+<link rel="manifest" href="manifest.webmanifest"><title>Almazov Student — 3.1.31</title>
 <style>
 :root{--bg:#06132d;--panel:#0b1b3a;--panel2:#102650;--line:rgba(151,190,255,.16);--text:#f4f7ff;--muted:#a9b9d9;--blue:#4e8fff;--cyan:#4fd8ff;--violet:#9a65ff;--green:#46d6b0;--gold:#f4c46c;--danger:#ff7187;--shadow:0 18px 50px rgba(0,0,0,.28)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 55% -15%,#183e82 0,#081a3b 32%,#06132d 68%);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;color:inherit}a{color:inherit;text-decoration:none}.hidden{display:none!important}
@@ -260,6 +260,81 @@ html[data-theme="light"] .as-modal{background:rgba(21,40,67,.38)}html[data-theme
 
 .calendar-input{position:absolute!important;opacity:0!important;width:1px!important;height:1px!important;pointer-events:none!important}.calendar-trigger{width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px;border-radius:13px;background:rgba(5,20,43,.62);border:1px solid rgba(131,170,224,.16);color:#edf4ff;text-align:left}.calendar-trigger-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.calendar-trigger:hover{border-color:rgba(91,145,255,.55);box-shadow:0 0 0 3px rgba(67,133,240,.08)}html[data-theme="light"] .calendar-trigger{background:#fff;color:#203a5d;border-color:rgba(58,104,162,.18)}
 </style>
+
+<style id="v3-1-31-fixes">
+/* 3.1.31 — coherent light theme, reliable controls, lower rendering cost */
+html[data-theme="light"]{
+  --bg:#f3f7fc;--panel:#ffffff;--panel2:#f7faff;--line:rgba(54,91,132,.14);
+  --text:#172b45;--muted:#61758f;--shadow:0 12px 34px rgba(47,78,113,.10);
+}
+html[data-theme="light"],html[data-theme="light"] body{background:#f3f7fc!important;color:#172b45!important}
+html[data-theme="light"] body{background-image:linear-gradient(180deg,#f8fbff 0,#f2f6fb 55%,#eef3f8 100%)!important}
+html[data-theme="light"] body:before{display:none!important}
+html[data-theme="light"] .sidebar{background:#ffffff!important;border-right:1px solid #dfe7f0!important;box-shadow:8px 0 30px rgba(45,77,112,.05)!important;backdrop-filter:none!important}
+html[data-theme="light"] .brand strong,html[data-theme="light"] .nav button,html[data-theme="light"] .side-bottom{color:#29415f!important}
+html[data-theme="light"] .nav button:hover{background:#eef5ff!important;color:#174d8f!important;transform:none!important}
+html[data-theme="light"] .nav button.active{background:#eaf3ff!important;color:#1659a6!important;border-color:#cfe0f4!important;box-shadow:inset 3px 0 0 #3f86e8!important}
+html[data-theme="light"] .side-actions button{background:#f7faff!important;color:#34506f!important;border-color:#d9e4ef!important}
+html[data-theme="light"] .main{background:transparent!important}
+html[data-theme="light"] .hello h1,html[data-theme="light"] .section-head h2,html[data-theme="light"] .page-title{color:#162b46!important}
+html[data-theme="light"] .hello p,html[data-theme="light"] .section-head span{color:#667b95!important}
+html[data-theme="light"] .clock,html[data-theme="light"] .calendar-mini{background:#ffffff!important;border-color:#dbe5ef!important;box-shadow:0 10px 28px rgba(50,81,116,.08)!important;backdrop-filter:none!important}
+html[data-theme="light"] .clock b,html[data-theme="light"] .clock span{color:#294663!important}
+html[data-theme="light"] .calendar-mini .week{color:#71849c!important}
+html[data-theme="light"] .calendar-mini .days span{color:#3b5674!important}
+html[data-theme="light"] .hero .next{background:linear-gradient(125deg,#287fe8,#5b6fe1)!important;box-shadow:0 18px 38px rgba(48,103,197,.18)!important}
+html[data-theme="light"] .mascot{background:linear-gradient(145deg,#eaf3ff,#f8fbff)!important;border-color:#d8e4ef!important}
+html[data-theme="light"] .quick-card,html[data-theme="light"] .lesson,html[data-theme="light"] .card,html[data-theme="light"] .day,html[data-theme="light"] .local-item,html[data-theme="light"] .task-card,html[data-theme="light"] .note-item,html[data-theme="light"] .material-card{
+  background:#ffffff!important;color:#213a58!important;border-color:#dce6ef!important;box-shadow:0 9px 26px rgba(45,78,113,.07)!important
+}
+html[data-theme="light"] .quick-card:hover,html[data-theme="light"] .lesson:hover{box-shadow:0 12px 30px rgba(45,78,113,.10)!important}
+html[data-theme="light"] .quick-card b,html[data-theme="light"] .lesson b,html[data-theme="light"] .card h2,html[data-theme="light"] .card h3,html[data-theme="light"] .day-head,html[data-theme="light"] .task-title,html[data-theme="light"] .note-item-title,html[data-theme="light"] .material-title{color:#1d3553!important}
+html[data-theme="light"] .quick-card p,html[data-theme="light"] .lesson small,html[data-theme="light"] .muted,html[data-theme="light"] .task-description-text,html[data-theme="light"] .note-item-text,html[data-theme="light"] .material-description,html[data-theme="light"] .import-box p{color:#647991!important}
+html[data-theme="light"] .right{background:#f7faff!important;border-left-color:#dfe7ef!important}
+html[data-theme="light"] .right h3{color:#304a68!important}
+html[data-theme="light"] .right-link{background:#ffffff!important;color:#25415f!important;border-color:#dce6ef!important;box-shadow:0 8px 20px rgba(45,78,113,.06)!important}
+html[data-theme="light"] .right-link b{color:#25415f!important}html[data-theme="light"] .right-link small{color:#70839b!important}
+html[data-theme="light"] .quote{background:linear-gradient(145deg,#eaf3ff,#ffffff)!important;border-color:#cfdeec!important;box-shadow:0 12px 28px rgba(45,78,113,.08)!important}
+html[data-theme="light"] .quote p,html[data-theme="light"] .quote .quote-translation{color:#284768!important}html[data-theme="light"] .quote .author{color:#6f829a!important}
+html[data-theme="light"] .btn{background:#ffffff!important;color:#2c4968!important;border-color:#d4e0eb!important;box-shadow:none!important}
+html[data-theme="light"] .btn:hover{background:#f0f6ff!important;border-color:#a9c8e9!important;transform:none!important}
+html[data-theme="light"] .btn.primary{background:linear-gradient(100deg,#347fdf,#675bd8)!important;color:#ffffff!important;border-color:transparent!important;box-shadow:0 8px 18px rgba(54,115,214,.18)!important}
+html[data-theme="light"] .input,html[data-theme="light"] textarea,html[data-theme="light"] select,html[data-theme="light"] .calendar-trigger{background:#ffffff!important;color:#213d5c!important;border-color:#ccdbe9!important;box-shadow:none!important}
+html[data-theme="light"] .input::placeholder,html[data-theme="light"] textarea::placeholder{color:#8a9bad!important}
+html[data-theme="light"] .input:focus,html[data-theme="light"] textarea:focus,html[data-theme="light"] select:focus,html[data-theme="light"] .calendar-trigger:focus{border-color:#6ea3df!important;box-shadow:0 0 0 3px rgba(71,133,211,.10)!important}
+html[data-theme="light"] .week-toolbar{background:#ffffff!important;border-color:#dbe5ee!important;box-shadow:0 8px 24px rgba(45,78,113,.06)!important}
+html[data-theme="light"] .week-title{color:#294766!important}
+html[data-theme="light"] .day-head{border-bottom-color:#e1e8ef!important}
+html[data-theme="light"] .day-note{background:#f6f9fc!important;color:#47709b!important;border-color:#dce7f0!important}
+html[data-theme="light"] .event{color:#ffffff!important;border-color:rgba(255,255,255,.22)!important;box-shadow:0 5px 14px rgba(45,78,113,.10)!important}
+html[data-theme="light"] .event b,html[data-theme="light"] .event span,html[data-theme="light"] .event small,html[data-theme="light"] .event .hw-badge{color:inherit!important}
+html[data-theme="light"] .event-actions .btn{background:rgba(255,255,255,.86)!important;color:#244362!important;border-color:rgba(255,255,255,.55)!important}
+html[data-theme="light"] .task-chip,html[data-theme="light"] .note-chip,html[data-theme="light"] .material-chip,html[data-theme="light"] .schedule-note-badge{background:#eef5fc!important;color:#476581!important;border-color:#d9e5ef!important}
+html[data-theme="light"] .task-card{border-bottom-color:#e0e8ef!important}
+html[data-theme="light"] .import-box,html[data-theme="light"] .import-preview .import-modal{background:#ffffff!important;color:#213d5c!important;border-color:#d7e3ee!important}
+html[data-theme="light"] .import-info,html[data-theme="light"] .import-status{color:#627891!important}
+html[data-theme="light"] .faq details{background:#ffffff!important;border-color:#d8e3ed!important}
+html[data-theme="light"] .faq summary{color:#294766!important}
+html[data-theme="light"] .faq p{color:#657991!important}
+html[data-theme="light"] .mobile-nav{background:rgba(255,255,255,.98)!important;border-top-color:#dbe5ee!important;box-shadow:0 -8px 24px rgba(45,78,113,.08)!important;backdrop-filter:none!important}
+html[data-theme="light"] .mobile-nav button{color:#607690!important}.mobile-nav button.active{color:#287cf2!important;background:#edf5ff!important}
+html[data-theme="light"] .as-modal{background:rgba(31,53,78,.28)!important;backdrop-filter:blur(6px)!important}
+html[data-theme="light"] .as-modal-card{background:#ffffff!important;color:#203c5b!important;border-color:#d6e2ed!important;box-shadow:0 24px 70px rgba(39,70,105,.18)!important}
+html[data-theme="light"] .as-modal-head p{color:#6b8098!important}
+html[data-theme="light"] .as-modal-close,html[data-theme="light"] .cal-nav{background:#f7faff!important;color:#2a4969!important;border-color:#d5e1ec!important}
+html[data-theme="light"] .subject-color-row{background:#f8fbfe!important;border-color:#dce6ef!important}
+html[data-theme="light"] .subject-color-name{color:#294664!important}
+html[data-theme="light"] .calendar-day{color:#294766!important}.calendar-day.muted{color:#9aaabd!important}
+html[data-theme="light"] .calendar-day:hover{background:#edf5ff!important}
+html[data-theme="light"] .calendar-selected{background:#edf5ff!important;border-color:#d4e2ee!important;color:#5c738e!important}
+/* Color modal: larger hit areas and an explicit current-color indicator. */
+.subject-color-label{display:flex;align-items:center;gap:9px;min-width:0}.subject-color-preview{width:30px;height:30px;flex:0 0 30px;border-radius:9px;box-shadow:0 5px 14px rgba(0,0,0,.12)}
+.gradient-swatch{width:28px!important;height:28px!important;min-width:28px!important;border-radius:9px!important;touch-action:manipulation!important}
+.gradient-swatch:focus-visible{outline:3px solid rgba(79,143,255,.45);outline-offset:2px}.gradient-swatch.active{border-color:#fff!important;box-shadow:0 0 0 2px #4e8fff,0 5px 12px rgba(0,0,0,.18)!important}
+.as-select{position:relative!important}.as-select-trigger{touch-action:manipulation}.as-select-menu{pointer-events:none!important}.as-select.open .as-select-menu{pointer-events:auto!important}
+/* Do not spend frames animating layout-heavy effects on touch devices. */
+@media(pointer:coarse){.card,.quick-card,.lesson,.day,.task-card,.right-link,.event,.btn,.gradient-swatch{transition:none!important}.as-modal,.quote{backdrop-filter:none!important}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -423,7 +498,7 @@ function timeToMinutes(v){const m=String(v||"").match(/(\d{1,2})\s*[:.]\s*(\d{2}
 function compareEvents(a,b){return Number(a.weekday)-Number(b.weekday)||timeToMinutes(a.start)-timeToMinutes(b.start)||timeToMinutes(a.end)-timeToMinutes(b.end)||String(a.subject).localeCompare(String(b.subject),"ru")}
 function sortEvents(a){return a.slice().sort(compareEvents)}
 function normalizeNotes(raw){const out={};if(!raw||typeof raw!=="object")return out;for(const [date,value] of Object.entries(raw)){if(Array.isArray(value)){out[date]=value.map(n=>({id:n.id||String(Date.now())+Math.random().toString(16).slice(2),title:String(n.title||"Заметка"),text:String(n.text||""),subject:String(n.subject||""),priority:n.priority==="high"?"high":n.priority==="low"?"low":"normal",pinned:Boolean(n.pinned),done:Boolean(n.done),createdAt:n.createdAt||new Date().toISOString()})).filter(n=>n.text.trim())}else if(typeof value==="string"&&value.trim()){out[date]=[{id:String(Date.now())+Math.random().toString(16).slice(2),title:"Заметка",text:value,subject:"",priority:"normal",pinned:false,done:false,createdAt:new Date().toISOString()}]}}return out}
-function normalizeData(raw){const d=raw||{};const tasks=Array.isArray(d.tasks)?d.tasks.map(t=>({id:t.id||taskId(),title:String(t.title||"Задача"),done:Boolean(t.done),due:t.due||"",priority:t.priority==="high"?"high":t.priority==="low"?"low":"normal",subject:cleanSubjectName(t.subject||""),description:String(t.description||"")})):[];return {profile:{name:d.profile?.name||"Илья",specialty:d.profile?.specialty||"31.05.01",course:Number(d.profile?.course)||1,group:d.profile?.group||""},tasks,notes:normalizeNotes(d.notes),subjects:(d.subjects&&typeof d.subjects==="object")?d.subjects:{},subjectColors:(d.subjectColors&&typeof d.subjectColors==="object")?d.subjectColors:{},schedule:d.schedule&&Array.isArray(d.schedule.weeks)?d.schedule:JSON.parse(JSON.stringify(DEFAULT_SCHEDULE))}}
+function normalizeData(raw){const d=raw||{};const tasks=Array.isArray(d.tasks)?d.tasks.map(t=>({id:t.id||taskId(),title:String(t.title||"Задача"),done:Boolean(t.done),due:t.due||"",priority:t.priority==="high"?"high":t.priority==="low"?"low":"normal",subject:cleanSubjectName(t.subject||""),description:String(t.description||"")})):[];return {profile:{name:d.profile?.name||"Илья",specialty:d.profile?.specialty||"31.05.01",course:Number(d.profile?.course)||1,group:d.profile?.group||""},tasks,notes:normalizeNotes(d.notes),subjects:(d.subjects&&typeof d.subjects==="object")?d.subjects:{},subjectColors:(d.subjectColors&&typeof d.subjectColors==="object")?d.subjectColors:{},schedule:Object.prototype.hasOwnProperty.call(d,"schedule")?(d.schedule&&Array.isArray(d.schedule.weeks)?d.schedule:null):JSON.parse(JSON.stringify(DEFAULT_SCHEDULE))}}
 function loadData(){let raw=null;try{raw=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null")}catch{};if(!raw){for(const k of OLD_KEYS){try{raw=JSON.parse(localStorage.getItem(k)||"null")}catch{};if(raw)break}};return normalizeData(raw)}
 let data=loadData();migrateSubjectNames();let scheduleViewDate=new Date();let selectedNoteDate=isoDate(new Date());
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}
@@ -482,7 +557,7 @@ function renderToday(d){const w=findWeekForDate(d);const wd=(d.getDay()+6)%7;con
 function formatRange(a,b){return `${a.toLocaleDateString("ru-RU",{day:"numeric",month:"long",year:"numeric"})} — ${b.toLocaleDateString("ru-RU",{day:"numeric",month:"long",year:"numeric"})}`}
 function getHomeworkForEvent(date,subject){const s=cleanSubjectName(subject).toLowerCase();return (data.tasks||[]).filter(t=>!t.done&&t.due===date&&s&&cleanSubjectName(t.subject).toLowerCase()===s)}
 function addHomeworkForEvent(date,encodedSubject){const subject=decodeURIComponent(encodedSubject||"");const title=prompt(`Домашнее задание по предмету «${subject}»:`,"");if(title===null||!title.trim())return;data.tasks.unshift({id:taskId(),title:title.trim(),done:false,due:date,priority:"normal",subject,description:""});save();renderTasks();renderSubjectControls();renderSchedule();toast("ДЗ добавлено 📌")}
-function renderSchedule(){const monday=startOfWeek(scheduleViewDate), sunday=new Date(monday);sunday.setDate(monday.getDate()+6);document.getElementById("weekTitle").textContent=formatRange(monday,sunday);document.getElementById("scheduleHint").textContent=`${specialtyNames[data.profile.specialty]} · ${data.profile.course} курс${data.profile.group?" · "+data.profile.group:""}`;const groupList=Array.isArray(data.schedule?.groups)?data.schedule.groups:[];const groupInfo=groupList.length?` · ${groupList.length} групп`:"";document.getElementById("scheduleImportStatus").textContent=`${data.schedule?.weeks?.length||0} недель${groupInfo} · ${data.schedule?.sourceName||"локальное расписание"}`;renderSubjectControls();renderProfileSubjects();const w=data.schedule?.weeks?.find(x=>x.start===isoDate(monday));const wantedGroup=normalizeImportedGroup(data.profile.group);const filteredEvents=(w?.events||[]).filter(e=>Number(e.weekday)>=0&&(!groupList.length||(wantedGroup&&normalizeImportedGroup(e.group)===wantedGroup)));document.getElementById("weekGrid").innerHTML=weekdays.map((name,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);const ev=sortEvents(filteredEvents.filter(e=>Number(e.weekday)===i));const dayNotes=getNotesForDate(isoDate(d));const hasNote=dayNotes.length>0;const emptyText=groupList.length&&!wantedGroup?"укажите группу в профиле": "нет пар";return `<div class="day ${isoDate(d)===isoDate(new Date())?"today":""}"><div class="day-head"><span>${name}${hasNote?` <span class="schedule-note-badge">📝 ${dayNotes.length}</span>`:""}</span><span>${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}</span></div>${ev.length?ev.map(e=>{const matched=dayNotes.some(n=>n.subject&&String(e.subject).toLowerCase().includes(n.subject.toLowerCase()));const eventDate=isoDate(d),hw=getHomeworkForEvent(eventDate,e.subject);return `<div class="event" style="--event-gradient:${getSubjectGradient(e.subject)}"><b>${esc(e.start)}–${esc(e.end)}</b><span>${esc(e.subject)}${matched?` <span class="event-note" title="Есть заметка">📝</span>`:""}</span>${e.location?`<small>📍 ${esc(e.location)}</small>`:""}${hw.length?`<div class="hw-badge">📌 ДЗ: ${hw.length}${hw.length===1?` — ${esc(hw[0].title)}`:""}</div>`:""}<div class="event-actions"><button class="btn" onclick="addHomeworkForEvent('${eventDate}','${encodeURIComponent(e.subject)}')">＋ ДЗ</button></div></div>`}).join(""):`<div class='muted' style='padding:20px 0;font-size:10px'>${emptyText}</div>`}<button class="day-note ${hasNote?"has":""}" onclick="openDayNote('${isoDate(d)}')">${hasNote?`✎ Заметки <span class="day-note-count">${dayNotes.length}</span>`:"＋ Добавить заметку"}</button></div>`}).join("")}
+function renderSchedule(){const monday=startOfWeek(scheduleViewDate), sunday=new Date(monday);sunday.setDate(monday.getDate()+6);document.getElementById("weekTitle").textContent=formatRange(monday,sunday);document.getElementById("scheduleHint").textContent=`${specialtyNames[data.profile.specialty]} · ${data.profile.course} курс${data.profile.group?" · "+data.profile.group:""}`;const groupList=Array.isArray(data.schedule?.groups)?data.schedule.groups:[];const groupInfo=groupList.length?` · ${groupList.length} групп`:"";document.getElementById("scheduleImportStatus").textContent=`${data.schedule?.weeks?.length||0} недель${groupInfo} · ${data.schedule?.sourceName||"локальное расписание"}`;renderSubjectControls();renderProfileSubjects();const w=data.schedule?.weeks?.find(x=>x.start===isoDate(monday));const wantedGroup=normalizeImportedGroup(data.profile.group);const filteredEvents=(w?.events||[]).filter(e=>Number(e.weekday)>=0&&(!groupList.length||(wantedGroup&&normalizeImportedGroup(e.group)===wantedGroup)));document.getElementById("weekGrid").innerHTML=weekdays.map((name,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);const ev=sortEvents(filteredEvents.filter(e=>Number(e.weekday)===i));const dayNotes=getNotesForDate(isoDate(d));const hasNote=dayNotes.length>0;const emptyText=groupList.length&&!wantedGroup?"укажите группу в профиле": "нет пар";return `<div class="day ${isoDate(d)===isoDate(new Date())?"today":""}"><div class="day-head"><span>${name}${hasNote?` <span class="schedule-note-badge">📝 ${dayNotes.length}</span>`:""}</span><span>${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}</span></div>${ev.length?ev.map(e=>{const matched=dayNotes.some(n=>n.subject&&String(e.subject).toLowerCase().includes(n.subject.toLowerCase()));const eventDate=isoDate(d),hw=getHomeworkForEvent(eventDate,e.subject);return `<div class="event" data-subject="${esc(e.subject)}" style="--event-gradient:${getSubjectGradient(e.subject)}"><b>${esc(e.start)}–${esc(e.end)}</b><span>${esc(e.subject)}${matched?` <span class="event-note" title="Есть заметка">📝</span>`:""}</span>${e.location?`<small>📍 ${esc(e.location)}</small>`:""}${hw.length?`<div class="hw-badge">📌 ДЗ: ${hw.length}${hw.length===1?` — ${esc(hw[0].title)}`:""}</div>`:""}<div class="event-actions"><button class="btn" onclick="addHomeworkForEvent('${eventDate}','${encodeURIComponent(e.subject)}')">＋ ДЗ</button></div></div>`}).join(""):`<div class='muted' style='padding:20px 0;font-size:10px'>${emptyText}</div>`}<button class="day-note ${hasNote?"has":""}" onclick="openDayNote('${isoDate(d)}')">${hasNote?`✎ Заметки <span class="day-note-count">${dayNotes.length}</span>`:"＋ Добавить заметку"}</button></div>`}).join("")}
 function getNotesForDate(date){const value=data.notes?.[date];return Array.isArray(value)?value:[]}
 function notePriorityLabel(p){return p==="high"?"🔴 Важная":p==="low"?"🟢 Низкий приоритет":"🟡 Обычная"}
 function openDayNote(date){selectedNoteDate=date;go("notes");loadNote(date);}
@@ -850,84 +925,9 @@ function parseMatrixCellRecords(lines){
   finish();
   return records.map(r=>({subject:r.subject.replace(/\s+/g,' ').trim(),spec:r.spec,location:r.locationParts.join(' ').replace(/\s+/g,' ').replace(/\s+,/g,',').trim()}));
 }
-async function parseSchedulePdfMatrix(pdf,file){
-  const pdfjs=window.__pdfjsModule||await loadPdfJs();
-  const pages=[];let groups=[],centers=[];
-  for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){
-    if(window.__scheduleProgress)window.__scheduleProgress(`Подготовка страницы ${pageNo} из ${pdf.numPages}…`);
-    const page=await pdf.getPage(pageNo),viewport=page.getViewport({scale:1}),content=await page.getTextContent({normalizeWhitespace:false});
-    const items=content.items.map(it=>{const x=it.transform[4],h=Math.abs(it.height||Math.hypot(it.transform[2],it.transform[3])||0),top=viewport.height-it.transform[5]-h;return{str:it.str||'',x,top,w:Math.abs(it.width||0),h}}).filter(it=>it.str.trim());
-    if(pageNo===1){const headers=items.filter(it=>/^\d{2,3}$/.test(it.str.trim())&&it.top>430&&it.top<500&&it.x>500).sort((a,b)=>a.x-b.x);if(headers.length<2)throw new Error('Не удалось определить группы');groups=headers.map(x=>x.str.trim());centers=headers.map(x=>x.x+x.w/2)}
-    pages.push({pageNo,page,viewport,items,slots:parseMatrixTimeSlots(items)});
-  }
-  const avgGap=centers.length>1?centers.slice(1).reduce((a,c,i)=>a+c-centers[i],0)/(centers.length-1):171;
-  const bounds=centers.map((center,i)=>({left:i?((centers[i-1]+center)/2):center-avgGap/2,right:i<centers.length-1?((center+centers[i+1])/2):center+avgGap/2}));
-  const academicYear=2026,weekMap=new Map(),ensureWeek=n=>{if(!weekMap.has(n)){const d=weekDateByNumber(academicYear,n);weekMap.set(n,{...d,weekNumber:n,events:[]})}return weekMap.get(n)};
-  const knownBoundaries={1:[476.22,671.22,866.22,1275.72,1596.72,1872.72,2258.97,3077.97,3896.97,4306.57],2:[74,483.6,892.35,1301.1,1709.85,2118.6,2497.35,2797.35,2992.35,3187.35]};
-  const knownDays={1:[0,0,0,0,1,1,2,2,2],2:[2,3,3,4,4,4,4,5,5]};
-  let fallbackDay=0,prevStart=null;
-  for(const p of pages){
-    const {pageNo,viewport,items,slots}=p;if(!slots.length)continue;
-    let boundaries=knownBoundaries[pageNo];
-    if(!boundaries||boundaries.length!==slots.length+1){
-      boundaries=[];for(let i=0;i<slots.length;i++)boundaries.push(i?((slots[i-1].top+slots[i].top)/2):Math.max(470,slots[i].top-70));boundaries.push(viewport.height);
-    }
-    const days=knownDays[pageNo]||[];
-    for(let si=0;si<slots.length;si++){
-      const slot=slots[si];let weekday=days[si];
-      if(weekday===undefined){weekday=fallbackDay;if(prevStart!==null&&slot.startMinutes<prevStart-45)weekday=Math.min(6,weekday+1);}
-      fallbackDay=weekday;prevStart=slot.startMinutes;
-      const lo=boundaries[si]+3,hi=boundaries[si+1]-3;
-      for(let gi=0;gi<bounds.length;gi++){
-        const b=bounds[gi],cell=items.filter(it=>it.x>=b.left+1&&it.x<b.right-1&&it.top>=lo&&it.top<hi);
-        const lines=matrixCellText(cell);if(!lines.length)continue;
-        const records=parseMatrixCellRecords(lines);
-        for(const rec of records){const nums=expandWeekSpec(rec.spec);for(const n of nums){const w=ensureWeek(n);w.events.push({weekday,start:slot.time.start,end:slot.time.end,subject:canonicalSubject(rec.subject),location:rec.location,group:groups[gi],weekNumber:n})}}
-      }
-    }
-    if(window.__scheduleProgress)window.__scheduleProgress(`Готово: страница ${pageNo} из ${pdf.numPages}`);
-  }
-  const weeks=[...weekMap.values()].sort((a,b)=>a.start.localeCompare(b.start));
-  weeks.forEach(w=>{const seen=new Set();w.events=w.events.filter(e=>{const k=[e.group,e.weekNumber,e.weekday,e.start,e.end,subjectIdentity(e.subject),e.location].join('|');if(seen.has(k))return false;seen.add(k);return true}).sort(compareEvents)});
-  const total=weeks.reduce((n,w)=>n+w.events.length,0);
-  if(!weeks.length||total<50)throw new Error(`Не удалось качественно распознать расписание: найдено только ${total} занятий.`);
-  return{sourceName:file.name,weeks,groups,academicYear,format:'group-week-matrix',importedAt:new Date().toISOString()};
-}
 
-async function parseSchedulePdfMatrix(pdf,file){
-  const pdfjs=window.__pdfjsModule||await loadPdfJs();
-  const pages=[];let groups=[],centers=[];
-  for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){
-    if(window.__scheduleProgress)window.__scheduleProgress(`Подготовка страницы ${pageNo} из ${pdf.numPages}…`);
-    const page=await pdf.getPage(pageNo),viewport=page.getViewport({scale:1}),content=await page.getTextContent({normalizeWhitespace:false});
-    const items=content.items.map(it=>{const x=it.transform[4],h=Math.abs(it.height||Math.hypot(it.transform[2],it.transform[3])||0),top=viewport.height-it.transform[5]-h;return{str:it.str||'',x,top,w:Math.abs(it.width||0),h}}).filter(it=>it.str.trim());
-    if(pageNo===1){const headers=items.filter(it=>/^\d{2,3}$/.test(it.str.trim())&&it.top>430&&it.top<490&&it.x>500).sort((a,b)=>a.x-b.x);if(headers.length<2)throw new Error('Не удалось определить группы');groups=headers.map(x=>x.str.trim());centers=headers.map(x=>x.x+x.w/2)}
-    pages.push({page,viewport,items,slots:parseMatrixTimeSlots(items)});
-  }
-  const avgGap=centers.length>1?centers.slice(1).reduce((a,c,i)=>a+c-centers[i],0)/(centers.length-1):171;
-  const bounds=centers.map((center,i)=>({left:i?((centers[i-1]+center)/2):center-avgGap/2,right:i<centers.length-1?((center+centers[i+1])/2):center+avgGap/2}));
-  const academicYear=2026,weekMap=new Map(),ensureWeek=n=>{if(!weekMap.has(n)){const d=weekDateByNumber(academicYear,n);weekMap.set(n,{...d,weekNumber:n,events:[]})}return weekMap.get(n)};
-  let carryDay=0,prevStart=null;
-  for(const [pi,p] of pages.entries()){
-    const {items,slots}=p;if(!slots.length)continue;
-    const slotInfo=slots.map(slot=>{let day=carryDay;if(prevStart!==null&&slot.startMinutes<prevStart-45)day=Math.min(6,day+1);prevStart=slot.startMinutes;carryDay=day;return {...slot,weekday:day}});
-    for(let gi=0;gi<bounds.length;gi++){
-      const b=bounds[gi];
-      for(let si=0;si<slotInfo.length;si++){
-        const slot=slotInfo[si],prev=si?slotInfo[si-1]:null,next=si<slotInfo.length-1?slotInfo[si+1]:null;
-        const lo=prev?(prev.top+slot.top)/2:Math.max(480,slot.top-110);const hi=next?(slot.top+next.top)/2:p.viewport.height;
-        const cell=items.filter(it=>it.x>=b.left+1&&it.x<b.right-1&&it.top>=lo&&it.top<hi);
-        const lines=matrixCellText(cell);if(!lines.length)continue;
-        const records=parseMatrixCellRecords(lines);for(const rec of records){const nums=expandWeekSpec(rec.spec);for(const n of nums){const w=ensureWeek(n);w.events.push({weekday:slot.weekday,start:slot.time.start,end:slot.time.end,subject:canonicalSubject(rec.subject),location:rec.location,group:groups[gi],weekNumber:n})}}
-      }
-      if(window.__scheduleProgress&&gi%4===0)window.__scheduleProgress(`Распознаю группы: ${Math.min(gi+1,bounds.length)} из ${bounds.length}…`);
-    }
-  }
-  const weeks=[...weekMap.values()].sort((a,b)=>a.start.localeCompare(b.start));
-  weeks.forEach(w=>{const seen=new Set();w.events=w.events.filter(e=>{const k=[e.group,e.weekNumber,e.weekday,e.start,e.end,subjectIdentity(e.subject),e.location].join('|');if(seen.has(k))return false;seen.add(k);return true}).sort(compareEvents)});
-  if(!weeks.length||weeks.reduce((n,w)=>n+w.events.length,0)<10)throw new Error('Не удалось распознать расписание 31.05.01: в таблице не найдены занятия.');
-  return{sourceName:file.name,weeks,groups,academicYear,format:'group-week-matrix',importedAt:new Date().toISOString()};
-}
+
+
 
 async function parseSchedulePdfDateGrid(pdf,file){
   const page=await pdf.getPage(1),viewport=page.getViewport({scale:1}),content=await page.getTextContent({normalizeWhitespace:false});
@@ -1112,7 +1112,7 @@ async function parseSchedulePdf(file){
   const matrix=probe.filter(it=>/^\d{2,3}$/.test(it.str.trim())&&it.top>430&&it.top<500&&it.x>500).length>=2 || /31\.05\.01/.test(probe.map(x=>x.str).join(' ')) && /поток\s*Б/i.test(probe.map(x=>x.str).join(' '));
   return matrix?parseSchedulePdfMatrix(pdf,file):parseSchedulePdfDateGrid(pdf,file);
 }
-document.getElementById("prevWeek").onclick=()=>{scheduleViewDate.setDate(scheduleViewDate.getDate()-7);renderSchedule()};document.getElementById("nextWeek").onclick=()=>{scheduleViewDate.setDate(scheduleViewDate.getDate()+7);renderSchedule()};document.getElementById("todayWeek").onclick=()=>{scheduleViewDate=new Date();renderSchedule()};document.getElementById("clearScheduleBtn").onclick=()=>{if(confirm("Удалить встроенное расписание?")){data.schedule=null;save();renderSchedule();tick()}};
+document.getElementById("prevWeek").onclick=()=>{scheduleViewDate.setDate(scheduleViewDate.getDate()-7);renderSchedule()};document.getElementById("nextWeek").onclick=()=>{scheduleViewDate.setDate(scheduleViewDate.getDate()+7);renderSchedule()};document.getElementById("todayWeek").onclick=()=>{scheduleViewDate=new Date();renderSchedule()};document.getElementById("clearScheduleBtn").onclick=()=>{if(confirm("Удалить импортированное расписание?")){data.schedule=null;save();renderSchedule();tick()}};
 
 let pendingScheduleImport=null;
 const importPreview=document.getElementById("importPreview");
@@ -1127,6 +1127,7 @@ function openImportPreview(schedule,file){
   document.getElementById("previewGroups").textContent=groups.length||"—";
   document.getElementById("previewEvents").textContent=events;
   const info=[];
+  const matrix=schedule?.format==="group-week-matrix";
   if(schedule?.academicYear)info.push(`Учебный год: ${schedule.academicYear}.`);
   if(weeks.length)info.push(`Период: ${formatRange(new Date(weeks[0].start+"T12:00:00"),new Date(weeks[weeks.length-1].end+"T12:00:00"))}.`);
   if(matrix && groups.length){const byGroup=new Map(groups.map(g=>[String(g),0]));weeks.forEach(w=>(w.events||[]).forEach(e=>byGroup.set(String(e.group),(byGroup.get(String(e.group))||0)+1)));const empty=[...byGroup].filter(([,n])=>!n).map(([g])=>g);if(empty.length)info.push(`Внимание: для ${empty.length} групп не найдено занятий.`);else info.push(`Проверка матрицы: все ${groups.length} групп имеют распознанные занятия.`)}
@@ -1136,7 +1137,6 @@ function openImportPreview(schedule,file){
   if(groups.length){box.style.display="block";chips.innerHTML=groups.map(g=>`<span class="group-chip">${esc(g)}</span>`).join("")}else{box.style.display="none";chips.innerHTML=""}
   const warning=document.getElementById("previewGroupWarning");
   const confirm=document.getElementById("importPreviewConfirm");
-  const matrix=schedule?.format==="group-week-matrix";
   const currentGroup=(document.getElementById("group")?.value||data.profile.group||"").trim();
   if(matrix && !currentGroup){
     warning.style.display="block";
@@ -1187,12 +1187,74 @@ const SUBJECT_GRADIENTS=[
 ];
 function subjectColorIndex(subject){const id=subjectIdentity(subject);if(!data.subjectColors||typeof data.subjectColors!=='object')data.subjectColors={};if(data.subjectColors[id]===undefined){let h=0;for(let i=0;i<id.length;i++)h=(h*31+id.charCodeAt(i))>>>0;data.subjectColors[id]=h%SUBJECT_GRADIENTS.length;save()}return Math.max(0,Math.min(SUBJECT_GRADIENTS.length-1,Number(data.subjectColors[id])||0))}
 function getSubjectGradient(subject){return SUBJECT_GRADIENTS[subjectColorIndex(subject)]}
-function openSubjectColorModal(){renderSubjectColorGrid();const m=document.getElementById('subjectColorModal');m.classList.add('open');m.setAttribute('aria-hidden','false');setTimeout(()=>document.getElementById('subjectColorSearch')?.focus(),50)}
-function closeSubjectColorModal(){const m=document.getElementById('subjectColorModal');m.classList.remove('open');m.setAttribute('aria-hidden','true');renderSchedule()}
-function renderSubjectColorGrid(){const box=document.getElementById('subjectColorGrid');if(!box)return;const q=(document.getElementById('subjectColorSearch')?.value||'').toLocaleLowerCase('ru-RU');const subjects=getSubjectCatalog().filter(x=>!q||x.toLocaleLowerCase('ru-RU').includes(q));box.innerHTML=subjects.map(subject=>{const id=subjectIdentity(subject),idx=subjectColorIndex(subject);return `<div class="subject-color-row"><div class="subject-color-name" title="${esc(subject)}">${esc(subject)}</div><div class="gradient-options">${SUBJECT_GRADIENTS.map((g,i)=>`<button type="button" class="gradient-swatch ${i===idx?'active':''}" style="background:${g}" title="Градиент ${i+1}" onclick="setSubjectColor(${JSON.stringify(id)},${i})"></button>`).join('')}</div></div>`}).join('')||'<div class="subject-empty" style="grid-column:1/-1">Предмет не найден.</div>'}
-function setSubjectColor(id,index){if(!data.subjectColors||typeof data.subjectColors!=='object')data.subjectColors={};data.subjectColors[id]=Number(index);save();renderSubjectColorGrid();renderSchedule();const dot=document.getElementById('colorPreviewDot');if(dot)dot.style.background=SUBJECT_GRADIENTS[index]}
-function resetSubjectColors(){data.subjectColors={};save();renderSubjectColorGrid();renderSchedule();toast('Цвета расписания сброшены')}
-function initSubjectColorSearch(){document.getElementById('subjectColorSearch')?.addEventListener('input',renderSubjectColorGrid)}
+function openSubjectColorModal(){
+  renderSubjectColorGrid();
+  const m=document.getElementById('subjectColorModal');
+  if(!m)return;
+  m.classList.add('open');m.setAttribute('aria-hidden','false');
+  setTimeout(()=>document.getElementById('subjectColorSearch')?.focus(),50);
+}
+function closeSubjectColorModal(){
+  const m=document.getElementById('subjectColorModal');
+  if(!m)return;
+  m.classList.remove('open');m.setAttribute('aria-hidden','true');
+  renderSchedule();
+}
+function renderSubjectColorGrid(){
+  const box=document.getElementById('subjectColorGrid');
+  if(!box)return;
+  const q=(document.getElementById('subjectColorSearch')?.value||'').toLocaleLowerCase('ru-RU').trim();
+  const subjects=getSubjectCatalog().filter(x=>!q||x.toLocaleLowerCase('ru-RU').includes(q));
+  box.innerHTML=subjects.map(subject=>{
+    const id=subjectIdentity(subject),idx=subjectColorIndex(subject);
+    return `<div class="subject-color-row" data-subject-id="${esc(id)}">
+      <div class="subject-color-label"><span class="subject-color-preview" style="background:${SUBJECT_GRADIENTS[idx]}"></span><div class="subject-color-name" title="${esc(subject)}">${esc(subject)}</div></div>
+      <div class="gradient-options" role="group" aria-label="Цвет предмета ${esc(subject)}">
+        ${SUBJECT_GRADIENTS.map((g,i)=>`<button type="button" class="gradient-swatch ${i===idx?'active':''}" data-color-index="${i}" aria-label="Градиент ${i+1}" aria-pressed="${i===idx}" style="background:${g}"></button>`).join('')}
+      </div>
+    </div>`;
+  }).join('')||'<div class="subject-empty" style="grid-column:1/-1">Предмет не найден.</div>';
+}
+function setSubjectColor(id,index){
+  const n=Number(index);
+  if(!id||!Number.isInteger(n)||n<0||n>=SUBJECT_GRADIENTS.length)return;
+  if(!data.subjectColors||typeof data.subjectColors!=='object')data.subjectColors={};
+  data.subjectColors[id]=n;
+  save();
+  // Update every already rendered event immediately, without rebuilding the whole modal.
+  document.querySelectorAll('.event').forEach(el=>{
+    const subject=el.dataset.subject;
+    if(subject&&subjectIdentity(subject)===id)el.style.setProperty('--event-gradient',SUBJECT_GRADIENTS[n]);
+  });
+  renderSubjectColorGrid();
+  renderSchedule();
+  const dot=document.getElementById('colorPreviewDot');
+  if(dot)dot.style.background=SUBJECT_GRADIENTS[n];
+  toast('Цвет предмета изменён');
+}
+function resetSubjectColors(){
+  data.subjectColors={};save();renderSubjectColorGrid();renderSchedule();
+  const dot=document.getElementById('colorPreviewDot');
+  if(dot)dot.style.background=getSubjectGradient(getSubjectCatalog()[0]||'Анатомия человека');
+  toast('Цвета расписания сброшены');
+}
+function initSubjectColorSearch(){
+  const input=document.getElementById('subjectColorSearch');
+  if(!input||input.dataset.colorReady)return;
+  input.dataset.colorReady='1';
+  input.addEventListener('input',renderSubjectColorGrid);
+  const box=document.getElementById('subjectColorGrid');
+  if(box&&!box.dataset.colorDelegation){
+    box.dataset.colorDelegation='1';
+    box.addEventListener('click',e=>{
+      const button=e.target.closest('.gradient-swatch');
+      if(!button||!box.contains(button))return;
+      const row=button.closest('.subject-color-row');
+      const id=row?.dataset.subjectId;
+      setSubjectColor(id,Number(button.dataset.colorIndex));
+    });
+  }
+}
 
 let calendarTarget=null,calendarTempDate=null,calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 function initCustomDatePickers(){['taskDue','noteDate'].forEach(id=>{const input=document.getElementById(id);if(!input||input.dataset.calendarReady)return;input.dataset.calendarReady='1';input.type='text';input.readOnly=true;input.classList.add('calendar-input');const trigger=document.createElement('button');trigger.type='button';trigger.className='calendar-trigger';trigger.innerHTML='<span>📅</span><span class="calendar-trigger-text">'+(input.value?formatCalendarValue(input.value):'Выбрать дату')+'</span><span>⌄</span>';input.parentNode.insertBefore(trigger,input);input.classList.add('calendar-native');trigger.addEventListener('click',()=>openCalendar(id));input.addEventListener('change',()=>{trigger.querySelector('.calendar-trigger-text').textContent=input.value?formatCalendarValue(input.value):'Выбрать дату'});});initSubjectColorSearch();const dot=document.getElementById('colorPreviewDot');if(dot)dot.style.background=getSubjectGradient(getSubjectCatalog()[0]||'Анатомия человека')}
