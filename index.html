@@ -335,6 +335,20 @@ html[data-theme="light"] .calendar-selected{background:#edf5ff!important;border-
 /* Do not spend frames animating layout-heavy effects on touch devices. */
 @media(pointer:coarse){.card,.quick-card,.lesson,.day,.task-card,.right-link,.event,.btn,.gradient-swatch{transition:none!important}.as-modal,.quote{backdrop-filter:none!important}}
 </style>
+
+<style id="v3-1-32-ui-fixes">
+.as-select-menu.as-select-portal{position:fixed!important;z-index:20050!important;display:none;left:0;right:auto;top:0;max-width:min(420px,calc(100vw - 20px));max-height:340px;overflow:auto;overscroll-behavior:contain;opacity:0;visibility:hidden;transform:translateY(-4px) scale(.99);background:rgba(9,22,45,.99);border:1px solid rgba(137,177,233,.24);box-shadow:0 24px 60px rgba(0,0,0,.42);backdrop-filter:blur(14px)}
+.as-select-menu.as-select-portal.portal-open{display:block;opacity:1;visibility:visible;transform:none}
+html[data-theme="light"] .as-select-menu.as-select-portal{background:#fff;border-color:#cfdeeb;box-shadow:0 24px 60px rgba(42,73,108,.20)}
+.as-select-menu.as-select-portal .as-select-option{min-height:42px;font-size:12px}
+.color-manager-modal{width:min(940px,100%);max-height:min(90vh,820px)}
+.color-manager-toolbar{display:flex;gap:10px;align-items:center;margin:18px 0 12px}.color-search-wrap{display:flex;align-items:center;gap:8px;flex:1;min-width:0;padding:0 13px;border:1px solid var(--line);border-radius:14px;background:rgba(83,128,201,.06);height:46px}.color-search-wrap span{font-size:20px;color:var(--muted)}.color-search-wrap input{width:100%;border:0;outline:0;background:transparent;color:var(--text);font:inherit;font-size:12px}.color-search-wrap input::placeholder{color:var(--muted)}
+.color-manager{display:grid;grid-template-columns:minmax(250px,.82fr) minmax(0,1.45fr);gap:12px;min-height:440px}.color-subject-list{padding:6px;overflow:auto;max-height:55vh;border:1px solid var(--line);border-radius:18px;background:rgba(83,128,201,.035)}.color-subject-item{width:100%;display:grid;grid-template-columns:42px minmax(0,1fr) 18px;align-items:center;gap:10px;text-align:left;padding:10px;border:1px solid transparent;border-radius:13px;background:transparent;color:var(--text);cursor:pointer}.color-subject-item:hover{background:rgba(78,143,255,.08)}.color-subject-item.active{background:linear-gradient(100deg,rgba(78,143,255,.15),rgba(118,85,223,.10));border-color:rgba(78,143,255,.24)}.color-subject-preview{width:42px;height:42px;border-radius:12px;box-shadow:0 7px 16px rgba(0,0,0,.14)}.color-subject-copy{min-width:0}.color-subject-copy b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.color-subject-copy small{display:block;margin-top:4px;color:var(--muted);font-size:9px}.color-subject-arrow{font-size:22px;color:var(--muted);text-align:center}.color-subject-item.active .color-subject-arrow{color:#6da7ff}
+.color-editor{min-width:0;padding:18px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(83,128,201,.075),rgba(118,85,223,.045))}.color-editor-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--line)}.color-editor-head h3{margin:5px 0 5px;font-size:18px}.color-editor-head p{margin:0;color:var(--muted);font-size:10px}.color-editor-big-preview{width:74px;height:74px;flex:0 0 74px;border-radius:20px;box-shadow:0 12px 28px rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.28)}.palette-title{display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px;font-size:11px;font-weight:900}.palette-title small{font-weight:500;color:var(--muted);font-size:9px}.professional-palette{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.palette-card{position:relative;display:grid;grid-template-columns:42px minmax(0,1fr);align-items:center;gap:8px;min-height:52px;padding:6px;border:1px solid var(--line);border-radius:13px;background:rgba(83,128,201,.045);color:var(--text);text-align:left;cursor:pointer;touch-action:manipulation}.palette-card:hover{border-color:rgba(78,143,255,.42);transform:translateY(-1px)}.palette-card.selected{border-color:#5b97ff;box-shadow:0 0 0 2px rgba(91,151,255,.16)}.palette-gradient{width:42px;height:38px;border-radius:9px;box-shadow:0 5px 12px rgba(0,0,0,.13)}.palette-card>span:last-of-type{font-size:9px;font-weight:800;line-height:1.2}.palette-check{position:absolute;right:6px;top:5px;width:17px;height:17px;display:grid;place-items:center;border-radius:50%;background:#fff;color:#3f83e8;font-size:10px}.color-editor-empty{height:100%;display:grid;place-items:center;text-align:center;color:var(--muted);font-size:11px;padding:30px}
+html[data-theme="light"] .color-search-wrap{background:#f7faff;border-color:#d6e2ec}.color-search-wrap input{color:#203c5b}.color-manager-modal .as-modal-actions{margin-top:12px}
+@media(max-width:720px){.color-manager{grid-template-columns:1fr;min-height:0}.color-subject-list{max-height:230px}.color-editor{padding:14px}.professional-palette{grid-template-columns:repeat(2,minmax(0,1fr))}.color-manager-toolbar{align-items:stretch;flex-direction:column}.color-manager-toolbar .btn{width:100%}.color-editor-big-preview{width:60px;height:60px;flex-basis:60px}.color-manager-modal{max-height:94vh}.color-subject-item{min-height:58px}.palette-card{min-height:58px}}
+@media(max-width:390px){.professional-palette{grid-template-columns:1fr}.color-editor-head h3{font-size:16px}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -370,7 +384,7 @@ html[data-theme="light"] .calendar-selected{background:#edf5ff!important;border-
   <div id="taskList"></div>
 </div></section>
   <section id="materials" class="page"><h1 class="page-title">Материалы</h1><div class="materials-hero card"><div><div class="materials-kicker">📚 Библиотека студента</div><h2 style="margin:5px 0 7px">Конспекты, методички и учебные материалы</h2><p class="muted" style="margin:0">Добавляй свои файлы и держи учебные материалы в одном месте. В Beta они сохраняются на этом устройстве.</p></div><button class="btn primary" onclick="document.getElementById('materialFile').click()">＋ Добавить материал</button><input id="materialFile" type="file" hidden accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.webp"></div><div class="materials-warning card"><b>Важно для общего доступа</b><span>Публикуй только материалы, которыми ты имеешь право делиться. Настоящий общий каталог между студентами подключим на серверной версии.</span></div><div class="card"><div class="materials-toolbar"><input class="input" id="materialSearch" placeholder="🔎 Поиск по названию, предмету или описанию"><select class="input" id="materialSubjectFilter"><option value="">Все предметы</option></select><select class="input" id="materialCourseFilter"><option value="">Все курсы</option><option value="1">1 курс</option><option value="2">2 курс</option><option value="3">3 курс</option><option value="4">4 курс</option><option value="5">5 курс</option><option value="6">6 курс</option></select></div><div class="materials-summary" id="materialsSummary">0 материалов</div><div id="materialsList"></div></div></section>
-  <section id="notes" class="page"><h1 class="page-title">Заметки</h1><div class="notes-layout"><div class="card note-editor"><div class="section-head"><div><h2 style="margin:0">Новая заметка</h2><div class="note-date" id="noteDateLabel">—</div></div><input class="input" id="noteDate" type="date" style="max-width:190px"></div><input class="input" id="noteTitle" placeholder="Название заметки, например: Повторить височную кость"><input class="input" id="noteSubject" placeholder="Предмет (необязательно): Анатомия" style="margin-top:10px"><div class="note-form-row"><select class="input" id="notePriority"><option value="normal">🟡 Обычная</option><option value="high">🔴 Важная</option><option value="low">🟢 Низкий приоритет</option></select><label class="note-check"><input type="checkbox" id="notePinned"> ⭐ Закрепить</label></div><textarea id="noteText" class="note-area" placeholder="Что нужно помнить, повторить или не забыть?"></textarea><div class="note-actions"><button class="btn primary" onclick="saveNote()">Сохранить заметку</button><button class="btn" onclick="startNewNote()">＋ Новая</button></div><div class="muted" style="margin-top:10px">Можно привязать заметку к предмету. Тогда в расписании значок 📝 появится рядом с соответствующей парой.</div></div><div class="card"><div class="section-head"><div><h2 style="margin:0">Заметки на день</h2><div class="muted" id="notesCount">0 заметок</div></div></div><div id="notesList"></div></div></div></section>
+  <section id="notes" class="page"><h1 class="page-title">Заметки</h1><div class="notes-layout"><div class="card note-editor"><div class="section-head"><div><h2 style="margin:0">Новая заметка</h2><div class="note-date" id="noteDateLabel">—</div></div><input class="input" id="noteDate" type="date" style="max-width:190px"></div><input class="input" id="noteTitle" placeholder="Название заметки, например: Повторить височную кость"><select class="input" id="noteSubject" style="margin-top:10px"><option value="">Без предмета</option></select><div class="note-form-row"><select class="input" id="notePriority"><option value="normal">🟡 Обычная</option><option value="high">🔴 Важная</option><option value="low">🟢 Низкий приоритет</option></select><label class="note-check"><input type="checkbox" id="notePinned"> ⭐ Закрепить</label></div><textarea id="noteText" class="note-area" placeholder="Что нужно помнить, повторить или не забыть?"></textarea><div class="note-actions"><button class="btn primary" onclick="saveNote()">Сохранить заметку</button><button class="btn" onclick="startNewNote()">＋ Новая</button></div><div class="muted" style="margin-top:10px">Можно привязать заметку к предмету. Тогда в расписании значок 📝 появится рядом с соответствующей парой.</div></div><div class="card"><div class="section-head"><div><h2 style="margin:0">Заметки на день</h2><div class="muted" id="notesCount">0 заметок</div></div></div><div id="notesList"></div></div></div></section>
   <section id="addresses" class="page"><h1 class="page-title">Адреса</h1><div class="card" id="addressList"></div><div class="muted" style="margin-top:10px;font-size:10px">Адреса сверены по официальным страницам НМИЦ им. В.А. Алмазова; перед посещением конкретного подразделения лучше проверить актуальную информацию.</div></section>
   <section id="local" class="page"><h1 class="page-title">Локальные данные</h1><div class="card"><h2 style="margin-top:0">Данные этого устройства</h2><p class="muted">Профиль, задачи, заметки и импортированное расписание хранятся в браузере/приложении на этом устройстве.</p><div class="local-list"><div class="local-item"><b>Экспорт</b><p class="muted">Сохрани резервную копию JSON.</p><button class="btn" onclick="exportData()">⇩ Экспорт</button></div><div class="local-item"><b>Импорт</b><p class="muted">Восстанови профиль, задачи, заметки и расписание.</p><button class="btn" onclick="document.getElementById('importDataFile').click()">⇧ Импорт</button></div></div><div class="download"><h3>Скачать приложение (APK)</h3><p>Android-версия Almazov Student.</p><a href="https://github.com/R1vlFlow/Almazov_Student_beta/releases/download/v3.1.3/Almazov-Student-3.1.3.apk">↓ Скачать APK</a></div><button class="btn" style="margin-top:12px" onclick="resetData()">Сбросить локальные данные</button></div></section>
   <section id="profile" class="page"><h1 class="page-title">Профиль</h1><div class="card"><div class="grid-form"><input class="input" id="name" placeholder="Имя"><select class="input" id="specialty"><option value="31.05.01">31.05.01 — Лечебное дело</option><option value="31.05.02">31.05.02 — Педиатрия</option><option value="37.05.01">37.05.01 — Клиническая психология</option></select><select class="input" id="course"></select><input class="input" id="group" placeholder="Группа"></div><button class="btn primary" style="margin-top:12px" onclick="saveProfile()">Сохранить профиль</button><div style="margin-top:16px"><div class="section-head"><div><h3 style="margin:0">📚 Предметы курса</h3><div class="muted" style="font-size:10px">Предметы автоматически берутся из учебного плана Алмазова для выбранной специальности и курса. Свои предметы можно добавить отдельно.</div></div></div><div class="subject-pills" id="profileSubjectPills"></div><div class="muted" style="margin-top:10px;font-size:10px">✓ — предмет из встроенного каталога учебного плана. При смене курса список обновляется автоматически.</div><div style="margin-top:8px;font-size:10px"><a href="https://education.almazovcentre.ru/sveden/education/programs/lechebnoe-delo-31.05.01.html" target="_blank" rel="noopener noreferrer">↗ Официальный учебный план НМИЦ им. В.А. Алмазова</a></div><div class="task-form" style="margin-top:10px"><input class="input" id="newSubjectName" placeholder="Добавить свой предмет"><button class="btn" onclick="addCustomSubject()">＋ Добавить</button></div></div></div><div class="card" style="margin-top:14px"><h2 style="margin:0 0 10px">🎨 Тема оформления</h2><p class="muted" style="margin:0 0 10px">Выбери тёмное или светлое оформление приложения.</p><button class="btn theme-toggle" id="profileThemeToggle" onclick="toggleTheme()"><span class="theme-icon" id="profileThemeIcon">☀️</span><span id="profileThemeLabel">Светлая тема</span></button></div><div class="card subject-color-card" style="margin-top:14px"><div class="color-card-head"><div><h2 style="margin:0 0 7px">🎨 Цвета расписания</h2><p class="muted" style="margin:0">Настрой уникальный градиент для каждого предмета. Выбор сохраняется на устройстве.</p></div><button class="btn primary" type="button" onclick="openSubjectColorModal()">Настроить цвета</button></div><div class="color-card-preview"><span class="color-preview-dot" id="colorPreviewDot"></span><span><b id="colorPreviewTitle">Персональное оформление</b><small>20 аккуратных медицинских градиентов</small></span></div></div><div class="card" style="margin-top:14px"><h2 style="margin-top:0">Поддержка</h2><p class="muted">Нашёл ошибку, расписание слетело или есть идея?</p><a class="support" href="https://t.me/R1vlFlow_GY" target="_blank" rel="noopener noreferrer">✈ Написать в Telegram</a></div><div class="card faq" style="margin-top:14px"><h2 style="margin-top:0">FAQ</h2><div class="faq-download" style="margin:10px 0 14px;padding:16px;border-radius:16px;background:linear-gradient(135deg,#ff9f43,#ff5f6d);border:1px solid rgba(255,255,255,.28);box-shadow:0 12px 28px rgba(255,95,109,.22);color:#fff">
@@ -528,7 +542,7 @@ function canonicalSubject(v){const name=cleanSubjectName(v);if(!name)return "";c
 function getOfficialSubjects(){const spec=data.profile.specialty,course=Number(data.profile.course)||1;return Array.isArray(OFFICIAL_SUBJECTS[spec]?.[course])?OFFICIAL_SUBJECTS[spec][course]:[]}
 function getSubjectCatalog(){const key=subjectKey();const official=getOfficialSubjects().map(canonicalSubject);const custom=Array.isArray(data.subjects?.[key])?data.subjects[key].map(canonicalSubject):[];const fromSchedule=[];const scheduleMatches=!data.schedule||!data.schedule.ownerKey||data.schedule.ownerKey===key;if(scheduleMatches)(data.schedule?.weeks||[]).forEach(w=>(w.events||[]).forEach(e=>{const x=canonicalSubject(e.subject);if(x)fromSchedule.push(x)}));const fromTasks=(data.tasks||[]).map(t=>canonicalSubject(t.subject)).filter(Boolean);const byId=new Map();[...official,...custom,...fromSchedule,...fromTasks].forEach(x=>{const c=canonicalSubject(x);const id=subjectIdentity(c);if(c&&id&&!byId.has(id))byId.set(id,c)});return [...byId.values()].sort((a,b)=>a.localeCompare(b,"ru"))}
 function migrateSubjectNames(){let changed=false;const key=subjectKey();if(!data.subjectColors||typeof data.subjectColors!=="object"){data.subjectColors={};changed=true}Object.keys(data.subjects||{}).forEach(k=>{const next=[];const seen=new Set();(Array.isArray(data.subjects[k])?data.subjects[k]:[]).forEach(x=>{const c=canonicalSubject(x),id=subjectIdentity(c);if(c&&id&&!seen.has(id)){seen.add(id);next.push(c)}});if(JSON.stringify(next)!==JSON.stringify(data.subjects[k])){data.subjects[k]=next;changed=true}});(data.tasks||[]).forEach(t=>{const c=canonicalSubject(t.subject);if(t.subject!==c){t.subject=c;changed=true}});Object.values(data.notes||{}).forEach(list=>Array.isArray(list)&&list.forEach(n=>{const c=canonicalSubject(n.subject);if(n.subject!==c){n.subject=c;changed=true}}));if(changed)save()}
-function renderSubjectControls(){const subjects=getSubjectCatalog();const select=document.getElementById("taskSubject"),filter=document.getElementById("materialSubjectFilter"),pills=document.getElementById("taskSubjectPills");if(select){const current=canonicalSubject(select.value);select.innerHTML='<option value="">Без предмета</option>'+subjects.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if(subjects.includes(current))select.value=current;refreshPremiumSelect("taskSubject")}if(filter){const current=canonicalSubject(filter.value);filter.innerHTML='<option value="">Все предметы</option>'+subjects.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if(subjects.includes(current))filter.value=current;refreshPremiumSelect("materialSubjectFilter")}if(pills){pills.innerHTML=subjects.length?subjects.map(x=>{const count=(data.tasks||[]).filter(t=>!t.done&&subjectIdentity(t.subject)===subjectIdentity(x)).length;const official=getOfficialSubjects().some(o=>subjectIdentity(o)===subjectIdentity(x));return `<button class="subject-pill ${official?"official":"custom"}" onclick="setTaskSubjectFilter(${JSON.stringify(x)})"><span class="subject-mark">${official?"✓":"+"}</span><span>${esc(x)}</span>${count?`<b>· ${count}</b>`:""}</button>`}).join(""):'<div class="subject-empty">Предметы появятся здесь автоматически из расписания. Их также можно добавлять через профиль.</div>'}}
+function renderSubjectControls(){const subjects=getSubjectCatalog();const select=document.getElementById("taskSubject"),noteSelect=document.getElementById("noteSubject"),filter=document.getElementById("materialSubjectFilter"),pills=document.getElementById("taskSubjectPills");if(select){const current=canonicalSubject(select.value);select.innerHTML='<option value="">Без предмета</option>'+subjects.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if(subjects.includes(current))select.value=current;refreshPremiumSelect("taskSubject")}if(noteSelect){const current=canonicalSubject(noteSelect.value);noteSelect.innerHTML='<option value="">Без предмета</option>'+subjects.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if(subjects.includes(current))noteSelect.value=current;refreshPremiumSelect("noteSubject")}if(filter){const current=canonicalSubject(filter.value);filter.innerHTML='<option value="">Все предметы</option>'+subjects.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if(subjects.includes(current))filter.value=current;refreshPremiumSelect("materialSubjectFilter")}if(pills){pills.innerHTML=subjects.length?subjects.map(x=>{const count=(data.tasks||[]).filter(t=>!t.done&&subjectIdentity(t.subject)===subjectIdentity(x)).length;const official=getOfficialSubjects().some(o=>subjectIdentity(o)===subjectIdentity(x));return `<button class="subject-pill ${official?"official":"custom"}" onclick="setTaskSubjectFilter(${JSON.stringify(x)})"><span class="subject-mark">${official?"✓":"+"}</span><span>${esc(x)}</span>${count?`<b>· ${count}</b>`:""}</button>`}).join(""):'<div class="subject-empty">Предметы появятся здесь автоматически из расписания. Их также можно добавлять через профиль.</div>'}}
 function setTaskSubjectFilter(subject){const el=document.getElementById("taskSubject");if(el){el.value=subject;el.scrollIntoView({behavior:"smooth",block:"center"});el.focus()}}
 const MATERIAL_DB="almazov_student_materials";let materialItems=[];let materialDb=null;
 function openMaterialDB(){return new Promise((resolve,reject)=>{if(materialDb)return resolve(materialDb);const req=indexedDB.open(MATERIAL_DB,1);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains("files")){const st=db.createObjectStore("files",{keyPath:"id"});st.createIndex("createdAt","createdAt")} };req.onsuccess=()=>{materialDb=req.result;resolve(materialDb)};req.onerror=()=>reject(req.error)})}
@@ -562,8 +576,8 @@ function getNotesForDate(date){const value=data.notes?.[date];return Array.isArr
 function notePriorityLabel(p){return p==="high"?"🔴 Важная":p==="low"?"🟢 Низкий приоритет":"🟡 Обычная"}
 function openDayNote(date){selectedNoteDate=date;go("notes");loadNote(date);}
 function loadNote(date){selectedNoteDate=date||isoDate(new Date());document.getElementById("noteDate").value=selectedNoteDate;const d=new Date(selectedNoteDate+"T12:00:00");document.getElementById("noteDateLabel").textContent=dateLong(d);renderNotesList();startNewNote(false)}
-function startNewNote(resetDate=true){if(resetDate)selectedNoteDate=document.getElementById("noteDate").value||isoDate(new Date());document.getElementById("noteDate").value=selectedNoteDate;document.getElementById("noteTitle").value="";document.getElementById("noteSubject").value="";document.getElementById("notePriority").value="normal";refreshPremiumSelect("notePriority");document.getElementById("notePinned").checked=false;document.getElementById("noteText").value="";document.querySelector('.note-editor .btn.primary').textContent="Сохранить заметку";document.querySelector('.note-editor .btn.primary').dataset.editId=""}
-function editNote(date,id){const n=getNotesForDate(date).find(x=>x.id===id);if(!n)return;selectedNoteDate=date;document.getElementById("noteDate").value=date;document.getElementById("noteTitle").value=n.title;document.getElementById("noteSubject").value=n.subject;document.getElementById("notePriority").value=n.priority;refreshPremiumSelect("notePriority");document.getElementById("notePinned").checked=n.pinned;document.getElementById("noteText").value=n.text;document.getElementById("noteDateLabel").textContent=dateLong(new Date(date+"T12:00:00"));const b=document.querySelector('.note-editor .btn.primary');b.textContent="Сохранить изменения";b.dataset.editId=id;window.scrollTo({top:0,behavior:"smooth"})}
+function startNewNote(resetDate=true){if(resetDate)selectedNoteDate=document.getElementById("noteDate").value||isoDate(new Date());document.getElementById("noteDate").value=selectedNoteDate;document.getElementById("noteTitle").value="";document.getElementById("noteSubject").value="";refreshPremiumSelect("noteSubject");document.getElementById("notePriority").value="normal";refreshPremiumSelect("notePriority");document.getElementById("notePinned").checked=false;document.getElementById("noteText").value="";document.querySelector('.note-editor .btn.primary').textContent="Сохранить заметку";document.querySelector('.note-editor .btn.primary').dataset.editId=""}
+function editNote(date,id){const n=getNotesForDate(date).find(x=>x.id===id);if(!n)return;selectedNoteDate=date;document.getElementById("noteDate").value=date;document.getElementById("noteTitle").value=n.title;document.getElementById("noteSubject").value=canonicalSubject(n.subject);refreshPremiumSelect("noteSubject");document.getElementById("notePriority").value=n.priority;refreshPremiumSelect("notePriority");document.getElementById("notePinned").checked=n.pinned;document.getElementById("noteText").value=n.text;document.getElementById("noteDateLabel").textContent=dateLong(new Date(date+"T12:00:00"));const b=document.querySelector('.note-editor .btn.primary');b.textContent="Сохранить изменения";b.dataset.editId=id;window.scrollTo({top:0,behavior:"smooth"})}
 function saveNote(){const date=document.getElementById("noteDate").value||isoDate(new Date());const text=document.getElementById("noteText").value.trim();if(!text){toast("Напиши текст заметки");return}if(!Array.isArray(data.notes[date]))data.notes[date]=[];const btn=document.querySelector('.note-editor .btn.primary');const editId=btn.dataset.editId||"";const obj={id:editId||((crypto.randomUUID?crypto.randomUUID():String(Date.now()))),title:document.getElementById("noteTitle").value.trim()||"Заметка",text,subject:canonicalSubject(document.getElementById("noteSubject").value.trim()),priority:document.getElementById("notePriority").value,pinned:document.getElementById("notePinned").checked,done:false,createdAt:new Date().toISOString()};if(editId){const idx=data.notes[date].findIndex(n=>n.id===editId);if(idx>=0){obj.done=data.notes[date][idx].done;obj.createdAt=data.notes[date][idx].createdAt;data.notes[date][idx]=obj}else data.notes[date].push(obj)}else data.notes[date].push(obj);data.notes[date].sort((a,b)=>Number(b.pinned)-Number(a.pinned)||({high:0,normal:1,low:2}[a.priority]||1)-({high:0,normal:1,low:2}[b.priority]||1));save();renderNotesList();renderSchedule();startNewNote(false);toast(editId?"Заметка обновлена 💙":"Заметка сохранена 💙")}
 function toggleNoteDone(date,id){const n=getNotesForDate(date).find(x=>x.id===id);if(!n)return;n.done=!n.done;save();renderNotesList();renderSchedule()}
 function deleteNote(date,id){if(!confirm("Удалить эту заметку?"))return;data.notes[date]=getNotesForDate(date).filter(n=>n.id!==id);if(!data.notes[date].length)delete data.notes[date];save();renderNotesList();renderSchedule();toast("Заметка удалена")}
@@ -663,69 +677,6 @@ function parseMatrixCellLines(items){
     return {top:line.top,text:str.replace(/\s+/g," ").replace(/\(\s+/g,"(").replace(/\s+\)/g,")").replace(/\s+,/g,",").trim()};
   }).filter(x=>x.text);
 }
-function parseMatrixCellRecords(lines){
-  // В этой таблице скобки — это НОМЕРА НЕДЕЛЬ, а не часть названия.
-  // Структура ячейки: "предмет (недели) аудитория". Иногда предмет занимает
-  // несколько строк, а следующий предмет начинается ещё до следующего блока недель.
-  const records=[];
-  const weekRe=/\((\d+(?:\s*[-–—]\s*\d+)?(?:\s*,\s*\d+(?:\s*[-–—]\s*\d+)?)*)\)/;
-  const locationRe=/(ауд\.?|каб\.?|зал\b|лит\.?|солнечное\b|башня\b|кпк\b|школа\b|общежит\b|корп\.?|цдти\.?)/i;
-  const isLocationLine=line=>{
-    const s=String(line||'').trim();
-    if(!s)return false;
-    if(locationRe.test(s))return true;
-    if(/^[\d./\-–—\s]+$/.test(s))return true;
-    return false;
-  };
-  let pendingSubject=[];
-  let current=null;
-  const finishCurrent=()=>{if(current){records.push(current);current=null}};
-  for(const raw of lines){
-    const line=String((raw?.text??raw)||'').trim();
-    const lineTop=Number(raw?.top??0);
-    if(!line)continue;
-    const m=line.match(weekRe);
-    if(m){
-      const prefix=line.slice(0,m.index).trim();
-      const after=line.slice(m.index+m[0].length).trim();
-      // Новый блок недель закрывает предыдущий блок.
-      let prefixAlreadyQueued=false;
-      if(current){
-        if(prefix){
-          // "Новый предмет (11-16)" в одной строке.
-          finishCurrent();
-          pendingSubject=[prefix];
-          prefixAlreadyQueued=true;
-        }else{
-          finishCurrent();
-        }
-      }
-      let subject=[...pendingSubject,...(!prefixAlreadyQueued&&prefix?[prefix]:[])].join(' ').replace(/\s+/g,' ').trim();
-      pendingSubject=[];
-      if(!subject&&records.length)subject=records[records.length-1].subject;
-      current={subject:subject||'Занятие',spec:m[1],locationParts:[],top:lineTop};
-      if(after)current.locationParts.push(after);
-      continue;
-    }
-    if(current){
-      // После (недель) идут только строки аудитории/корпуса. Если строка не
-      // похожа на адрес, это уже следующий предмет.
-      if(isLocationLine(line)) current.locationParts.push(line);
-      else {finishCurrent();pendingSubject=[line]}
-    }else{
-      pendingSubject.push(line);
-    }
-  }
-  finishCurrent();
-  return records.map(r=>{
-    const location=r.locationParts.join(' ').replace(/\s+/g,' ').replace(/\s+,/g,',').trim();
-    const change=location.match(/\bС\s*(\d+)\s*недели?\s*[-–—:]\s*(.+)$/i);
-    let locationBase=location,locationChange=null;
-    if(change){locationBase=location.slice(0,change.index).trim();locationChange={week:Number(change[1]),text:change[2].trim()}}
-    return {...r,location:locationBase,locationChange};
-  });
-}
-
 function matrixMul(m,n){
   return [
     m[0]*n[0]+m[2]*n[1], m[1]*n[0]+m[3]*n[1],
@@ -897,37 +848,124 @@ function matrixCellText(items){
   lines.sort((a,b)=>a.top-b.top);return lines.map(line=>{line.items.sort((a,b)=>a.x-b.x);let s='',prev=null;for(const it of line.items){const t=it.str.trim();if(!t)continue;if(prev===null)s=t;else{const gap=it.x-(prev.x+prev.w),noSpace=gap<1.5||/^[,.;:!?%)\]]/.test(t)||/[\[(]$/.test(s);s+=(noSpace?'':' ')+t}prev=it}return {top:line.top,text:s.replace(/\s+/g,' ').replace(/\(\s+/g,'(').replace(/\s+\)/g,')').replace(/\s+,/g,',').trim()}}).filter(x=>x.text);
 }
 function parseMatrixCellRecords(lines){
-  const records=[],weekRe=/\((\d+(?:\s*[-–—]\s*\d+)?(?:\s*,\s*\d+(?:\s*[-–—]\s*\d+)?)*)\)/;
-  const locationRe=/(ауд\.?|каб\.?|зал\b|лит\.?|солнечное\b|башня\b|кпк\b|школа\b|общежит|корп\.?|цдти\.?)/i;
-  let current=null,pending=[];
-  const finish=()=>{if(current){records.push(current);current=null}};
-  const previousSubject=()=>records.length?records[records.length-1].subject:'';
+  const records=[];
+  const weekRe=/\((\d+(?:\s*[-–—]\s*\d+)?(?:\s*,\s*\d+(?:\s*[-–—]\s*\d+)?)*)\)/;
+  let pending=[];
+  let current=null;
+  const finish=()=>{if(current){current.subject=current.subject.replace(/\s+/g,' ').trim();current.locationParts=(current.locationParts||[]).join(' ').replace(/\s+/g,' ').replace(/\s+,/g,',').trim();records.push(current);current=null}};
   for(const raw of lines){
-    const line=String(raw.text||'').trim();if(!line)continue;
+    const line=String(raw?.text ?? raw ?? '').replace(/\s+/g,' ').trim();
+    if(!line||/^\d{2,3}$/.test(line))continue;
     const m=line.match(weekRe);
     if(m){
       const prefix=line.slice(0,m.index).trim();
       const after=line.slice(m.index+m[0].length).trim();
       finish();
-      const subject=[...pending,prefix].filter(Boolean).join(' ').replace(/\s+/g,' ').trim() || previousSubject() || 'Занятие';
+      const subject=[...pending,prefix].filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
       pending=[];
-      current={subject,spec:m[1],locationParts:[],top:raw.top};
+      current={subject:subject||'Занятие',spec:m[1],locationParts:[],top:Number(raw?.top||0)};
       if(after)current.locationParts.push(after);
       continue;
     }
     if(current){
-      // После номера недель идут адрес/корпус и их переносы на следующие строки.
-      // Если строка явно не похожа на адрес, считаем её началом следующего названия.
-      if(locationRe.test(line)||/^[\d./\-–—\s]+$/.test(line)) current.locationParts.push(line);
-      else {finish();pending.push(line)}
-    }else pending.push(line);
+      // Всё после номера недели до следующего номера недели относится к этой паре.
+      // Это важно для строк вида «С 11 недели — ауд. 3.11».
+      current.locationParts.push(line);
+    }else{
+      pending.push(line);
+    }
   }
   finish();
-  return records.map(r=>({subject:r.subject.replace(/\s+/g,' ').trim(),spec:r.spec,location:r.locationParts.join(' ').replace(/\s+/g,' ').replace(/\s+,/g,',').trim()}));
+  return records.filter(r=>r.spec&&r.subject).map(r=>({subject:r.subject,spec:r.spec,location:r.locationParts||'',top:r.top}));
 }
 
+function parseMatrixGroupLines(items,left,right,pageNo){
+  const minTop=pageNo===1?500:150;
+  const groupItems=items.filter(it=>it.x>=left+1&&it.x<right-1&&it.top>minTop);
+  return parseMatrixCellLines(groupItems);
+}
 
+async function parseSchedulePdfDateGrid(pdf,file){
+  const page=await pdf.getPage(1),viewport=page.getViewport({scale:1}),content=await page.getTextContent({normalizeWhitespace:false});
+  const items=content.items.map(it=>{const x=it.transform[4],h=Math.abs(it.height||Math.hypot(it.transform[2],it.transform[3])||0),top=viewport.height-it.transform[5]-h;return{str:it.str||"",x,top,w:Math.abs(it.width||0),h}}).filter(it=>it.str.trim());
+  const headerRe=/^\d{1,2}\.\d{1,2}-\d{1,2}\.\d{1,2}$/,headers=items.filter(it=>headerRe.test(it.str.trim())&&it.top<80).sort((a,b)=>a.x-b.x);
+  if(headers.length<2)throw new Error("Не удалось найти недели");
+  const year=new Date().getFullYear(),columns=headers.map(h=>({text:h.str.trim(),x:h.x+h.w/2,date:parseDateRange(h.str.trim(),year)})).filter(x=>x.date),rows=items.filter(it=>/^\d{1,2}:\d{2}-\d{1,2}:\d{2}$/.test(it.str.trim())&&it.x<100).sort((a,b)=>a.top-b.top),weekdaysMap={понедельник:0,вторник:1,среда:2,четверг:3,пятница:4,суббота:5};
+  const dayLabels=items.filter(it=>weekdaysMap[it.str.trim().toLowerCase()]!==undefined&&it.x<75);
+  if(columns.length<2||rows.length<10)throw new Error("Не удалось определить таблицу");
+  const rowDay=top=>{let best=0,bd=Infinity;for(const d of dayLabels){const dist=Math.abs(d.top-top);if(dist<bd){bd=dist;best=weekdaysMap[d.str.trim().toLowerCase()]}}return best};
+  const starts=headers.map(h=>h.x),weeks=columns.map(c=>({start:c.date.start,end:c.date.end,events:[]}));
+  for(let c=0;c<columns.length;c++){
+    const left=starts[c]-.5,right=c===starts.length-1?Infinity:starts[c+1]-.5,colItems=items.filter(it=>it.x>=left&&it.x<right&&it.top>58).sort((a,b)=>a.top-b.top),lines=[];
+    for(const item of colItems){let line=lines.find(l=>Math.abs(l.top-item.top)<=2.2);if(!line){line={top:item.top,items:[]};lines.push(line)}line.items.push(item)}
+    lines.sort((a,b)=>a.top-b.top);
+    const clusters=[];for(const line of lines){const last=clusters[clusters.length-1];if(!last||line.top-last.lastTop>5)clusters.push({top:line.top,lastTop:line.top,lines:[line]});else{last.lines.push(line);last.lastTop=line.top}}
+    for(const cl of clusters){const text=normalizeCellText(cl.lines.flatMap(l=>l.items));if(!text||headerRe.test(text))continue;const center=(cl.top+cl.lastTop)/2;let nearest=0,dist=Infinity;for(let r=0;r<rows.length;r++){const dd=Math.abs(rows[r].top-center);if(dd<dist){dist=dd;nearest=r}}if(dist>18)continue;const row=rows[nearest],weekday=rowDay(row.top),[start,end]=row.str.split("-");let location="",loc=text.match(/\(([^()]*(?:ауд\.|зал|д\.)[^()]*)\)/i);if(loc)location=loc[1].replace(/\s+/g," ").trim();const subject=text.replace(/\s*\([^)]*(?:ауд\.|зал|д\.)[^)]*\)\s*$/i,"").trim()||text;weeks[c].events.push({weekday,start,end,subject,location})}}
+  weeks.forEach(w=>w.events.sort(compareEvents));if(weeks.reduce((n,w)=>n+w.events.length,0)<10)throw new Error("Слишком мало занятий распознано");return{sourceName:file.name,weeks,importedAt:new Date().toISOString()}
+}
 
+async function parseSchedulePdfMatrix(pdf,file){
+  // Специализированный разбор матрицы Алмазова 1 курс / поток Б / 31.05.01.
+  // В этом PDF текст пары часто выходит выше горизонтальной линии ячейки,
+  // поэтому нельзя резать текст строгими прямоугольниками строк. Вместо этого
+  // мы разбираем каждый столбец группы целиком, а номер недели является якорем
+  // конкретной пары. Это устраняет пропуски в длинных ячейках.
+  const first=await pdf.getPage(1);
+  const toItems=(content,viewport)=>content.items.map(it=>{const x=it.transform[4],h=Math.abs(it.height||Math.hypot(it.transform[2],it.transform[3])||0),top=viewport.height-it.transform[5]-h;return{str:it.str||"",x,top,w:Math.abs(it.width||0),h}}).filter(it=>it.str.trim());
+  const pageItems=[];
+  for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){
+    if(window.__scheduleProgress)window.__scheduleProgress(`Читаю страницу ${pageNo} из ${pdf.numPages}…`);
+    const page=pageNo===1?first:await pdf.getPage(pageNo),viewport=page.getViewport({scale:1}),content=await page.getTextContent({normalizeWhitespace:false});
+    pageItems.push({page,viewport,items:toItems(content,viewport)});
+  }
+  const firstItems=pageItems[0].items;
+  const headerItems=firstItems.filter(it=>/^\d{2,3}$/.test(it.str.trim())&&it.top>430&&it.top<490&&it.x>500).sort((a,b)=>a.x-b.x);
+  if(headerItems.length!==13)throw new Error(`Не удалось определить все группы: найдено ${headerItems.length} из 13`);
+  const groups=headerItems.map(x=>x.str.trim());
+  const allText=firstItems.map(x=>x.str).join(' '),academicYear=parseAcademicYear(allText);
+  const weekMap=new Map();
+  const ensureWeek=n=>{if(!weekMap.has(n)){const d=weekDateByNumber(academicYear,n);weekMap.set(n,{...d,weekNumber:n,events:[]})}return weekMap.get(n)};
+  // Точные границы временных блоков из шаблона PDF. Якорь записи — строка с (неделями).
+  const rowsByPage=[
+    [
+      [476.22,671.22,0,'09:20','10:45'],[671.22,866.22,0,'11:00','12:25'],[866.22,1275.72,0,'13:30','15:05'],[1275.72,1596.72,0,'15:10','16:35'],
+      [1596.72,1872.72,1,'09:20','10:45'],[1872.72,2258.97,1,'11:00','12:25'],
+      [2258.97,3077.97,2,'09:20','10:45'],[3077.97,3896.97,2,'11:00','12:25'],[3896.97,4306.57,2,'13:30','15:05']
+    ],
+    [
+      [74.0,483.6,2,'15:10','16:35'],[483.6,892.35,3,'09:20','10:45'],[892.35,1301.1,3,'11:00','12:25'],
+      [1301.1,1709.85,4,'09:20','10:45'],[1709.85,2118.6,4,'11:00','12:25'],[2118.6,2497.35,4,'13:30','15:05'],[2497.35,2797.35,4,'15:10','16:35'],
+      [2797.35,2992.35,5,'13:30','15:05'],[2992.35,3187.35,5,'15:10','16:35']
+    ]
+  ];
+  const locateRow=(pageNo,top)=>{const rows=rowsByPage[pageNo-1]||[];return rows.find(r=>top>=r[0]-1&&top<r[1]+1)||null};
+  for(let pi=0;pi<pageItems.length;pi++){
+    const {items}=pageItems[pi];
+    for(let gi=0;gi<groups.length;gi++){
+      const left=543.6+gi*171.0,right=left+171.0;
+      const lines=parseMatrixGroupLines(items,left,right,pi+1);
+      const records=parseMatrixCellRecords(lines);
+      for(const rec of records){
+        const row=locateRow(pi+1,rec.top);if(!row)continue;
+        const nums=expandWeekSpec(rec.spec);if(!nums.length)continue;
+        for(const weekNumber of nums){
+          const w=ensureWeek(weekNumber);let location=rec.location||'';
+          const change=location.match(/(?:^|\s)С\s*(\d+)\s*недели?\s*[-–—:]\s*(.+)$/i);
+          let baseLocation=location;
+          if(change){baseLocation=location.slice(0,change.index).trim();if(weekNumber>=Number(change[1]))baseLocation=change[2].trim()}
+          w.events.push({weekday:row[2],start:row[3],end:row[4],subject:rec.subject,location:baseLocation,group:groups[gi],weekNumber});
+        }
+      }
+    }
+  }
+  const weeks=[...weekMap.values()].sort((a,b)=>a.start.localeCompare(b.start));
+  weeks.forEach(w=>{const seen=new Set();w.events=w.events.filter(e=>{const key=[e.group,e.weekNumber,e.weekday,e.start,e.end,e.subject,e.location].join('|');if(seen.has(key))return false;seen.add(key);return true}).sort(compareEvents)});
+  const total=weeks.reduce((n,w)=>n+w.events.length,0),counts=new Map(groups.map(g=>[g,0]));weeks.forEach(w=>w.events.forEach(e=>counts.set(e.group,(counts.get(e.group)||0)+1)));
+  const empty=[...counts].filter(([,n])=>!n).map(([g])=>g);
+  if(!weeks.length||total<50)throw new Error(`Распознано слишком мало занятий: ${total}`);
+  if(empty.length)throw new Error(`Не удалось распознать группы: ${empty.join(', ')}`);
+  return{sourceName:file.name,weeks,groups,academicYear,format:'group-week-matrix',importedAt:new Date().toISOString(),parser:'almazov-matrix-v2'};
+}
 
 async function parseSchedulePdfDateGrid(pdf,file){
   const page=await pdf.getPage(1),viewport=page.getViewport({scale:1}),content=await page.getTextContent({normalizeWhitespace:false});
@@ -960,151 +998,6 @@ async function parseSchedulePdfDateGrid(pdf,file){
   if(weeks.reduce((n,w)=>n+w.events.length,0)<10)throw new Error("Слишком мало занятий распознано");
   return{sourceName:file.name,weeks,importedAt:new Date().toISOString()};
 }
-async function parseSchedulePdfMatrix(pdf,file){
-  const pdfjs=window.__pdfjsModule||null;
-  const first=await pdf.getPage(1),v1=first.getViewport({scale:1}),c1=await first.getTextContent({normalizeWhitespace:false});
-  const toItems=(content,viewport)=>content.items.map(it=>{
-    const x=it.transform[4],h=Math.abs(it.height||Math.hypot(it.transform[2],it.transform[3])||0);
-    const top=viewport.height-it.transform[5]-h;
-    return{str:it.str||"",x,top,w:Math.abs(it.width||0),h};
-  }).filter(it=>it.str.trim());
-  const firstItems=toItems(c1,v1);
-  const groupHeaders=firstItems.filter(it=>/^\d{2,3}$/.test(it.str.trim())&&it.top>430&&it.top<490&&it.x>500).sort((a,b)=>a.x-b.x);
-  if(groupHeaders.length<2)throw new Error("Не удалось определить группы");
-  const groups=groupHeaders.map(x=>x.str.trim());
-  const centers=groupHeaders.map(x=>x.x+x.w/2);
-  const avgGap=centers.length>1?centers.slice(1).reduce((a,c,i)=>a+c-centers[i],0)/(centers.length-1):170;
-  const bounds=centers.map((center,i)=>({
-    left:i?((centers[i-1]+center)/2):center-avgGap/2,
-    right:i<centers.length-1?((center+centers[i+1])/2):center+avgGap/2
-  }));
-  const allText=firstItems.map(x=>x.str).join(" "),academicYear=parseAcademicYear(allText),weekMap=new Map();
-  const ensureWeek=n=>{
-    if(!weekMap.has(n)){const d=weekDateByNumber(academicYear,n);weekMap.set(n,{...d,weekNumber:n,events:[]})}
-    return weekMap.get(n);
-  };
-
-  // ВАЖНО: день определяем по крупным горизонтальным границам таблицы,
-  // а не по ближайшей надписи "ПН/ВТ/СР". В исходном PDF подпись дня
-  // находится в объединённой ячейке и часто визуально не совпадает с началом первой пары.
-  let carryDay=0;
-  for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){ if(window.__scheduleProgress) window.__scheduleProgress(`Анализ страницы ${pageNo} из ${pdf.numPages}…`);
-    const page=pageNo===1?first:await pdf.getPage(pageNo);
-    const viewport=pageNo===1?v1:page.getViewport({scale:1});
-    const content=pageNo===1?c1:await page.getTextContent({normalizeWhitespace:false});
-    const items=pageNo===1?firstItems:toItems(content,viewport);
-    const slots=parseMatrixTimeSlots(items);
-    if(!slots.length)continue;
-
-    const minSlot=Math.min(...slots.map(s=>s.top)),maxSlot=Math.max(...slots.map(s=>s.top));
-    const segments=await extractMatrixHorizontalSegments(page,viewport,pdfjs,minSlot,maxSlot);
-    const dayLabels=items.filter(it=>({ПН:0,ВТ:1,СР:2,ЧТ:3,ПТ:4,СБ:5,ВС:6}[it.str.trim()])!==undefined&&it.x<340);
-    let majorBoundaries=matrixDayBoundariesFromLabels(segments,items,viewport.height);
-    if(majorBoundaries.length<2) majorBoundaries=matrixMajorDayBoundaries(segments,minSlot,maxSlot);
-
-    // majorBoundaries строятся относительно центров подписей ПН/ВТ/СР…,
-    // поэтому внутренняя линия между двумя парами больше не превращается
-    // случайно в границу нового дня.
-    const pageFirstDay=pageNo===1?0:3;
-    let slotWeekdays=assignMatrixWeekdaysByRules(slots,dayLabels,majorBoundaries,pageFirstDay);
-    // Санитарная проверка: внутри одного дня время не должно «скакать» назад.
-    // Это защищает от редких PDF, где подпись дня находится не в центре объединённой ячейки.
-    const startsByDay=new Map();
-    slots.forEach((slot,i)=>{const d=slotWeekdays[i];const mins=slot.startMinutes??timeToMinutes(slot.time.start);if(!startsByDay.has(d))startsByDay.set(d,[]);startsByDay.get(d).push(mins)});
-    let invalid=false;
-    for(const arr of startsByDay.values()){for(let i=1;i<arr.length;i++){if(arr[i]<arr[i-1]-45){invalid=true;break}}if(invalid)break}
-    if(invalid){
-      slotWeekdays=[];let day=pageFirstDay,lastStart=-1;
-      for(let i=0;i<slots.length;i++){const mins=slots[i].startMinutes??timeToMinutes(slots[i].time.start);
-        // Новый день определяется только большим откатом времени; небольшие различия
-        // между солнечным/городским временем не создают новый день.
-        if(i>0&&mins<lastStart-45&&day<6)day++;
-        slotWeekdays.push(day);lastStart=mins;
-      }
-    }
-    if(slotWeekdays.length)carryDay=slotWeekdays[slotWeekdays.length-1];
-
-    for(let gi=0;gi<bounds.length;gi++){ if(window.__scheduleProgress && pageNo===1 && gi%4===0) window.__scheduleProgress(`Анализ групп: ${Math.min(gi+bounds.length?gi+1:1,bounds.length)} из ${bounds.length}…`);
-      const b=bounds[gi],center=(b.left+b.right)/2;
-      // Горизонтальные линии, пересекающие конкретный столбец группы.
-      const ys=[];
-      for(const seg of segments){
-        if(seg.x0<=center+1&&seg.x1>=center-1){
-          const last=ys[ys.length-1];
-          if(last===undefined||Math.abs(seg.top-last)>2)ys.push(seg.top);
-        }
-      }
-      ys.sort((a,b)=>a-b);
-
-      // Обрабатываем КАЖДЫЙ временной слот отдельно. Это критично для PDF,
-      // где высота строк дней неодинакова, а текст пары центрирован внутри ячейки.
-      for(let si=0;si<slots.length;si++){
-        const slot=slots[si];
-        const weekday=slotWeekdays[si]??carryDay??0;
-        const dayStart=majorBoundaries.length>=2
-          ? majorBoundaries.find(y=>slot.top>=y-1&&slot.top<((majorBoundaries[majorBoundaries.indexOf(y)+1]??Infinity)))
-          : -Infinity;
-        let lowerDay=Infinity;
-        if(majorBoundaries.length>=2){
-          const idx=majorBoundaries.findIndex(y=>slot.top>=y-1&&slot.top<((majorBoundaries[majorBoundaries.indexOf(y)+1]??Infinity)));
-          if(idx>=0)lowerDay=majorBoundaries[idx+1]??Infinity;
-        }
-
-        // Верхняя/нижняя границы строки времени. Берём линии внутри текущего дня.
-        let topBoundary=-Infinity,bottomBoundary=Infinity;
-        for(const y of ys){
-          if(y<slot.top-3 && y>=(dayStart??-Infinity)-2)topBoundary=Math.max(topBoundary,y);
-          if(y>slot.top+3 && y<=lowerDay+2){bottomBoundary=Math.min(bottomBoundary,y)}
-        }
-        // Не режем текст по слишком близкой линии: надпись времени сама может
-        // лежать на границе строки.
-        if(!Number.isFinite(topBoundary))topBoundary=majorBoundaries.length?majorBoundaries[Math.max(0,majorBoundaries.findIndex(y=>y>slot.top)-1)]:slot.top-180;
-        if(!Number.isFinite(bottomBoundary)){
-          const nextSameDay=slots.find((x,k)=>k>si&&slotWeekdays[k]===weekday&&x.top>slot.top);
-          bottomBoundary=nextSameDay?nextSameDay.top+120:(Number.isFinite(lowerDay)?lowerDay:slot.top+500);
-        }
-
-        let cellItems=items.filter(it=>it.x>=b.left+1&&it.x<b.right-1&&it.top>topBoundary+3&&it.top<bottomBoundary-3);
-        // Некоторые PDF-экспортеры слегка смещают текст относительно линии
-        // ячейки. Если строгое окно оказалось пустым, используем безопасное
-        // расширенное окно только внутри текущего дня. Это не позволяет
-        // подтянуть текст соседнего дня.
-        if(!cellItems.length){
-          const prevSameDay=[...slots].map((x,k)=>({x,k})).filter(o=>o.k<si&&slotWeekdays[o.k]===weekday&&o.x.top<slot.top).pop()?.x;
-          const nextSameDay=[...slots].map((x,k)=>({x,k})).find(o=>o.k>si&&slotWeekdays[o.k]===weekday&&o.x.top>slot.top)?.x;
-          const safeTop=prevSameDay?Math.max(topBoundary, (prevSameDay.top+slot.top)/2-170):topBoundary;
-          const safeBottom=nextSameDay?Math.min(bottomBoundary, (slot.top+nextSameDay.top)/2+170):bottomBoundary;
-          cellItems=items.filter(it=>it.x>=b.left+1&&it.x<b.right-1&&it.top>safeTop&&it.top<safeBottom);
-        }
-        if(!cellItems.length)continue;
-        const records=parseMatrixCellRecords(parseMatrixCellLines(cellItems));
-        for(const rec of records){
-          const nums=expandWeekSpec(rec.spec);
-          if(!nums.length||!rec.subject)continue;
-          nums.forEach(weekNumber=>{
-            const w=ensureWeek(weekNumber);
-            let location=rec.location||"";
-            if(rec.locationChange&&weekNumber>=rec.locationChange.week)location=rec.locationChange.text;
-            w.events.push({weekday,start:slot.time.start,end:slot.time.end,subject:rec.subject,location,group:groups[gi],weekNumber});
-          });
-        }
-      }
-    }
-  }
-  const weeks=[...weekMap.values()].sort((a,b)=>a.start.localeCompare(b.start));
-  weeks.forEach(w=>{
-    // Удаляем только точные дубликаты, которые могут появиться из-за двойной
-    // линии PDF. Разные недели/аудитории/предметы не объединяем.
-    const seen=new Set();
-    w.events=w.events.filter(e=>{
-      const key=[e.group,e.weekNumber,e.weekday,e.start,e.end,e.subject,e.location].join("|");
-      if(seen.has(key))return false; seen.add(key); return true;
-    }).sort(compareEvents);
-  });
-  if(!weeks.length||weeks.reduce((n,w)=>n+w.events.length,0)<10)throw new Error("Слишком мало занятий распознано");
-  return{sourceName:file.name,weeks,groups,academicYear,format:"group-week-matrix",importedAt:new Date().toISOString()};
-}
-
 async function parseSchedulePdf(file){
   const pdfjs=await loadPdfJs();window.__pdfjsModule=pdfjs;const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
   const first=await pdf.getPage(1),viewport=first.getViewport({scale:1}),content=await first.getTextContent({normalizeWhitespace:false});
@@ -1187,74 +1080,41 @@ const SUBJECT_GRADIENTS=[
 ];
 function subjectColorIndex(subject){const id=subjectIdentity(subject);if(!data.subjectColors||typeof data.subjectColors!=='object')data.subjectColors={};if(data.subjectColors[id]===undefined){let h=0;for(let i=0;i<id.length;i++)h=(h*31+id.charCodeAt(i))>>>0;data.subjectColors[id]=h%SUBJECT_GRADIENTS.length;save()}return Math.max(0,Math.min(SUBJECT_GRADIENTS.length-1,Number(data.subjectColors[id])||0))}
 function getSubjectGradient(subject){return SUBJECT_GRADIENTS[subjectColorIndex(subject)]}
-function openSubjectColorModal(){
+let activeSubjectColorId="";
+const GRADIENT_NAMES=["Синий лед","Индиго","Мята","Коралловый","Янтарный","Изумруд","Розовый космос","Фиолетовый","Океан","Малина","Лайм","Сапфир","Бирюза","Лавандовый","Персиковый","Голубой шелк","Орхидея","Морская волна","Красный коралл","Небесный"];
+function subjectColorIndex(subject){const id=subjectIdentity(subject);if(!data.subjectColors||typeof data.subjectColors!=='object')data.subjectColors={};if(data.subjectColors[id]===undefined){let h=0;for(let i=0;i<id.length;i++)h=(h*31+id.charCodeAt(i))>>>0;data.subjectColors[id]=h%SUBJECT_GRADIENTS.length;save()}return Math.max(0,Math.min(SUBJECT_GRADIENTS.length-1,Number(data.subjectColors[id])||0))}
+function getSubjectGradient(subject){return SUBJECT_GRADIENTS[subjectColorIndex(subject)]}
+function openSubjectColorModal(preselect){
+  const subjects=getSubjectCatalog();
+  if(!activeSubjectColorId)activeSubjectColorId=subjectIdentity(preselect||subjects[0]||"");
   renderSubjectColorGrid();
-  const m=document.getElementById('subjectColorModal');
-  if(!m)return;
+  const m=document.getElementById('subjectColorModal');if(!m)return;
   m.classList.add('open');m.setAttribute('aria-hidden','false');
-  setTimeout(()=>document.getElementById('subjectColorSearch')?.focus(),50);
+  setTimeout(()=>document.getElementById('subjectColorSearch')?.focus(),60);
 }
-function closeSubjectColorModal(){
-  const m=document.getElementById('subjectColorModal');
-  if(!m)return;
-  m.classList.remove('open');m.setAttribute('aria-hidden','true');
-  renderSchedule();
-}
+function closeSubjectColorModal(){const m=document.getElementById('subjectColorModal');if(!m)return;m.classList.remove('open');m.setAttribute('aria-hidden','true');renderSchedule()}
 function renderSubjectColorGrid(){
-  const box=document.getElementById('subjectColorGrid');
-  if(!box)return;
+  const box=document.getElementById('subjectColorGrid'),editor=document.getElementById('subjectColorEditor');if(!box||!editor)return;
   const q=(document.getElementById('subjectColorSearch')?.value||'').toLocaleLowerCase('ru-RU').trim();
   const subjects=getSubjectCatalog().filter(x=>!q||x.toLocaleLowerCase('ru-RU').includes(q));
-  box.innerHTML=subjects.map(subject=>{
-    const id=subjectIdentity(subject),idx=subjectColorIndex(subject);
-    return `<div class="subject-color-row" data-subject-id="${esc(id)}">
-      <div class="subject-color-label"><span class="subject-color-preview" style="background:${SUBJECT_GRADIENTS[idx]}"></span><div class="subject-color-name" title="${esc(subject)}">${esc(subject)}</div></div>
-      <div class="gradient-options" role="group" aria-label="Цвет предмета ${esc(subject)}">
-        ${SUBJECT_GRADIENTS.map((g,i)=>`<button type="button" class="gradient-swatch ${i===idx?'active':''}" data-color-index="${i}" aria-label="Градиент ${i+1}" aria-pressed="${i===idx}" style="background:${g}"></button>`).join('')}
-      </div>
-    </div>`;
-  }).join('')||'<div class="subject-empty" style="grid-column:1/-1">Предмет не найден.</div>';
+  if(!subjects.some(x=>subjectIdentity(x)===activeSubjectColorId))activeSubjectColorId=subjectIdentity(subjects[0]||"");
+  box.innerHTML=subjects.map(subject=>{const id=subjectIdentity(subject),idx=subjectColorIndex(subject),active=id===activeSubjectColorId;return `<button type="button" class="color-subject-item ${active?'active':''}" data-subject-id="${esc(id)}"><span class="color-subject-preview" style="background:${SUBJECT_GRADIENTS[idx]}"></span><span class="color-subject-copy"><b>${esc(subject)}</b><small>${esc(GRADIENT_NAMES[idx])}</small></span><span class="color-subject-arrow">›</span></button>`}).join('')||'<div class="subject-empty">Предмет не найден.</div>';
+  box.querySelectorAll('.color-subject-item').forEach(btn=>btn.addEventListener('click',()=>{activeSubjectColorId=btn.dataset.subjectId;renderSubjectColorGrid()}));
+  const subject=subjects.find(x=>subjectIdentity(x)===activeSubjectColorId)||subjects[0];
+  if(!subject){editor.innerHTML='<div class="color-editor-empty">Добавь или импортируй предметы — здесь появятся их цвета.</div>';return}
+  const idx=subjectColorIndex(subject);
+  editor.innerHTML=`<div class="color-editor-head"><div><span class="modal-kicker">ВЫБРАННЫЙ ПРЕДМЕТ</span><h3>${esc(subject)}</h3><p>Текущий стиль: <b>${esc(GRADIENT_NAMES[idx])}</b></p></div><span class="color-editor-big-preview" style="background:${SUBJECT_GRADIENTS[idx]}"></span></div><div class="palette-title"><span>Готовые градиенты</span><small>20 вариантов</small></div><div class="professional-palette">${SUBJECT_GRADIENTS.map((g,i)=>`<button type="button" class="palette-card ${i===idx?'selected':''}" data-color-index="${i}" aria-label="${esc(GRADIENT_NAMES[i])}" aria-pressed="${i===idx}"><span class="palette-gradient" style="background:${g}"></span><span>${esc(GRADIENT_NAMES[i])}</span>${i===idx?'<b class="palette-check">✓</b>':''}</button>`).join('')}</div>`;
+  editor.querySelectorAll('.palette-card').forEach(btn=>btn.addEventListener('click',()=>setSubjectColor(activeSubjectColorId,Number(btn.dataset.colorIndex))));
 }
 function setSubjectColor(id,index){
-  const n=Number(index);
-  if(!id||!Number.isInteger(n)||n<0||n>=SUBJECT_GRADIENTS.length)return;
-  if(!data.subjectColors||typeof data.subjectColors!=='object')data.subjectColors={};
-  data.subjectColors[id]=n;
-  save();
-  // Update every already rendered event immediately, without rebuilding the whole modal.
-  document.querySelectorAll('.event').forEach(el=>{
-    const subject=el.dataset.subject;
-    if(subject&&subjectIdentity(subject)===id)el.style.setProperty('--event-gradient',SUBJECT_GRADIENTS[n]);
-  });
+  const n=Number(index);if(!id||!Number.isInteger(n)||n<0||n>=SUBJECT_GRADIENTS.length)return;
+  if(!data.subjectColors||typeof data.subjectColors!=='object')data.subjectColors={};data.subjectColors[id]=n;save();
+  document.querySelectorAll('.event').forEach(el=>{const subject=el.dataset.subject;if(subject&&subjectIdentity(subject)===id)el.style.setProperty('--event-gradient',SUBJECT_GRADIENTS[n])});
+  const dot=document.getElementById('colorPreviewDot');if(dot)dot.style.background=SUBJECT_GRADIENTS[n];
   renderSubjectColorGrid();
-  renderSchedule();
-  const dot=document.getElementById('colorPreviewDot');
-  if(dot)dot.style.background=SUBJECT_GRADIENTS[n];
-  toast('Цвет предмета изменён');
 }
-function resetSubjectColors(){
-  data.subjectColors={};save();renderSubjectColorGrid();renderSchedule();
-  const dot=document.getElementById('colorPreviewDot');
-  if(dot)dot.style.background=getSubjectGradient(getSubjectCatalog()[0]||'Анатомия человека');
-  toast('Цвета расписания сброшены');
-}
-function initSubjectColorSearch(){
-  const input=document.getElementById('subjectColorSearch');
-  if(!input||input.dataset.colorReady)return;
-  input.dataset.colorReady='1';
-  input.addEventListener('input',renderSubjectColorGrid);
-  const box=document.getElementById('subjectColorGrid');
-  if(box&&!box.dataset.colorDelegation){
-    box.dataset.colorDelegation='1';
-    box.addEventListener('click',e=>{
-      const button=e.target.closest('.gradient-swatch');
-      if(!button||!box.contains(button))return;
-      const row=button.closest('.subject-color-row');
-      const id=row?.dataset.subjectId;
-      setSubjectColor(id,Number(button.dataset.colorIndex));
-    });
-  }
-}
+function resetSubjectColors(){data.subjectColors={};save();renderSubjectColorGrid();renderSchedule();const dot=document.getElementById('colorPreviewDot');if(dot)dot.style.background=getSubjectGradient(getSubjectCatalog()[0]||'Анатомия человека');toast('Цвета расписания сброшены')}
+function initSubjectColorSearch(){const input=document.getElementById('subjectColorSearch');if(!input||input.dataset.colorReady)return;input.dataset.colorReady='1';input.addEventListener('input',renderSubjectColorGrid);const dot=document.getElementById('colorPreviewDot');if(dot)dot.style.background=getSubjectGradient(getSubjectCatalog()[0]||'Анатомия человека')}
 
 let calendarTarget=null,calendarTempDate=null,calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 function initCustomDatePickers(){['taskDue','noteDate'].forEach(id=>{const input=document.getElementById(id);if(!input||input.dataset.calendarReady)return;input.dataset.calendarReady='1';input.type='text';input.readOnly=true;input.classList.add('calendar-input');const trigger=document.createElement('button');trigger.type='button';trigger.className='calendar-trigger';trigger.innerHTML='<span>📅</span><span class="calendar-trigger-text">'+(input.value?formatCalendarValue(input.value):'Выбрать дату')+'</span><span>⌄</span>';input.parentNode.insertBefore(trigger,input);input.classList.add('calendar-native');trigger.addEventListener('click',()=>openCalendar(id));input.addEventListener('change',()=>{trigger.querySelector('.calendar-trigger-text').textContent=input.value?formatCalendarValue(input.value):'Выбрать дату'});});initSubjectColorSearch();const dot=document.getElementById('colorPreviewDot');if(dot)dot.style.background=getSubjectGradient(getSubjectCatalog()[0]||'Анатомия человека')}
@@ -1273,18 +1133,18 @@ function setupPremiumSelect(id,iconMap){
   const wrap=document.createElement("div");wrap.className="as-select";native.parentNode.insertBefore(wrap,native);wrap.appendChild(native);
   const trigger=document.createElement("button");trigger.type="button";trigger.className="as-select-trigger";trigger.setAttribute("aria-haspopup","listbox");trigger.setAttribute("aria-expanded","false");
   const label=document.createElement("span");label.className="as-select-label";const text=document.createElement("span");label.appendChild(text);const chev=document.createElement("span");chev.className="as-select-chevron";chev.innerHTML='<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';trigger.append(label,chev);wrap.appendChild(trigger);
-  const menu=document.createElement("div");menu.className="as-select-menu";menu.setAttribute("role","listbox");wrap.appendChild(menu);
-  function render(){menu.innerHTML="";[...native.options].forEach(opt=>{const b=document.createElement("button");b.type="button";b.className="as-select-option";b.dataset.value=opt.value;b.setAttribute("role","option");const icon=document.createElement("span");icon.className="opt-icon";const iconKey=iconMap?.[opt.value]||"";icon.innerHTML=iconKey?`<span class="priority-dot ${iconKey}"></span>`:"";const tx=document.createElement("span");tx.textContent=opt.textContent.replace(/^\\S+\\s+/,'');b.append(icon,tx);if(opt.value===native.value){b.classList.add("active");const mark=document.createElement("span");mark.className="opt-check";mark.textContent="✓";b.appendChild(mark);text.textContent=opt.textContent.replace(/^\\S+\\s+/,'')}b.addEventListener("click",()=>{native.value=opt.value;native.dispatchEvent(new Event("change",{bubbles:true}));close();render()});menu.appendChild(b)});
-  }
-  function open(){document.querySelectorAll(".as-select.open").forEach(x=>x!==wrap&&x.classList.remove("open"));wrap.classList.add("open");trigger.setAttribute("aria-expanded","true")}
-  function close(){wrap.classList.remove("open");trigger.setAttribute("aria-expanded","false")}
-  trigger.addEventListener("click",()=>wrap.classList.contains("open")?close():open());native.addEventListener("change",render);document.addEventListener("click",e=>{if(!wrap.contains(e.target))close()});render();
-  wrap._refresh=render;
+  const menu=document.createElement("div");menu.className="as-select-menu as-select-portal";menu.setAttribute("role","listbox");document.body.appendChild(menu);
+  function render(){menu.innerHTML="";[...native.options].forEach(opt=>{const b=document.createElement("button");b.type="button";b.className="as-select-option";b.dataset.value=opt.value;b.setAttribute("role","option");const icon=document.createElement("span");icon.className="opt-icon";const iconKey=iconMap?.[opt.value]||"";icon.innerHTML=iconKey?`<span class="priority-dot ${iconKey}"></span>`:"";const tx=document.createElement("span");tx.textContent=opt.textContent.replace(/^\\S+\\s+/,'');b.append(icon,tx);if(opt.value===native.value){b.classList.add("active");const mark=document.createElement("span");mark.className="opt-check";mark.textContent="✓";b.appendChild(mark);text.textContent=opt.textContent.replace(/^\\S+\\s+/,'')}b.addEventListener("click",()=>{native.value=opt.value;native.dispatchEvent(new Event("change",{bubbles:true}));close()});menu.appendChild(b)});if(![...native.options].some(o=>o.value===native.value))text.textContent=native.options[0]?.textContent||"";}
+  function position(){if(!wrap.classList.contains("open"))return;const r=trigger.getBoundingClientRect(),gap=7,maxH=Math.min(340,window.innerHeight-20);menu.style.minWidth=Math.max(r.width,190)+"px";menu.style.maxHeight=maxH+"px";const menuH=Math.min(maxH,menu.scrollHeight||maxH);let top=r.bottom+gap;if(top+menuH>window.innerHeight-10)top=Math.max(10,r.top-gap-menuH);let left=Math.min(Math.max(10,r.left),window.innerWidth-Math.max(r.width,190)-10);menu.style.left=left+"px";menu.style.top=top+"px"}
+  function open(){document.querySelectorAll(".as-select.open").forEach(x=>x!==wrap&&x.classList.remove("open"));document.querySelectorAll(".as-select-portal.portal-open").forEach(x=>x!==menu&&x.classList.remove("portal-open"));wrap.classList.add("open");trigger.setAttribute("aria-expanded","true");menu.classList.add("portal-open");position();}
+  function close(){wrap.classList.remove("open");trigger.setAttribute("aria-expanded","false");menu.classList.remove("portal-open")}
+  trigger.addEventListener("click",()=>wrap.classList.contains("open")?close():open());native.addEventListener("change",()=>{render();if(wrap.classList.contains("open"))position()});
+  document.addEventListener("click",e=>{if(!wrap.contains(e.target)&&!menu.contains(e.target))close()});window.addEventListener("resize",position,{passive:true});window.addEventListener("scroll",position,{passive:true,capture:true});render();wrap._refresh=()=>{render();position()};wrap._close=close;
 }
 function refreshPremiumSelect(id){const el=document.getElementById(id);const wrap=el?.closest(".as-select");if(wrap&&wrap._refresh)wrap._refresh()}
-function setupPremiumSelects(){setupPremiumSelect("specialty",{});setupPremiumSelect("course",{});setupPremiumSelect("taskSubject",{});setupPremiumSelect("taskPriority",{normal:"normal",high:"high",low:"low"});setupPremiumSelect("notePriority",{normal:"normal",high:"high",low:"low"});setupPremiumSelect("materialSubjectFilter",{});setupPremiumSelect("materialCourseFilter",{})}
+function setupPremiumSelects(){setupPremiumSelect("specialty",{});setupPremiumSelect("course",{});setupPremiumSelect("taskSubject",{});setupPremiumSelect("noteSubject",{});setupPremiumSelect("taskPriority",{normal:"normal",high:"high",low:"low"});setupPremiumSelect("notePriority",{normal:"normal",high:"high",low:"low"});setupPremiumSelect("materialSubjectFilter",{});setupPremiumSelect("materialCourseFilter",{})}
 
-function renderAll(){const courses=document.getElementById("course");courses.innerHTML=[1,2,3,4,5,6].map(n=>`<option value="${n}">${n} курс</option>`).join("");renderProfile();renderTasks();renderAddresses();renderSchedule();loadNote(selectedNoteDate);tick();setupPremiumSelects();refreshPremiumSelect("specialty");refreshPremiumSelect("course");refreshPremiumSelect("taskSubject");refreshPremiumSelect("taskPriority");refreshPremiumSelect("notePriority");refreshPremiumSelect("materialSubjectFilter");refreshPremiumSelect("materialCourseFilter");initQuotes();initCustomDatePickers()}
+function renderAll(){const courses=document.getElementById("course");courses.innerHTML=[1,2,3,4,5,6].map(n=>`<option value="${n}">${n} курс</option>`).join("");renderProfile();renderTasks();renderAddresses();renderSchedule();loadNote(selectedNoteDate);tick();setupPremiumSelects();refreshPremiumSelect("specialty");refreshPremiumSelect("course");refreshPremiumSelect("taskSubject");refreshPremiumSelect("noteSubject");refreshPremiumSelect("taskPriority");refreshPremiumSelect("notePriority");refreshPremiumSelect("materialSubjectFilter");refreshPremiumSelect("materialCourseFilter");initQuotes();initCustomDatePickers()}
 initTheme();renderSubjectControls();renderProfileSubjects();initMaterials();renderAll();showDisclaimer();setInterval(tick,1000);setInterval(()=>renderSchedule(),60000);
 </script>
 
@@ -1348,11 +1208,14 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 </script>
 
 <div class="as-modal" id="subjectColorModal" aria-hidden="true">
-  <div class="as-modal-card color-modal-card" role="dialog" aria-modal="true" aria-labelledby="subjectColorTitle">
-    <div class="as-modal-head"><div><span class="modal-kicker">РАСПИСАНИЕ</span><h2 id="subjectColorTitle">Цвета предметов</h2><p>Выбери один из 20 градиентов для каждого предмета.</p></div><button class="as-modal-close" type="button" onclick="closeSubjectColorModal()">×</button></div>
-    <div class="color-modal-toolbar"><input class="input" id="subjectColorSearch" placeholder="Поиск предмета…"><button class="btn" type="button" onclick="resetSubjectColors()">Сбросить цвета</button></div>
-    <div class="subject-color-grid" id="subjectColorGrid"></div>
-    <div class="as-modal-actions"><button class="btn" type="button" onclick="closeSubjectColorModal()">Готово</button></div>
+  <div class="as-modal-card color-manager-modal" role="dialog" aria-modal="true" aria-labelledby="subjectColorTitle">
+    <div class="as-modal-head"><div><span class="modal-kicker">РАСПИСАНИЕ</span><h2 id="subjectColorTitle">Оформление предметов</h2><p>Выбери предмет слева, затем готовый градиент. Изменение применяется сразу ко всему расписанию.</p></div><button class="as-modal-close" type="button" onclick="closeSubjectColorModal()">×</button></div>
+    <div class="color-manager-toolbar"><label class="color-search-wrap"><span>⌕</span><input id="subjectColorSearch" placeholder="Найти предмет…" autocomplete="off"></label><button class="btn" type="button" onclick="resetSubjectColors()">Сбросить все</button></div>
+    <div class="color-manager" id="colorManager">
+      <div class="color-subject-list" id="subjectColorGrid"></div>
+      <section class="color-editor" id="subjectColorEditor" aria-live="polite"></section>
+    </div>
+    <div class="as-modal-actions"><button class="btn primary" type="button" onclick="closeSubjectColorModal()">Готово</button></div>
   </div>
 </div>
 <div class="as-modal" id="asCalendarModal" aria-hidden="true">
