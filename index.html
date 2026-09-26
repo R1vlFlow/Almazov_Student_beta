@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#071632"><meta name="description" content="Almazov Student — учебный планер">
+<meta name="theme-color" content="#071632"><meta name="description" content="Almazov Student — учебный планер"><link rel="preload" as="image" href="logo.webp" fetchpriority="high">
 <link rel="manifest" href="manifest.webmanifest"><title>Almazov Student — 3.1.27</title>
 <style>
 :root{--bg:#06132d;--panel:#0b1b3a;--panel2:#102650;--line:rgba(151,190,255,.16);--text:#f4f7ff;--muted:#a9b9d9;--blue:#4e8fff;--cyan:#4fd8ff;--violet:#9a65ff;--green:#46d6b0;--gold:#f4c46c;--danger:#ff7187;--shadow:0 18px 50px rgba(0,0,0,.28)}
@@ -187,11 +187,70 @@ body{letter-spacing:.005em}
 .emoji-icon svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:720px){.btn .as-icon{width:16px;height:16px}.mobile-nav .as-icon{width:18px;height:18px;margin:0 auto 2px}.mobile-nav button{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px}}
 </style>
+
+<style id="as-optimization-final">
+/* Final polish: performance, light theme, custom controls */
+html,body{overflow-x:hidden}
+img{content-visibility:auto}
+.sidebar,.right{contain:layout paint}
+.card,.day,.lesson,.quick-card,.right-link{contain:layout paint}
+.page:not(.active){content-visibility:hidden;contain-intrinsic-size:700px}
+@media(max-width:720px){
+  .sidebar,.right{contain:none}
+  .card,.day,.lesson,.quick-card,.right-link{box-shadow:0 8px 22px rgba(0,0,0,.10)!important}
+  .mobile-nav{backdrop-filter:blur(12px)!important}
+}
+.as-select{position:relative;min-width:0}
+.as-select-native{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important}
+.as-select-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;border-radius:13px;border:1px solid rgba(135,165,220,.16);background:rgba(5,20,43,.72);color:#edf4ff;text-align:left;transition:.18s ease;min-height:44px}
+.as-select-trigger:hover,.as-select.open .as-select-trigger{border-color:rgba(91,145,255,.55);box-shadow:0 0 0 3px rgba(67,133,240,.08)}
+.as-select-label{display:flex;align-items:center;gap:8px;min-width:0}.as-select-label span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.as-select-chevron{width:16px;height:16px;flex:0 0 auto;opacity:.7}
+.as-select-menu{position:absolute;z-index:120;left:0;right:0;top:calc(100% + 7px);padding:6px;border:1px solid rgba(137,177,233,.20);border-radius:15px;background:rgba(10,23,48,.98);box-shadow:0 22px 55px rgba(0,0,0,.38);opacity:0;visibility:hidden;transform:translateY(-5px) scale(.985);transform-origin:top;transition:.15s ease;backdrop-filter:blur(16px)}
+.as-select.open .as-select-menu{opacity:1;visibility:visible;transform:none}
+.as-select-option{width:100%;display:flex;align-items:center;gap:9px;padding:10px 11px;border-radius:10px;background:transparent;color:#dce8fa;text-align:left;font-size:12px;transition:.12s}.as-select-option:hover{background:rgba(78,145,246,.13)}.as-select-option.active{background:linear-gradient(100deg,rgba(78,145,246,.18),rgba(118,85,223,.13));color:#fff}.as-select-option .opt-icon{width:18px;height:18px;display:grid;place-items:center;flex:0 0 18px}.as-select-option .opt-check{margin-left:auto;color:#6fa9ff;font-weight:900}.priority-dot{width:11px;height:11px;border-radius:50%;display:block;box-shadow:0 0 0 3px rgba(255,255,255,.04)}.priority-dot.normal{background:#f2c84b}.priority-dot.high{background:#ff647c;box-shadow:0 0 0 3px rgba(255,100,124,.10)}.priority-dot.low{background:#63c44d;box-shadow:0 0 0 3px rgba(99,196,77,.10)}
+html[data-theme="light"] .as-select-trigger{background:#fff;color:#203a5d;border-color:rgba(58,104,162,.18)}
+html[data-theme="light"] .as-select-menu{background:rgba(255,255,255,.98);border-color:rgba(58,104,162,.18);box-shadow:0 22px 55px rgba(44,74,120,.18)}
+html[data-theme="light"] .as-select-option{color:#294564}.as-select-option:hover{background:rgba(40,124,242,.08)}html[data-theme="light"] .as-select-option.active{background:linear-gradient(100deg,#eaf3ff,#f0edff);color:#18375e}
+/* Clean subject system */
+.subject-pill{display:inline-flex!important;align-items:center;gap:6px!important;min-height:31px}.subject-pill .subject-mark{width:17px;height:17px;border-radius:50%;display:inline-grid;place-items:center;background:rgba(78,145,246,.13);color:#72adff;font-size:10px;font-weight:900}.subject-pill.official{border-color:rgba(78,145,246,.20);background:rgba(78,145,246,.07)}.subject-pill.custom{border-color:rgba(118,85,223,.24);background:rgba(118,85,223,.08)}
+.subject-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.subject-legend span{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--muted)}.subject-legend i{width:8px;height:8px;border-radius:50%;background:#5b9cff}.subject-legend i.custom{background:#9a82ff}
+html[data-theme="light"] .subject-pill{background:#f5f8ff;color:#294564;border-color:#cbd9ea}.subject-pill.custom{color:inherit}
+/* Better task/note chips */
+.task-chip,.note-chip{display:inline-flex;align-items:center;gap:5px}.task-chip.priority-high{background:rgba(255,101,126,.13);border:1px solid rgba(255,101,126,.18)}.task-chip.priority-low{background:rgba(66,211,170,.11);border:1px solid rgba(66,211,170,.16)}
+html[data-theme="light"] .task-chip{background:#edf4ff;color:#315276;border:1px solid #d3e0ef}html[data-theme="light"] .task-chip.priority-high{background:#fff0f2;color:#b03b52;border-color:#f3c8d0}html[data-theme="light"] .task-chip.priority-low{background:#ebfaf4;color:#23785d;border-color:#c4eadc}
+/* Light theme final pass */
+html[data-theme="light"]{--bg:#f3f7fc;--panel:#fff;--panel2:#f7faff;--line:rgba(44,83,130,.14);--text:#152943;--muted:#60738f;--shadow:0 16px 42px rgba(35,69,111,.10)}
+html[data-theme="light"] body{background:radial-gradient(900px 480px at 55% -12%,#dbeaff 0,#f3f7fc 60%),#f3f7fc}
+html[data-theme="light"] .main{background:transparent}.sidebar{will-change:auto}.right{will-change:auto}
+html[data-theme="light"] .hello h1,html[data-theme="light"] .page-title{color:#122746!important}html[data-theme="light"] .hello p{color:#60738f!important}
+html[data-theme="light"] .clock,html[data-theme="light"] .calendar-mini{background:linear-gradient(145deg,#fff,#edf5ff)!important;color:#183353!important;box-shadow:0 12px 30px rgba(45,82,125,.09)!important}
+html[data-theme="light"] .clock b,html[data-theme="light"] .cal-head b{color:#183353!important}html[data-theme="light"] .week,html[data-theme="light"] .clock span{color:#71849d!important}
+html[data-theme="light"] .hero .next{background:linear-gradient(145deg,#fff,#eef5ff)!important;border-color:#d5e1ef!important;box-shadow:0 14px 35px rgba(45,82,125,.09)!important}
+html[data-theme="light"] .hero .next h2{color:#183353!important}.hero .meta{color:var(--muted)!important}
+html[data-theme="light"] .card,html[data-theme="light"] .day,html[data-theme="light"] .lesson,html[data-theme="light"] .quick-card,html[data-theme="light"] .local-item,html[data-theme="light"] .material-card{background:linear-gradient(145deg,#fff,#f1f6fd)!important;color:#1b3554!important;border-color:#d6e2ef!important;box-shadow:0 12px 30px rgba(45,82,125,.075)!important}
+html[data-theme="light"] .section-head h2,html[data-theme="light"] .card h2,html[data-theme="light"] .card h3,html[data-theme="light"] .day-head,html[data-theme="light"] .task-title,html[data-theme="light"] .note-item-title{color:#193654!important}
+html[data-theme="light"] .muted,html[data-theme="light"] .task-summary,html[data-theme="light"] .task-description-text,html[data-theme="light"] .notes-empty,html[data-theme="light"] .material-description{color:#667a94!important}
+html[data-theme="light"] .quick-card p{color:#70839d!important}.quick-card b{color:inherit}
+html[data-theme="light"] .lesson time{color:#24507e!important}.lesson small{color:var(--muted)!important}
+html[data-theme="light"] .event{background:linear-gradient(145deg,#eef6ff,#e5f0fc)!important;color:#284765!important;border-color:#cbdceb!important}.event b{color:#193b61!important}.event small{color:#5d7490!important}
+html[data-theme="light"] .day-note{background:#f1f6fb!important;color:#48627e!important;border-color:#b9cde0!important}
+html[data-theme="light"] .note-item{background:#f8fbff!important;border-color:#d4e1ee!important}.note-item-text{color:#4f6681!important}
+html[data-theme="light"] .task-card{border-bottom-color:#d9e3ee!important}.task-check{accent-color:#3e86ee!important}
+html[data-theme="light"] .import-box,html[data-theme="light"] .import-preview .import-modal{background:linear-gradient(145deg,#fff,#f0f6fd)!important;color:#1d395a!important;border-color:#d1dfed!important}.import-info{color:var(--muted)!important}
+html[data-theme="light"] .right{background:rgba(242,247,253,.96)!important;border-left-color:#d9e3ee!important}.right-link{color:inherit!important}.quote p{color:inherit}.quote .author{color:var(--muted)!important}
+html[data-theme="light"] .quote{background:linear-gradient(160deg,#eaf4ff,#dcecff)!important;border-color:#cbdceb!important}.quote p{color:#244467!important}
+html[data-theme="light"] .side-bottom{color:#71839b!important}.side-actions button{box-shadow:0 6px 16px rgba(40,75,115,.05)}
+html[data-theme="light"] .faq details{background:#fff!important;border-color:#d4e1ee!important}.faq p{color:#647992!important}
+html[data-theme="light"] .mobile-nav{background:rgba(250,252,255,.96)!important;border-top-color:#d7e2ed!important;box-shadow:0 -12px 30px rgba(40,75,115,.08)!important}
+html[data-theme="light"] .mobile-nav button{color:#637994!important}.mobile-nav button.active{color:#287cf2!important;background:rgba(40,124,242,.08)!important}
+/* Avoid expensive visual effects on low-power/mobile devices */
+@media(max-width:720px){.disclaimer-overlay,.import-preview{backdrop-filter:blur(6px)!important}.right-link,.card,.lesson,.day,.quick-card{transition:none!important}.quote,.mobile-nav{backdrop-filter:blur(8px)!important}}
+</style>
 </head>
 <body>
 <div class="app">
 <aside class="sidebar">
-  <div class="brand"><img src="logo.png" alt="Almazov Student"><div><strong>Almazov<br>Student</strong><small>3.1 BETA</small></div></div>
+  <div class="brand"><img src="logo.webp" alt="Almazov Student" width="48" height="48" fetchpriority="high"><div><strong>Almazov<br>Student</strong><small>3.1 BETA</small></div></div>
   <nav class="nav">
     <button class="active" data-page="home"><span class="ico">⌂</span>Главная</button>
     <button data-page="schedule"><span class="ico">▣</span>Расписание</button>
@@ -325,9 +384,9 @@ function timeToMinutes(v){const m=String(v||"").match(/(\d{1,2})\s*[:.]\s*(\d{2}
 function compareEvents(a,b){return Number(a.weekday)-Number(b.weekday)||timeToMinutes(a.start)-timeToMinutes(b.start)||timeToMinutes(a.end)-timeToMinutes(b.end)||String(a.subject).localeCompare(String(b.subject),"ru")}
 function sortEvents(a){return a.slice().sort(compareEvents)}
 function normalizeNotes(raw){const out={};if(!raw||typeof raw!=="object")return out;for(const [date,value] of Object.entries(raw)){if(Array.isArray(value)){out[date]=value.map(n=>({id:n.id||String(Date.now())+Math.random().toString(16).slice(2),title:String(n.title||"Заметка"),text:String(n.text||""),subject:String(n.subject||""),priority:n.priority==="high"?"high":n.priority==="low"?"low":"normal",pinned:Boolean(n.pinned),done:Boolean(n.done),createdAt:n.createdAt||new Date().toISOString()})).filter(n=>n.text.trim())}else if(typeof value==="string"&&value.trim()){out[date]=[{id:String(Date.now())+Math.random().toString(16).slice(2),title:"Заметка",text:value,subject:"",priority:"normal",pinned:false,done:false,createdAt:new Date().toISOString()}]}}return out}
-function normalizeData(raw){const d=raw||{};const tasks=Array.isArray(d.tasks)?d.tasks.map(t=>({id:t.id||taskId(),title:String(t.title||"Задача"),done:Boolean(t.done),due:t.due||"",priority:t.priority==="high"?"high":t.priority==="low"?"low":"normal",subject:String(t.subject||""),description:String(t.description||"")})):[];return {profile:{name:d.profile?.name||"Илья",specialty:d.profile?.specialty||"31.05.01",course:Number(d.profile?.course)||1,group:d.profile?.group||""},tasks,notes:normalizeNotes(d.notes),subjects:(d.subjects&&typeof d.subjects==="object")?d.subjects:{},schedule:d.schedule&&Array.isArray(d.schedule.weeks)?d.schedule:JSON.parse(JSON.stringify(DEFAULT_SCHEDULE))}}
+function normalizeData(raw){const d=raw||{};const tasks=Array.isArray(d.tasks)?d.tasks.map(t=>({id:t.id||taskId(),title:String(t.title||"Задача"),done:Boolean(t.done),due:t.due||"",priority:t.priority==="high"?"high":t.priority==="low"?"low":"normal",subject:cleanSubjectName(t.subject||""),description:String(t.description||"")})):[];return {profile:{name:d.profile?.name||"Илья",specialty:d.profile?.specialty||"31.05.01",course:Number(d.profile?.course)||1,group:d.profile?.group||""},tasks,notes:normalizeNotes(d.notes),subjects:(d.subjects&&typeof d.subjects==="object")?d.subjects:{},schedule:d.schedule&&Array.isArray(d.schedule.weeks)?d.schedule:JSON.parse(JSON.stringify(DEFAULT_SCHEDULE))}}
 function loadData(){let raw=null;try{raw=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null")}catch{};if(!raw){for(const k of OLD_KEYS){try{raw=JSON.parse(localStorage.getItem(k)||"null")}catch{};if(raw)break}};return normalizeData(raw)}
-let data=loadData();let scheduleViewDate=new Date();let selectedNoteDate=isoDate(new Date());
+let data=loadData();migrateSubjectNames();let scheduleViewDate=new Date();let selectedNoteDate=isoDate(new Date());
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}
 function toast(msg){let x=document.getElementById("toast");if(!x){x=document.createElement("div");x.id="toast";x.className="toast";document.body.appendChild(x)}x.textContent=msg;x.classList.remove("hidden");clearTimeout(window.__toast);window.__toast=setTimeout(()=>x.classList.add("hidden"),2200)}
 function dateLong(d){return d.toLocaleDateString("ru-RU",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).replace(/^./,c=>c.toUpperCase())}
@@ -349,10 +408,13 @@ const OFFICIAL_SUBJECTS={
 };
 const OFFICIAL_SOURCE_URL="https://education.almazovcentre.ru/sveden/education/programs/lechebnoe-delo-31.05.01.html";
 function subjectKey(){return `${data.profile.specialty}|${Number(data.profile.course)||1}`}
-function cleanSubjectName(v){return String(v||"").replace(/\s+/g," ").trim()}
+function cleanSubjectName(v){return String(v||"").replace(/\s+/g," ").replace(/\s*,\s*/g,", ").trim()}
+function subjectIdentity(v){return cleanSubjectName(v).toLocaleLowerCase("ru-RU").replace(/[«»"'`]/g,"").replace(/[–—-]/g,"-").replace(/\s+/g," ").trim()}
+function canonicalSubject(v){const name=cleanSubjectName(v);if(!name)return "";const official=getOfficialSubjects();const id=subjectIdentity(name);const match=official.find(x=>subjectIdentity(x)===id);return match||name}
 function getOfficialSubjects(){const spec=data.profile.specialty,course=Number(data.profile.course)||1;return Array.isArray(OFFICIAL_SUBJECTS[spec]?.[course])?OFFICIAL_SUBJECTS[spec][course]:[]}
-function getSubjectCatalog(){const key=subjectKey();const official=getOfficialSubjects();const custom=Array.isArray(data.subjects?.[key])?data.subjects[key]:[];const fromSchedule=[];const scheduleMatches=!data.schedule||!data.schedule.ownerKey||data.schedule.ownerKey===key;if(scheduleMatches)(data.schedule?.weeks||[]).forEach(w=>(w.events||[]).forEach(e=>{if(cleanSubjectName(e.subject))fromSchedule.push(cleanSubjectName(e.subject))}));const fromTasks=(data.tasks||[]).map(t=>cleanSubjectName(t.subject)).filter(Boolean);return [...new Set([...official,...custom,...fromSchedule,...fromTasks])].sort((a,b)=>a.localeCompare(b,"ru"))}
-function renderSubjectControls(){const subjects=getSubjectCatalog();const select=document.getElementById("taskSubject"),filter=document.getElementById("materialSubjectFilter"),pills=document.getElementById("taskSubjectPills");if(select){const current=select.value;select.innerHTML='<option value="">Без предмета</option>'+subjects.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if(subjects.includes(current))select.value=current}if(filter){const current=filter.value;filter.innerHTML='<option value="">Все предметы</option>'+subjects.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if(subjects.includes(current))filter.value=current}if(pills){pills.innerHTML=subjects.length?subjects.map(x=>{const count=(data.tasks||[]).filter(t=>!t.done&&cleanSubjectName(t.subject)===x).length;return `<button class="subject-pill" onclick="setTaskSubjectFilter(${JSON.stringify(x)})">${esc(x)}${count?` · <b>${count}</b>`:""}</button>`}).join(""):'<div class="subject-empty">Предметы появятся здесь автоматически из расписания. Их также можно добавлять через профиль.</div>'}}
+function getSubjectCatalog(){const key=subjectKey();const official=getOfficialSubjects();const custom=Array.isArray(data.subjects?.[key])?data.subjects[key].map(canonicalSubject):[];const fromSchedule=[];const scheduleMatches=!data.schedule||!data.schedule.ownerKey||data.schedule.ownerKey===key;if(scheduleMatches)(data.schedule?.weeks||[]).forEach(w=>(w.events||[]).forEach(e=>{const x=canonicalSubject(e.subject);if(x)fromSchedule.push(x)}));const fromTasks=(data.tasks||[]).map(t=>canonicalSubject(t.subject)).filter(Boolean);const byId=new Map();[...official,...custom,...fromSchedule,...fromTasks].forEach(x=>{const c=canonicalSubject(x);if(c&&!byId.has(subjectIdentity(c)))byId.set(subjectIdentity(c),c)});return [...byId.values()].sort((a,b)=>a.localeCompare(b,"ru"))}
+function migrateSubjectNames(){let changed=false;const key=subjectKey();if(Array.isArray(data.subjects?.[key])){const next=[...new Set(data.subjects[key].map(canonicalSubject).filter(Boolean))];if(JSON.stringify(next)!==JSON.stringify(data.subjects[key])){data.subjects[key]=next;changed=true}}(data.tasks||[]).forEach(t=>{const c=canonicalSubject(t.subject);if(t.subject!==c){t.subject=c;changed=true}});Object.values(data.notes||{}).forEach(list=>Array.isArray(list)&&list.forEach(n=>{const c=canonicalSubject(n.subject);if(n.subject!==c){n.subject=c;changed=true}}));if(changed)save()}
+function renderSubjectControls(){const subjects=getSubjectCatalog();const select=document.getElementById("taskSubject"),filter=document.getElementById("materialSubjectFilter"),pills=document.getElementById("taskSubjectPills");if(select){const current=canonicalSubject(select.value);select.innerHTML='<option value="">Без предмета</option>'+subjects.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if(subjects.includes(current))select.value=current}if(filter){const current=canonicalSubject(filter.value);filter.innerHTML='<option value="">Все предметы</option>'+subjects.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if(subjects.includes(current))filter.value=current}if(pills){pills.innerHTML=subjects.length?subjects.map(x=>{const count=(data.tasks||[]).filter(t=>!t.done&&subjectIdentity(t.subject)===subjectIdentity(x)).length;const official=getOfficialSubjects().some(o=>subjectIdentity(o)===subjectIdentity(x));return `<button class="subject-pill ${official?"official":"custom"}" onclick="setTaskSubjectFilter(${JSON.stringify(x)})"><span class="subject-mark">${official?"✓":"+"}</span><span>${esc(x)}</span>${count?`<b>· ${count}</b>`:""}</button>`}).join(""):'<div class="subject-empty">Предметы появятся здесь автоматически из расписания. Их также можно добавлять через профиль.</div>'}}
 function setTaskSubjectFilter(subject){const el=document.getElementById("taskSubject");if(el){el.value=subject;el.scrollIntoView({behavior:"smooth",block:"center"});el.focus()}}
 const MATERIAL_DB="almazov_student_materials";let materialItems=[];let materialDb=null;
 function openMaterialDB(){return new Promise((resolve,reject)=>{if(materialDb)return resolve(materialDb);const req=indexedDB.open(MATERIAL_DB,1);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains("files")){const st=db.createObjectStore("files",{keyPath:"id"});st.createIndex("createdAt","createdAt")} };req.onsuccess=()=>{materialDb=req.result;resolve(materialDb)};req.onerror=()=>reject(req.error)})}
@@ -386,16 +448,16 @@ function getNotesForDate(date){const value=data.notes?.[date];return Array.isArr
 function notePriorityLabel(p){return p==="high"?"🔴 Важная":p==="low"?"🟢 Низкий приоритет":"🟡 Обычная"}
 function openDayNote(date){selectedNoteDate=date;go("notes");loadNote(date);}
 function loadNote(date){selectedNoteDate=date||isoDate(new Date());document.getElementById("noteDate").value=selectedNoteDate;const d=new Date(selectedNoteDate+"T12:00:00");document.getElementById("noteDateLabel").textContent=dateLong(d);renderNotesList();startNewNote(false)}
-function startNewNote(resetDate=true){if(resetDate)selectedNoteDate=document.getElementById("noteDate").value||isoDate(new Date());document.getElementById("noteDate").value=selectedNoteDate;document.getElementById("noteTitle").value="";document.getElementById("noteSubject").value="";document.getElementById("notePriority").value="normal";document.getElementById("notePinned").checked=false;document.getElementById("noteText").value="";document.querySelector('.note-editor .btn.primary').textContent="Сохранить заметку";document.querySelector('.note-editor .btn.primary').dataset.editId=""}
-function editNote(date,id){const n=getNotesForDate(date).find(x=>x.id===id);if(!n)return;selectedNoteDate=date;document.getElementById("noteDate").value=date;document.getElementById("noteTitle").value=n.title;document.getElementById("noteSubject").value=n.subject;document.getElementById("notePriority").value=n.priority;document.getElementById("notePinned").checked=n.pinned;document.getElementById("noteText").value=n.text;document.getElementById("noteDateLabel").textContent=dateLong(new Date(date+"T12:00:00"));const b=document.querySelector('.note-editor .btn.primary');b.textContent="Сохранить изменения";b.dataset.editId=id;window.scrollTo({top:0,behavior:"smooth"})}
-function saveNote(){const date=document.getElementById("noteDate").value||isoDate(new Date());const text=document.getElementById("noteText").value.trim();if(!text){toast("Напиши текст заметки");return}if(!Array.isArray(data.notes[date]))data.notes[date]=[];const btn=document.querySelector('.note-editor .btn.primary');const editId=btn.dataset.editId||"";const obj={id:editId||((crypto.randomUUID?crypto.randomUUID():String(Date.now()))),title:document.getElementById("noteTitle").value.trim()||"Заметка",text,subject:document.getElementById("noteSubject").value.trim(),priority:document.getElementById("notePriority").value,pinned:document.getElementById("notePinned").checked,done:false,createdAt:new Date().toISOString()};if(editId){const idx=data.notes[date].findIndex(n=>n.id===editId);if(idx>=0){obj.done=data.notes[date][idx].done;obj.createdAt=data.notes[date][idx].createdAt;data.notes[date][idx]=obj}else data.notes[date].push(obj)}else data.notes[date].push(obj);data.notes[date].sort((a,b)=>Number(b.pinned)-Number(a.pinned)||({high:0,normal:1,low:2}[a.priority]||1)-({high:0,normal:1,low:2}[b.priority]||1));save();renderNotesList();renderSchedule();startNewNote(false);toast(editId?"Заметка обновлена 💙":"Заметка сохранена 💙")}
+function startNewNote(resetDate=true){if(resetDate)selectedNoteDate=document.getElementById("noteDate").value||isoDate(new Date());document.getElementById("noteDate").value=selectedNoteDate;document.getElementById("noteTitle").value="";document.getElementById("noteSubject").value="";document.getElementById("notePriority").value="normal";refreshPremiumSelect("notePriority");document.getElementById("notePinned").checked=false;document.getElementById("noteText").value="";document.querySelector('.note-editor .btn.primary').textContent="Сохранить заметку";document.querySelector('.note-editor .btn.primary').dataset.editId=""}
+function editNote(date,id){const n=getNotesForDate(date).find(x=>x.id===id);if(!n)return;selectedNoteDate=date;document.getElementById("noteDate").value=date;document.getElementById("noteTitle").value=n.title;document.getElementById("noteSubject").value=n.subject;document.getElementById("notePriority").value=n.priority;refreshPremiumSelect("notePriority");document.getElementById("notePinned").checked=n.pinned;document.getElementById("noteText").value=n.text;document.getElementById("noteDateLabel").textContent=dateLong(new Date(date+"T12:00:00"));const b=document.querySelector('.note-editor .btn.primary');b.textContent="Сохранить изменения";b.dataset.editId=id;window.scrollTo({top:0,behavior:"smooth"})}
+function saveNote(){const date=document.getElementById("noteDate").value||isoDate(new Date());const text=document.getElementById("noteText").value.trim();if(!text){toast("Напиши текст заметки");return}if(!Array.isArray(data.notes[date]))data.notes[date]=[];const btn=document.querySelector('.note-editor .btn.primary');const editId=btn.dataset.editId||"";const obj={id:editId||((crypto.randomUUID?crypto.randomUUID():String(Date.now()))),title:document.getElementById("noteTitle").value.trim()||"Заметка",text,subject:canonicalSubject(document.getElementById("noteSubject").value.trim()),priority:document.getElementById("notePriority").value,pinned:document.getElementById("notePinned").checked,done:false,createdAt:new Date().toISOString()};if(editId){const idx=data.notes[date].findIndex(n=>n.id===editId);if(idx>=0){obj.done=data.notes[date][idx].done;obj.createdAt=data.notes[date][idx].createdAt;data.notes[date][idx]=obj}else data.notes[date].push(obj)}else data.notes[date].push(obj);data.notes[date].sort((a,b)=>Number(b.pinned)-Number(a.pinned)||({high:0,normal:1,low:2}[a.priority]||1)-({high:0,normal:1,low:2}[b.priority]||1));save();renderNotesList();renderSchedule();startNewNote(false);toast(editId?"Заметка обновлена 💙":"Заметка сохранена 💙")}
 function toggleNoteDone(date,id){const n=getNotesForDate(date).find(x=>x.id===id);if(!n)return;n.done=!n.done;save();renderNotesList();renderSchedule()}
 function deleteNote(date,id){if(!confirm("Удалить эту заметку?"))return;data.notes[date]=getNotesForDate(date).filter(n=>n.id!==id);if(!data.notes[date].length)delete data.notes[date];save();renderNotesList();renderSchedule();toast("Заметка удалена")}
 function renderNotesList(){const date=document.getElementById("noteDate")?.value||selectedNoteDate;const list=getNotesForDate(date);const count=document.getElementById("notesCount");if(count)count.textContent=`${list.length} ${list.length===1?"заметка":list.length<5?"заметки":"заметок"}`;const el=document.getElementById("notesList");if(!el)return;if(!list.length){el.innerHTML='<div class="notes-empty">На этот день заметок пока нет.<br>Добавь первую — она появится здесь и в расписании. 📝</div>';return}el.innerHTML=list.map(n=>`<div class="note-item ${n.done?"done":""}"><div class="note-item-head"><div class="note-item-title">${n.pinned?"⭐ ":""}${esc(n.title)}</div><span class="note-chip">${notePriorityLabel(n.priority)}</span></div>${n.subject?`<div class="note-meta"><span class="note-chip">📚 ${esc(n.subject)}</span></div>`:""}<div class="note-item-text">${esc(n.text)}</div><div class="note-actions-small"><button class="btn" onclick="toggleNoteDone('${date}','${n.id}')">${n.done?"↩ Вернуть":"✓ Выполнено"}</button><button class="btn" onclick="editNote('${date}','${n.id}')">✎ Изменить</button><button class="btn" onclick="deleteNote('${date}','${n.id}')">× Удалить</button></div></div>`).join("")}
 document.getElementById("noteDate").addEventListener("change",e=>{selectedNoteDate=e.target.value;loadNote(e.target.value);renderSchedule()});
 let taskFilter="all";
 function taskId(){return crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2)}
-function addTask(){const input=document.getElementById("taskInput"),text=input.value.trim();if(!text)return;data.tasks.unshift({id:taskId(),title:text,done:false,due:document.getElementById("taskDue").value||"",priority:document.getElementById("taskPriority").value||"normal",subject:document.getElementById("taskSubject").value.trim(),description:document.getElementById("taskDescription").value.trim()});save();input.value="";document.getElementById("taskDue").value="";document.getElementById("taskSubject").value="";document.getElementById("taskDescription").value="";document.getElementById("taskPriority").value="normal";renderTasks();renderSubjectControls();toast("Задача добавлена 💙")}
+function addTask(){const input=document.getElementById("taskInput"),text=input.value.trim();if(!text)return;data.tasks.unshift({id:taskId(),title:text,done:false,due:document.getElementById("taskDue").value||"",priority:document.getElementById("taskPriority").value||"normal",subject:canonicalSubject(document.getElementById("taskSubject").value.trim()),description:document.getElementById("taskDescription").value.trim()});save();input.value="";document.getElementById("taskDue").value="";document.getElementById("taskSubject").value="";document.getElementById("taskDescription").value="";document.getElementById("taskPriority").value="normal";refreshPremiumSelect("taskPriority");renderTasks();renderSubjectControls();toast("Задача добавлена 💙")}
 function taskDueLabel(due){if(!due)return"";const today=isoDate(new Date());const d=new Date(due+"T12:00:00"),t=new Date(today+"T12:00:00");const diff=Math.round((d-t)/86400000);if(diff<0)return`Просрочено на ${Math.abs(diff)} ${Math.abs(diff)===1?"день":Math.abs(diff)<5?"дня":"дней"}`;if(diff===0)return"Сегодня";if(diff===1)return"Завтра";if(diff<7)return`Через ${diff} дня`;return new Intl.DateTimeFormat("ru-RU",{day:"numeric",month:"short"}).format(d)}
 function taskPriorityLabel(p){return p==="high"?"🔴 Важная":p==="low"?"🟢 Низкий":"🟡 Обычная"}
 function setTaskFilter(filter){taskFilter=filter;document.querySelectorAll("[data-task-filter]").forEach(b=>b.classList.toggle("active",b.dataset.taskFilter===filter));renderTasks()}
@@ -403,8 +465,8 @@ function renderTasks(){const list=document.getElementById("taskList"),summary=do
 function toggleTask(i){if(!data.tasks[i])return;data.tasks[i].done=!data.tasks[i].done;save();renderTasks();renderSubjectControls();renderHomeIfNeeded()}
 function deleteTask(i){if(!data.tasks[i])return;data.tasks.splice(i,1);save();renderTasks();renderSubjectControls();toast("Задача удалена")}
 function renderHomeIfNeeded(){if(typeof renderAll==="function"){const p=document.querySelector('.page.active');if(p&&p.id==="home")renderSchedule()}}
-function renderProfileSubjects(){const box=document.getElementById("profileSubjectPills");if(!box)return;const official=new Set(getOfficialSubjects());const subjects=getSubjectCatalog();box.innerHTML=subjects.length?subjects.map(x=>`<span class="subject-pill">${esc(x)}${official.has(x)?` <span title="Из официального учебного плана" style="opacity:.7">✓</span>`:(data.subjects?.[subjectKey()]||[]).includes(x)?` <button style="border:0;background:none;cursor:pointer" title="Удалить" onclick="removeCustomSubject(${JSON.stringify(x)})">×</button>`:""}</span>`).join(""):'<div class="subject-empty">Для выбранной специальности и курса пока нет встроенного каталога. Можно добавить предмет вручную или импортировать расписание.</div>'}
-function addCustomSubject(){const input=document.getElementById("newSubjectName"),name=cleanSubjectName(input?.value);if(!name)return;const key=subjectKey();if(!Array.isArray(data.subjects[key]))data.subjects[key]=[];if(!data.subjects[key].some(x=>x.toLowerCase()===name.toLowerCase()))data.subjects[key].push(name);save();input.value="";renderProfileSubjects();renderSubjectControls();toast("Предмет добавлен 📚")}
+function renderProfileSubjects(){const box=document.getElementById("profileSubjectPills");if(!box)return;const official=getOfficialSubjects();const custom=(data.subjects?.[subjectKey()]||[]).map(canonicalSubject);const subjects=getSubjectCatalog();box.innerHTML=subjects.length?subjects.map(x=>{const isOfficial=official.some(o=>subjectIdentity(o)===subjectIdentity(x));const isCustom=custom.some(o=>subjectIdentity(o)===subjectIdentity(x));return `<span class="subject-pill ${isOfficial?"official":"custom"}"><span class="subject-mark">${isOfficial?"✓":"+"}</span><span>${esc(x)}</span>${isCustom&&!isOfficial?`<button style="border:0;background:none;cursor:pointer;color:inherit;font-size:15px" title="Удалить свой предмет" onclick="removeCustomSubject(${JSON.stringify(x)})">×</button>`:""}</span>`}).join("")+'<div class="subject-legend"><span><i></i> официальный предмет</span><span><i class="custom"></i> добавлен из расписания/вручную</span></div>':'<div class="subject-empty">Для выбранной специальности и курса пока нет встроенного каталога. Можно добавить предмет вручную или импортировать расписание.</div>'}
+function addCustomSubject(){const input=document.getElementById("newSubjectName"),name=cleanSubjectName(input?.value);if(!name)return;const key=subjectKey();const canonical=canonicalSubject(name);if(!Array.isArray(data.subjects[key]))data.subjects[key]=[];if(!data.subjects[key].some(x=>subjectIdentity(x)===subjectIdentity(canonical)))data.subjects[key].push(canonical);save();input.value="";renderProfileSubjects();renderSubjectControls();toast("Предмет добавлен 📚")}
 function removeCustomSubject(name){const key=subjectKey();data.subjects[key]=(data.subjects[key]||[]).filter(x=>x!==name);save();renderProfileSubjects();renderSubjectControls();toast("Предмет удалён") }
 function saveProfile(){data.profile={name:document.getElementById("name").value.trim()||"Илья",specialty:document.getElementById("specialty").value,course:Number(document.getElementById("course").value),group:document.getElementById("group").value.trim()};save();renderProfile();renderSubjectControls();renderProfileSubjects();toast("Профиль сохранён 💙")}
 function renderProfile(){document.getElementById("name").value=data.profile.name;document.getElementById("specialty").value=data.profile.specialty;document.getElementById("course").value=data.profile.course;document.getElementById("group").value=data.profile.group;document.getElementById("hello").textContent=`Привет, ${data.profile.name||"Илья"}!`;renderProfileSubjects();renderSubjectControls()}
@@ -418,7 +480,7 @@ function initTheme(){applyTheme(localStorage.getItem("almazov_theme")||"dark");i
 function closeDisclaimer(){const el=document.getElementById("disclaimerOverlay");if(el)el.remove()}
 function showDisclaimer(){const el=document.getElementById("disclaimerOverlay");if(el)el.style.display="grid"}
 function downloadApkFromProfile(){localStorage.setItem("almazov_apk_downloaded","1");const el=document.getElementById("profileApkCard");if(el)el.style.display="none";window.location.href="https://github.com/R1vlFlow/Almazov_Student_beta/releases/download/v3.1.3/Almazov-Student-3.1.3.apk";}function initApkCard(){const el=document.getElementById("profileApkCard");if(el&&localStorage.getItem("almazov_apk_downloaded")==="1")el.style.display="none";}
-function exportData(){const payload={app:"Almazov Student",version:"3.1.24",exportedAt:new Date().toISOString(),data};const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));a.download=`almazov-student-3.1.24-${isoDate(new Date())}.json`;a.click()}
+function exportData(){const payload={app:"Almazov Student",version:"3.1.29",exportedAt:new Date().toISOString(),data};const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));a.download=`almazov-student-3.1.29-${isoDate(new Date())}.json`;a.click()}
 document.getElementById("importDataFile").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{const parsed=JSON.parse(await f.text());data=normalizeData(parsed.data||parsed);save();renderAll();toast("Данные восстановлены") }catch{toast("Не удалось прочитать JSON") }e.target.value=""})
 document.getElementById("materialFile").addEventListener("change",async e=>{const f=e.target.files?.[0];if(f)try{await handleMaterialFile(f)}catch(err){console.error(err);toast("Не удалось добавить файл")}e.target.value=""});document.getElementById("materialSearch").addEventListener("input",renderMaterials);document.getElementById("materialSubjectFilter").addEventListener("change",renderMaterials);document.getElementById("materialCourseFilter").addEventListener("change",renderMaterials);
 function resetData(){if(confirm("Сбросить профиль, задачи, заметки и импортированное расписание?")){localStorage.removeItem(STORAGE_KEY);location.reload()}}
@@ -790,7 +852,7 @@ async function parseSchedulePdfMatrix(pdf,file){
   // а не по ближайшей надписи "ПН/ВТ/СР". В исходном PDF подпись дня
   // находится в объединённой ячейке и часто визуально не совпадает с началом первой пары.
   let carryDay=0;
-  for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){
+  for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){ if(window.__scheduleProgress) window.__scheduleProgress(`Анализ страницы ${pageNo} из ${pdf.numPages}…`);
     const page=pageNo===1?first:await pdf.getPage(pageNo);
     const viewport=pageNo===1?v1:page.getViewport({scale:1});
     const content=pageNo===1?c1:await page.getTextContent({normalizeWhitespace:false});
@@ -807,23 +869,26 @@ async function parseSchedulePdfMatrix(pdf,file){
     // majorBoundaries строятся относительно центров подписей ПН/ВТ/СР…,
     // поэтому внутренняя линия между двумя парами больше не превращается
     // случайно в границу нового дня.
-    const slotWeekdays=[];
-    for(const slot of slots){
-      let day=carryDay??0;
-      if(majorBoundaries.length>=2){
-        for(let i=0;i<majorBoundaries.length-1;i++){
-          if(slot.top>=majorBoundaries[i] && slot.top<majorBoundaries[i+1]){day=Math.min(6,(pageNo===1?0:3)+i);break;}
-        }
-      }else if(dayLabels.length){
-        let best=carryDay??0,dist=Infinity;
-        for(const d of dayLabels){const dd=Math.abs(d.top-slot.top);if(dd<dist){dist=dd;best=({ПН:0,ВТ:1,СР:2,ЧТ:3,ПТ:4,СБ:5,ВС:6}[d.str.trim()]);}}
-        day=best;
+    const pageFirstDay=pageNo===1?0:3;
+    let slotWeekdays=assignMatrixWeekdaysByRules(slots,dayLabels,majorBoundaries,pageFirstDay);
+    // Санитарная проверка: внутри одного дня время не должно «скакать» назад.
+    // Это защищает от редких PDF, где подпись дня находится не в центре объединённой ячейки.
+    const startsByDay=new Map();
+    slots.forEach((slot,i)=>{const d=slotWeekdays[i];const mins=slot.startMinutes??timeToMinutes(slot.time.start);if(!startsByDay.has(d))startsByDay.set(d,[]);startsByDay.get(d).push(mins)});
+    let invalid=false;
+    for(const arr of startsByDay.values()){for(let i=1;i<arr.length;i++){if(arr[i]<arr[i-1]-45){invalid=true;break}}if(invalid)break}
+    if(invalid){
+      slotWeekdays=[];let day=pageFirstDay,lastStart=-1;
+      for(let i=0;i<slots.length;i++){const mins=slots[i].startMinutes??timeToMinutes(slots[i].time.start);
+        // Новый день определяется только большим откатом времени; небольшие различия
+        // между солнечным/городским временем не создают новый день.
+        if(i>0&&mins<lastStart-45&&day<6)day++;
+        slotWeekdays.push(day);lastStart=mins;
       }
-      slotWeekdays.push(day);
     }
     if(slotWeekdays.length)carryDay=slotWeekdays[slotWeekdays.length-1];
 
-    for(let gi=0;gi<bounds.length;gi++){
+    for(let gi=0;gi<bounds.length;gi++){ if(window.__scheduleProgress && pageNo===1 && gi%4===0) window.__scheduleProgress(`Анализ групп: ${Math.min(gi+bounds.length?gi+1:1,bounds.length)} из ${bounds.length}…`);
       const b=bounds[gi],center=(b.left+b.right)/2;
       // Горизонтальные линии, пересекающие конкретный столбец группы.
       const ys=[];
@@ -928,6 +993,7 @@ function openImportPreview(schedule,file){
   const info=[];
   if(schedule?.academicYear)info.push(`Учебный год: ${schedule.academicYear}.`);
   if(weeks.length)info.push(`Период: ${formatRange(new Date(weeks[0].start+"T12:00:00"),new Date(weeks[weeks.length-1].end+"T12:00:00"))}.`);
+  if(matrix && groups.length){const byGroup=new Map(groups.map(g=>[String(g),0]));weeks.forEach(w=>(w.events||[]).forEach(e=>byGroup.set(String(e.group),(byGroup.get(String(e.group))||0)+1)));const empty=[...byGroup].filter(([,n])=>!n).map(([g])=>g);if(empty.length)info.push(`Внимание: для ${empty.length} групп не найдено занятий.`);else info.push(`Проверка матрицы: все ${groups.length} групп имеют распознанные занятия.`)}
   info.push("После подтверждения новый импорт заменит текущее локальное расписание. До нажатия «Импортировать» ничего не сохраняется.");
   document.getElementById("previewInfo").textContent=info.join(" ");
   const box=document.getElementById("previewGroupsBox"),chips=document.getElementById("previewGroupChips");
@@ -967,15 +1033,34 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&importPreview.class
 document.getElementById("scheduleFile").addEventListener("change",async e=>{
   const f=e.target.files?.[0];if(!f)return;
   try{
-    document.getElementById("scheduleImportStatus").textContent="Анализируем файл…";
+    window.__scheduleProgress=msg=>{document.getElementById("scheduleImportStatus").textContent=msg};
+    window.__scheduleProgress("Анализируем файл…");
     const s=await parseSelectedScheduleFile(f);
     if(!s?.weeks?.length)throw new Error("empty");
     openImportPreview(s,f);
   }catch(err){console.error(err);toast(err?.message==="format"?"Поддерживаются PDF, DOCX и TXT":"Не удалось распознать расписание");document.getElementById("scheduleImportStatus").textContent="Ошибка распознавания"}
-  finally{e.target.value=""}
+  finally{window.__scheduleProgress=null;e.target.value=""}
 });
+
+function setupPremiumSelect(id,iconMap){
+  const native=document.getElementById(id);if(!native||native.dataset.premiumReady)return;
+  native.dataset.premiumReady="1";native.classList.add("as-select-native");
+  const wrap=document.createElement("div");wrap.className="as-select";native.parentNode.insertBefore(wrap,native);wrap.appendChild(native);
+  const trigger=document.createElement("button");trigger.type="button";trigger.className="as-select-trigger";trigger.setAttribute("aria-haspopup","listbox");trigger.setAttribute("aria-expanded","false");
+  const label=document.createElement("span");label.className="as-select-label";const text=document.createElement("span");label.appendChild(text);const chev=document.createElement("span");chev.className="as-select-chevron";chev.innerHTML='<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';trigger.append(label,chev);wrap.appendChild(trigger);
+  const menu=document.createElement("div");menu.className="as-select-menu";menu.setAttribute("role","listbox");wrap.appendChild(menu);
+  function render(){menu.innerHTML="";[...native.options].forEach(opt=>{const b=document.createElement("button");b.type="button";b.className="as-select-option";b.dataset.value=opt.value;b.setAttribute("role","option");const icon=document.createElement("span");icon.className="opt-icon";const iconKey=iconMap?.[opt.value]||"";icon.innerHTML=iconKey?`<span class="priority-dot ${iconKey}"></span>`:"";const tx=document.createElement("span");tx.textContent=opt.textContent.replace(/^\\S+\\s+/,'');b.append(icon,tx);if(opt.value===native.value){b.classList.add("active");const mark=document.createElement("span");mark.className="opt-check";mark.textContent="✓";b.appendChild(mark);text.textContent=opt.textContent.replace(/^\\S+\\s+/,'')}b.addEventListener("click",()=>{native.value=opt.value;native.dispatchEvent(new Event("change",{bubbles:true}));close();render()});menu.appendChild(b)});
+  }
+  function open(){document.querySelectorAll(".as-select.open").forEach(x=>x!==wrap&&x.classList.remove("open"));wrap.classList.add("open");trigger.setAttribute("aria-expanded","true")}
+  function close(){wrap.classList.remove("open");trigger.setAttribute("aria-expanded","false")}
+  trigger.addEventListener("click",()=>wrap.classList.contains("open")?close():open());native.addEventListener("change",render);document.addEventListener("click",e=>{if(!wrap.contains(e.target))close()});render();
+  wrap._refresh=render;
+}
+function refreshPremiumSelect(id){const el=document.getElementById(id);const wrap=el?.closest(".as-select");if(wrap&&wrap._refresh)wrap._refresh()}
+function setupPremiumSelects(){setupPremiumSelect("taskPriority",{normal:"normal",high:"high",low:"low"});setupPremiumSelect("notePriority",{normal:"normal",high:"high",low:"low"})}
+
 function renderAll(){const courses=document.getElementById("course");courses.innerHTML=[1,2,3,4,5,6].map(n=>`<option value="${n}">${n} курс</option>`).join("");renderProfile();renderTasks();renderAddresses();renderSchedule();loadNote(selectedNoteDate);tick();initQuotes()}
-initTheme();renderSubjectControls();renderProfileSubjects();initMaterials();renderAll();showDisclaimer();setInterval(tick,1000);setInterval(()=>renderSchedule(),60000);
+initTheme();setupPremiumSelects();renderSubjectControls();renderProfileSubjects();initMaterials();renderAll();showDisclaimer();setInterval(tick,1000);setInterval(()=>renderSchedule(),60000);
 </script>
 
 <script>
@@ -1032,8 +1117,7 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
    }
  }
  window.AlmazovIcons={refresh:()=>transform()};
- let running=false;
- function boot(){transform();const mo=new MutationObserver(()=>{if(running)return;running=true;queueMicrotask(()=>{transform();running=false})});mo.observe(document.body,{childList:true,subtree:true});}
+ function boot(){transform();const mo=new MutationObserver(muts=>{for(const m of muts){for(const n of m.addedNodes){if(n.nodeType===1)transform(n);}}});mo.observe(document.body,{childList:true,subtree:true});}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>
