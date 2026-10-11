@@ -6,6 +6,6 @@
   "released": "2026-10-10",
   "releaseChannel": "rc",
   "releaseStatus": "BLOCKED_FOR_PRODUCTION_UNTIL_LIVE_SYNC_GATE_PASSES",
-  "buildId": "43c1ee67ef637961",
+  "buildId": "df2a77035cc6be39",
   "minified": true
 }

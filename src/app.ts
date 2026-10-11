@@ -35,6 +35,7 @@ const state={profile:initial,week:mondayOf(todayISO(userTimeZone())),focusDate:t
 
 function $(id:string){const el=document.getElementById(id);if(!el)throw new Error(`Missing #${id}`);return el;}
 function esc(v:string){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]!));}
+function importsPracticeSchedule(){return state.profile.course>=4;}
 function groupOptions(program:ProgramCode,course:Course){const groups=groupsFor(program,course);return groups.length?groups:[''];}
 function ensureCurrentGroupOption(id:string){const select=document.getElementById(id) as HTMLSelectElement|null;if(!select||!state.profile.group)return;if(!Array.from(select.options).some(option=>option.value===state.profile.group))select.add(new Option(state.profile.group,state.profile.group));select.value=state.profile.group;}
 function ensureProfile(){const groups=groupsFor(state.profile.program,state.profile.course);if(!state.profile.group&&groups.length)state.profile.group=groups[0]!;}
@@ -55,8 +56,8 @@ function rangeDates():{from:string;to:string;dates:string[]}{
 function localMidnightUtc(date:string){return localDateTimeToUtc(`${date}T00:00`,state.timezone);}
 function getDisplayEvents():CalendarEvent[]{
   if(state.scheduleMode==='kug')return [];
-  const selected=state.official.filter(e=>e.type!=='practice'&&eventAppliesToGroup(e,{...state.profile,stream:streamForGroup(state.profile.program,state.profile.group)})).flatMap(e=>displayScheduleParts(e)).map(e=>scheduleToCalendarEvent({...e,teacher:state.personalization.subjectTeachers[subjectColorKey(e.subject)]||e.teacher},state.timezone));
-  const imported=state.importedPractices.map(importedPracticeCalendar);const personal=state.personal.map(e=>({id:e.id,kind:'personal' as const,title:e.title,description:e.description??'',category:e.category,status:e.status,startAt:e.startAt,endAt:e.endAt,timeZone:e.timeZone,allDay:e.allDay,location:e.location??'',meetingUrl:e.meetingUrl,attendees:e.attendees,recurrence:e.recurrence,seriesId:e.seriesId,readOnly:false}));const combined:CalendarEvent[]=[...selected,...imported,...personal];
+  const selected=state.official.filter(e=>(!importsPracticeSchedule()||e.type!=='practice')&&eventAppliesToGroup(e,{...state.profile,stream:streamForGroup(state.profile.program,state.profile.group)})).flatMap(e=>displayScheduleParts(e)).map(e=>scheduleToCalendarEvent({...e,teacher:state.personalization.subjectTeachers[subjectColorKey(e.subject)]||e.teacher},state.timezone));
+  const imported=(importsPracticeSchedule()?state.importedPractices:[]).map(importedPracticeCalendar);const personal=state.personal.map(e=>({id:e.id,kind:'personal' as const,title:e.title,description:e.description??'',category:e.category,status:e.status,startAt:e.startAt,endAt:e.endAt,timeZone:e.timeZone,allDay:e.allDay,location:e.location??'',meetingUrl:e.meetingUrl,attendees:e.attendees,recurrence:e.recurrence,seriesId:e.seriesId,readOnly:false}));const combined:CalendarEvent[]=[...selected,...imported,...personal];
   return combined.filter(e=>{
     if(state.search&&!`${e.title??(('subject' in e)?e.subject:'')} ${e.location??''} ${e.teacher??''} ${e.category??''}`.toLowerCase().includes(state.search.toLowerCase()))return false;
     if(state.type!=='all'&&e.type!==state.type)return false;
@@ -94,10 +95,10 @@ async function reloadEvents(){
   }
   try{
     const range=rangeDates();
-    const [rows,count]=await Promise.all([
+    const [rows,count]=importsPracticeSchedule()?await Promise.all([
       listImportedPractices(state.profile.program,state.profile.course,state.profile.group,range.from,range.to),
       countImportedPractices(state.profile.program,state.profile.course,state.profile.group)
-    ]);
+    ]):[[],0] as [ImportedPractice[],number];
     if(sequence!==reloadSequence)return;
     state.importedPractices=rows;state.importedPracticeCount=count;
   }catch(error){
@@ -127,8 +128,8 @@ async function refreshHomePersonal(){try{const today=todayISO(state.timezone);st
 function countdownLabel(milliseconds:number){const minutes=Math.max(0,Math.floor(Math.abs(milliseconds)/60000));const days=Math.floor(minutes/1440),hours=Math.floor((minutes%1440)/60),mins=minutes%60;if(days)return `${days} д ${hours} ч`;if(hours)return `${hours} ч ${mins} мин`;return `${mins} мин`;}
 function renderHome(){
  const today=todayISO(state.timezone),now=Date.now();
- const official=state.official.filter(e=>e.type!=='practice'&&eventAppliesToGroup(e,{...state.profile,stream:streamForGroup(state.profile.program,state.profile.group)})).flatMap(e=>displayScheduleParts(e)).map(e=>scheduleToCalendarEvent({...e,teacher:state.personalization.subjectTeachers[subjectColorKey(e.subject)]||e.teacher},state.timezone));
- const events=[...official,...state.importedPractices.map(importedPracticeCalendar),...state.homePersonal.map(calendarPersonal)].sort((a,b)=>a.startAt.localeCompare(b.startAt));
+ const official=state.official.filter(e=>(!importsPracticeSchedule()||e.type!=='practice')&&eventAppliesToGroup(e,{...state.profile,stream:streamForGroup(state.profile.program,state.profile.group)})).flatMap(e=>displayScheduleParts(e)).map(e=>scheduleToCalendarEvent({...e,teacher:state.personalization.subjectTeachers[subjectColorKey(e.subject)]||e.teacher},state.timezone));
+ const events=[...official,...(importsPracticeSchedule()?state.importedPractices:[]).map(importedPracticeCalendar),...state.homePersonal.map(calendarPersonal)].sort((a,b)=>a.startAt.localeCompare(b.startAt));
  const weekEvents=events.filter(e=>{const d=localDate(e.startAt,state.timezone);return d>=startOfWeek(today)&&d<=addDays(startOfWeek(today),6)});
  const todayEvents=events.filter(e=>localDate(e.startAt,state.timezone)===today||localDate(e.endAt,state.timezone)===today);
  const todayClasses=todayEvents.filter(e=>e.kind==='schedule');
@@ -147,6 +148,7 @@ function renderHome(){
 }
 function renderSchedule(){
   state.tasks=readTasks();
+  document.querySelectorAll<HTMLElement>('[data-action="import-practices"]').forEach(button=>{button.hidden=!importsPracticeSchedule();});
   // Empty state is rendered dynamically, so its absence on first render is normal.
   document.getElementById('emptyState')?.remove();
   const allEvents=getDisplayEvents();const range=state.scheduleMode==='kug'&&state.view==='month'?monthRangeDates():rangeDates();
@@ -169,7 +171,7 @@ function renderSchedule(){
   }else{
     const html=state.scheduleMode==='kug'?(state.view==='agenda'||state.view==='list'?renderKugAgenda(range.from,range.to):renderKugGrid(range.dates)):state.view==='month'?renderMonth(events):state.view==='agenda'?renderAgenda(events):state.view==='list'?renderList(events):renderCardSchedule(events,dates);
     const weekBlocksHtml=renderWeeklyBlocks(weeklyBlocks);
-    const importNote=state.scheduleMode==='kug'?'':`<aside class="practice-source-note ${state.importedPracticeCount?'has-import':'needs-import'}"><div><b>${state.importedPracticeCount?`Импортировано ПЗ: ${state.importedPracticeCount}`:'ПЗ для этой группы ещё не импортированы'}</b><small>Лекции берутся с официального сайта. Файл ПЗ относится к группе ${esc(state.profile.group||'не выбрана')} и хранится на этом устройстве.</small></div><button class="btn small" data-action="import-practices">${state.importedPracticeCount?'Обновить ПЗ':'Загрузить файл ПЗ'}</button></aside>`;
+     const importNote=state.scheduleMode==='kug'||!importsPracticeSchedule()?'':`<aside class="practice-source-note ${state.importedPracticeCount?'has-import':'needs-import'}"><div><b>${state.importedPracticeCount?`Импортировано ПЗ: ${state.importedPracticeCount}`:'ПЗ для этой группы ещё не импортированы'}</b><small>Лекции берутся с официального сайта. Файл ПЗ относится к группе ${esc(state.profile.group||'не выбрана')} и хранится на этом устройстве.</small></div><button class="btn small" data-action="import-practices">${state.importedPracticeCount?'Обновить ПЗ':'Загрузить файл ПЗ'}</button></aside>`;
     $('desktopSchedule').innerHTML=importNote+html+weekBlocksHtml;$('mobileSchedule').innerHTML=importNote+(state.scheduleMode==='kug'||state.view==='month'?html:renderMobile(events,dates))+weekBlocksHtml;
   }
   $('dataHealthTitle').textContent=state.status==='live'?'Источник актуален':state.status==='cache'?'Локальный snapshot':state.status==='loading'?'Загрузка…':state.status==='partial'?'Частичные данные':state.status==='error'||state.status==='unavailable'?'Источник недоступен':'Источник доступен';
@@ -384,6 +386,7 @@ function openTask(subjectPrefill='',duePrefill=''){($('taskSubject') as HTMLInpu
 function openTaskFromEvent(id:string){const clicked=state.events.find(e=>e.id===id)||getDisplayEvents().find(e=>e.id===id);if(!clicked||clicked.kind!=='schedule')return;const subject=eventSubject(clicked),now=Date.now(),threshold=Math.max(now,Date.parse(clicked.startAt)+1000);const next=getDisplayEvents().filter(e=>e.kind==='schedule'&&subjectColorKey(eventSubject(e))===subjectColorKey(subject)&&Date.parse(e.startAt)>=threshold).sort((a,b)=>a.startAt.localeCompare(b.startAt))[0];openTask(subject,next?localDateTimeInput(next.startAt,state.timezone):'');}
 function fileAsDataUrl(file:File):Promise<string>{return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(new Error('Не удалось прочитать файл.'));reader.onload=()=>typeof reader.result==='string'?resolve(reader.result):reject(new Error('Неверный формат файла.'));reader.readAsDataURL(file);});}
 function openPracticeImporter(){
+ if(!importsPracticeSchedule()){toast('Для 1–3 курсов ПЗ загружаются из официального расписания. Импорт доступен с 4 курса.','error');return;}
  state.practiceImportDraft=[];
  const input=$('practiceImportFile') as HTMLInputElement;input.value='';
  state.practiceImportGroup=state.profile.group;

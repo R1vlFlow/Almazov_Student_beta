@@ -1,22 +1,22 @@
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=43c1ee67ef637961';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=43c1ee67ef637961';
-import { groupsFor, streamForGroup } from './data/roster.js?v=43c1ee67ef637961';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO } from './core/date.js?v=43c1ee67ef637961';
-import { eventAppliesToGroup } from './core/filter.js?v=43c1ee67ef637961';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=43c1ee67ef637961';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=43c1ee67ef637961';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=43c1ee67ef637961';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=43c1ee67ef637961';
-import { FAQ } from './ui/faq.js?v=43c1ee67ef637961';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=43c1ee67ef637961';
-import { fileToAttachment } from './services/supportService.js?v=43c1ee67ef637961';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=43c1ee67ef637961';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=43c1ee67ef637961';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=43c1ee67ef637961';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=43c1ee67ef637961';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=43c1ee67ef637961';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=43c1ee67ef637961';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=43c1ee67ef637961';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=df2a77035cc6be39';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=df2a77035cc6be39';
+import { groupsFor, streamForGroup } from './data/roster.js?v=df2a77035cc6be39';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO } from './core/date.js?v=df2a77035cc6be39';
+import { eventAppliesToGroup } from './core/filter.js?v=df2a77035cc6be39';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=df2a77035cc6be39';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=df2a77035cc6be39';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=df2a77035cc6be39';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=df2a77035cc6be39';
+import { FAQ } from './ui/faq.js?v=df2a77035cc6be39';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=df2a77035cc6be39';
+import { fileToAttachment } from './services/supportService.js?v=df2a77035cc6be39';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=df2a77035cc6be39';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=df2a77035cc6be39';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=df2a77035cc6be39';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=df2a77035cc6be39';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=df2a77035cc6be39';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=df2a77035cc6be39';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=df2a77035cc6be39';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -28,6 +28,7 @@ const state = { profile: initial, week: mondayOf(todayISO(userTimeZone())), focu
 function $(id) { const el = document.getElementById(id); if (!el)
     throw new Error(`Missing #${id}`); return el; }
 function esc(v) { return String(v).replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[c])); }
+function importsPracticeSchedule() { return state.profile.course >= 4; }
 function groupOptions(program, course) { const groups = groupsFor(program, course); return groups.length ? groups : ['']; }
 function ensureCurrentGroupOption(id) { const select = document.getElementById(id); if (!select || !state.profile.group)
     return; if (!Array.from(select.options).some(option => option.value === state.profile.group))
@@ -91,8 +92,8 @@ function localMidnightUtc(date) { return localDateTimeToUtc(`${date}T00:00`, sta
 function getDisplayEvents() {
     if (state.scheduleMode === 'kug')
         return [];
-    const selected = state.official.filter(e => e.type !== 'practice' && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
-    const imported = state.importedPractices.map(importedPracticeCalendar);
+    const selected = state.official.filter(e => (!importsPracticeSchedule() || e.type !== 'practice') && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
+    const imported = (importsPracticeSchedule() ? state.importedPractices : []).map(importedPracticeCalendar);
     const personal = state.personal.map(e => ({ id: e.id, kind: 'personal', title: e.title, description: e.description ?? '', category: e.category, status: e.status, startAt: e.startAt, endAt: e.endAt, timeZone: e.timeZone, allDay: e.allDay, location: e.location ?? '', meetingUrl: e.meetingUrl, attendees: e.attendees, recurrence: e.recurrence, seriesId: e.seriesId, readOnly: false }));
     const combined = [...selected, ...imported, ...personal];
     return combined.filter(e => {
@@ -148,10 +149,10 @@ async function reloadEvents() {
     }
     try {
         const range = rangeDates();
-        const [rows, count] = await Promise.all([
+        const [rows, count] = importsPracticeSchedule() ? await Promise.all([
             listImportedPractices(state.profile.program, state.profile.course, state.profile.group, range.from, range.to),
             countImportedPractices(state.profile.program, state.profile.course, state.profile.group)
-        ]);
+        ]) : [[], 0];
         if (sequence !== reloadSequence)
             return;
         state.importedPractices = rows;
@@ -222,8 +223,8 @@ function countdownLabel(milliseconds) { const minutes = Math.max(0, Math.floor(M
     return `${hours} ч ${mins} мин`; return `${mins} мин`; }
 function renderHome() {
     const today = todayISO(state.timezone), now = Date.now();
-    const official = state.official.filter(e => e.type !== 'practice' && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
-    const events = [...official, ...state.importedPractices.map(importedPracticeCalendar), ...state.homePersonal.map(calendarPersonal)].sort((a, b) => a.startAt.localeCompare(b.startAt));
+    const official = state.official.filter(e => (!importsPracticeSchedule() || e.type !== 'practice') && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
+    const events = [...official, ...(importsPracticeSchedule() ? state.importedPractices : []).map(importedPracticeCalendar), ...state.homePersonal.map(calendarPersonal)].sort((a, b) => a.startAt.localeCompare(b.startAt));
     const weekEvents = events.filter(e => { const d = localDate(e.startAt, state.timezone); return d >= startOfWeek(today) && d <= addDays(startOfWeek(today), 6); });
     const todayEvents = events.filter(e => localDate(e.startAt, state.timezone) === today || localDate(e.endAt, state.timezone) === today);
     const todayClasses = todayEvents.filter(e => e.kind === 'schedule');
@@ -242,6 +243,7 @@ function renderHome() {
 }
 function renderSchedule() {
     state.tasks = readTasks();
+    document.querySelectorAll('[data-action="import-practices"]').forEach(button => { button.hidden = !importsPracticeSchedule(); });
     // Empty state is rendered dynamically, so its absence on first render is normal.
     document.getElementById('emptyState')?.remove();
     const allEvents = getDisplayEvents();
@@ -281,7 +283,7 @@ function renderSchedule() {
     else {
         const html = state.scheduleMode === 'kug' ? (state.view === 'agenda' || state.view === 'list' ? renderKugAgenda(range.from, range.to) : renderKugGrid(range.dates)) : state.view === 'month' ? renderMonth(events) : state.view === 'agenda' ? renderAgenda(events) : state.view === 'list' ? renderList(events) : renderCardSchedule(events, dates);
         const weekBlocksHtml = renderWeeklyBlocks(weeklyBlocks);
-        const importNote = state.scheduleMode === 'kug' ? '' : `<aside class="practice-source-note ${state.importedPracticeCount ? 'has-import' : 'needs-import'}"><div><b>${state.importedPracticeCount ? `Импортировано ПЗ: ${state.importedPracticeCount}` : 'ПЗ для этой группы ещё не импортированы'}</b><small>Лекции берутся с официального сайта. Файл ПЗ относится к группе ${esc(state.profile.group || 'не выбрана')} и хранится на этом устройстве.</small></div><button class="btn small" data-action="import-practices">${state.importedPracticeCount ? 'Обновить ПЗ' : 'Загрузить файл ПЗ'}</button></aside>`;
+        const importNote = state.scheduleMode === 'kug' || !importsPracticeSchedule() ? '' : `<aside class="practice-source-note ${state.importedPracticeCount ? 'has-import' : 'needs-import'}"><div><b>${state.importedPracticeCount ? `Импортировано ПЗ: ${state.importedPracticeCount}` : 'ПЗ для этой группы ещё не импортированы'}</b><small>Лекции берутся с официального сайта. Файл ПЗ относится к группе ${esc(state.profile.group || 'не выбрана')} и хранится на этом устройстве.</small></div><button class="btn small" data-action="import-practices">${state.importedPracticeCount ? 'Обновить ПЗ' : 'Загрузить файл ПЗ'}</button></aside>`;
         $('desktopSchedule').innerHTML = importNote + html + weekBlocksHtml;
         $('mobileSchedule').innerHTML = importNote + (state.scheduleMode === 'kug' || state.view === 'month' ? html : renderMobile(events, dates)) + weekBlocksHtml;
     }
@@ -658,6 +660,10 @@ function openTaskFromEvent(id) { const clicked = state.events.find(e => e.id ===
     return; const subject = eventSubject(clicked), now = Date.now(), threshold = Math.max(now, Date.parse(clicked.startAt) + 1000); const next = getDisplayEvents().filter(e => e.kind === 'schedule' && subjectColorKey(eventSubject(e)) === subjectColorKey(subject) && Date.parse(e.startAt) >= threshold).sort((a, b) => a.startAt.localeCompare(b.startAt))[0]; openTask(subject, next ? localDateTimeInput(next.startAt, state.timezone) : ''); }
 function fileAsDataUrl(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onerror = () => reject(new Error('Не удалось прочитать файл.')); reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Неверный формат файла.')); reader.readAsDataURL(file); }); }
 function openPracticeImporter() {
+    if (!importsPracticeSchedule()) {
+        toast('Для 1–3 курсов ПЗ загружаются из официального расписания. Импорт доступен с 4 курса.', 'error');
+        return;
+    }
     state.practiceImportDraft = [];
     const input = $('practiceImportFile');
     input.value = '';
