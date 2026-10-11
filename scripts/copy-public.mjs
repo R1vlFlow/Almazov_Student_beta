@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root=fileURLToPath(new URL('..',import.meta.url));
 const dist=join(root,'dist');
 await mkdir(join(dist,'assets'),{recursive:true});
-for(const name of ['index.html','styles.css','splash.css','sw.js','boot.js','runtime-config.js','telemetry.js','manifest.webmanifest','offline.html'])
+for(const name of ['index.html','styles.css','splash.css','sw.js','boot.js','runtime-config.js','telemetry.js','manifest.webmanifest','offline.html','practice-import-template.csv'])
   await copyFile(join(root,'public',name),join(dist,name));
 await cp(join(root,'public','assets'),join(dist,'assets'),{recursive:true});
 await mkdir(join(dist,'data'),{recursive:true});
