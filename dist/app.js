@@ -1,23 +1,37 @@
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=2d9a28b1af854a53';
-import { groupsFor, streamForGroup } from './data/roster.js?v=2d9a28b1af854a53';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO } from './core/date.js?v=2d9a28b1af854a53';
-import { eventAppliesToGroup } from './core/filter.js?v=2d9a28b1af854a53';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=2d9a28b1af854a53';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=2d9a28b1af854a53';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=2d9a28b1af854a53';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=2d9a28b1af854a53';
-import { FAQ } from './ui/faq.js?v=2d9a28b1af854a53';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=2d9a28b1af854a53';
-import { fileToAttachment } from './services/supportService.js?v=2d9a28b1af854a53';
-import { createTicket, listTickets, getTicket, addTicketMessage } from './services/supportService.js?v=2d9a28b1af854a53';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=2d9a28b1af854a53';
-import { scheduleToCalendarEvent } from './core/calendar.js?v=2d9a28b1af854a53';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=2d9a28b1af854a53';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=2d9a28b1af854a53';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=2d9a28b1af854a53';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=3c8a77fe603e71c2';
+import { groupsFor, streamForGroup } from './data/roster.js?v=3c8a77fe603e71c2';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO } from './core/date.js?v=3c8a77fe603e71c2';
+import { eventAppliesToGroup } from './core/filter.js?v=3c8a77fe603e71c2';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=3c8a77fe603e71c2';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=3c8a77fe603e71c2';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=3c8a77fe603e71c2';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=3c8a77fe603e71c2';
+import { FAQ } from './ui/faq.js?v=3c8a77fe603e71c2';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=3c8a77fe603e71c2';
+import { fileToAttachment } from './services/supportService.js?v=3c8a77fe603e71c2';
+import { createTicket, listTickets, getTicket, addTicketMessage } from './services/supportService.js?v=3c8a77fe603e71c2';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=3c8a77fe603e71c2';
+import { scheduleToCalendarEvent } from './core/calendar.js?v=3c8a77fe603e71c2';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=3c8a77fe603e71c2';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=3c8a77fe603e71c2';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=3c8a77fe603e71c2';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
+const SUBJECT_COLOR_PRESETS = [
+    { id: 'blue', label: 'Синий', value: '#3b82f6' },
+    { id: 'cyan', label: 'Голубой', value: '#06b6d4' },
+    { id: 'teal', label: 'Бирюзовый', value: '#0d9488' },
+    { id: 'green', label: 'Зелёный', value: '#16a34a' },
+    { id: 'lime', label: 'Лайм', value: '#65a30d' },
+    { id: 'amber', label: 'Янтарный', value: '#d97706' },
+    { id: 'orange', label: 'Оранжевый', value: '#ea580c' },
+    { id: 'rose', label: 'Коралловый', value: '#e11d48' },
+    { id: 'pink', label: 'Розовый', value: '#db2777' },
+    { id: 'violet', label: 'Фиолетовый', value: '#8b5cf6' },
+    { id: 'indigo', label: 'Индиго', value: '#4f46e5' },
+    { id: 'slate', label: 'Серо-синий', value: '#7892bf' }
+];
 const SUBJECT_GRADIENT_PRESETS = [
     { id: 'ocean', label: 'Океан', a: '#3b82f6', b: '#14b8a6' },
     { id: 'violet', label: 'Аметист', a: '#8b5cf6', b: '#d946ef' },
@@ -521,8 +535,24 @@ function renderSettings() {
         theme.value = themeMode();
     const colors = $('subjectColorSettings');
     if (colors) {
-        const subjects = Array.from(new Set(state.official.filter(e => eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).map(e => e.subject))).sort((a, b) => a.localeCompare(b, 'ru'));
-        colors.innerHTML = subjects.length ? subjects.map(subject => { const key = subjectColorKey(subject), value = state.personalization.subjectColors[key] || '#7892bf', selected = state.personalization.subjectGradients[key] || ''; const presets = SUBJECT_GRADIENT_PRESETS.map(preset => `<button type="button" class="subject-gradient-swatch ${selected === preset.id ? 'active' : ''}" data-subject-gradient-key="${esc(key)}" data-gradient-preset="${preset.id}" aria-label="Градиент ${preset.label} для ${esc(subject)}" aria-pressed="${selected === preset.id}" title="${preset.label}" style="--swatch-a:${preset.a};--swatch-b:${preset.b}"></button>`).join(''); return `<div class="subject-setting-row"><div class="subject-setting-title"><i style="background:${value}"></i><b>${esc(subject)}</b><input type="color" data-subject-setting="${esc(key)}" value="${value}" aria-label="Акцентный цвет предмета ${esc(subject)}"></div><div class="subject-gradient-swatches" role="group" aria-label="Градиент предмета ${esc(subject)}"><button type="button" class="subject-gradient-swatch no-gradient ${!selected ? 'active' : ''}" data-subject-gradient-key="${esc(key)}" data-gradient-preset="none" aria-label="Без градиента для ${esc(subject)}" aria-pressed="${!selected}" title="Без градиента">×</button>${presets}</div></div>`; }).join('') : '<p class="muted">Загрузите расписание выбранной группы, чтобы настроить цвета предметов.</p>';
+        const activeStream = streamForGroup(state.profile.program, state.profile.group);
+        const datedSubjects = state.official.filter(e => eventAppliesToGroup(e, { ...state.profile, stream: activeStream })).map(e => e.subject);
+        const weeklySubjects = state.weeklyBlocks.filter(block => {
+            if (block.program !== state.profile.program || block.course !== state.profile.course)
+                return false;
+            const rowGroup = String(block.group ?? '').replace(/\s+/g, '').toLocaleUpperCase('ru-RU');
+            const selectedGroup = String(state.profile.group ?? '').replace(/\s+/g, '').toLocaleUpperCase('ru-RU');
+            const common = ['ALL', '_ALL_', 'ВСЕГРУППЫ', 'ОБЩИЙПОТОК'].includes(rowGroup);
+            return (common || rowGroup === selectedGroup) && (!block.stream || !activeStream || block.stream === activeStream);
+        }).map(block => block.subject);
+        const subjects = Array.from(new Set([...datedSubjects, ...weeklySubjects])).sort((a, b) => a.localeCompare(b, 'ru'));
+        colors.innerHTML = subjects.length ? subjects.map(subject => {
+            const key = subjectColorKey(subject), value = state.personalization.subjectColors[key] || '#7892bf', selected = state.personalization.subjectGradients[key] || '';
+            const solidPresets = SUBJECT_COLOR_PRESETS.map(preset => `<button type="button" class="subject-color-preset ${value.toLowerCase() === preset.value ? 'active' : ''}" data-subject-color-preset="${esc(key)}" data-color-value="${preset.value}" style="--swatch-color:${preset.value}" title="${preset.label}" aria-label="Цвет ${preset.label} для ${esc(subject)}" aria-pressed="${value.toLowerCase() === preset.value}"><span aria-hidden="true">${value.toLowerCase() === preset.value ? '✓' : ''}</span></button>`).join('');
+            const gradients = SUBJECT_GRADIENT_PRESETS.map(preset => `<button type="button" class="subject-gradient-swatch ${selected === preset.id ? 'active' : ''}" data-subject-gradient-key="${esc(key)}" data-gradient-preset="${preset.id}" aria-label="Градиент ${preset.label} для ${esc(subject)}" aria-pressed="${selected === preset.id}" title="${preset.label}" style="--swatch-a:${preset.a};--swatch-b:${preset.b}"><span aria-hidden="true">${selected === preset.id ? '✓' : ''}</span></button>`).join('');
+            const selectedGradient = SUBJECT_GRADIENT_PRESETS.find(preset => preset.id === selected);
+            return `<article class="subject-setting-row"><div class="subject-setting-head"><span class="subject-setting-indicator" style="--swatch-color:${value}" aria-hidden="true"></span><div class="subject-setting-copy"><b>${esc(subject)}</b><small>Цвет применяется во всём расписании</small></div><button type="button" class="subject-custom-color" data-subject-color-trigger="${esc(key)}" style="--swatch-color:${value}" aria-label="Выбрать свой цвет для ${esc(subject)}"><span class="subject-custom-dot" aria-hidden="true"></span>Свой цвет</button></div><div class="subject-color-palette" role="group" aria-label="Готовые цвета для ${esc(subject)}">${solidPresets}</div><details class="subject-gradient-options" ${selected ? 'open' : ''}><summary>Градиент <span>${selectedGradient ? esc(selectedGradient.label) : 'не выбран'}</span></summary><div class="subject-gradient-swatches" role="group" aria-label="Градиенты для ${esc(subject)}"><button type="button" class="subject-gradient-swatch no-gradient ${!selected ? 'active' : ''}" data-subject-gradient-key="${esc(key)}" data-gradient-preset="none" aria-label="Без градиента для ${esc(subject)}" aria-pressed="${!selected}" title="Без градиента"><span aria-hidden="true">×</span></button>${gradients}</div></details></article>`;
+        }).join('') : '<p class="muted">Загрузите расписание выбранной группы, чтобы настроить цвета предметов.</p>';
     }
 }
 function renderProfilePage() {
@@ -928,7 +958,7 @@ function bind() {
                 closeModal(backdrop.id);
             return;
         }
-        const target = origin?.closest('[data-action],[data-page],[data-view],[data-schedule-mode],[data-stream],[data-pick-program],[data-task-delete],[data-task-toggle],[data-task-status],[data-task-attachment],[data-jump-date],[data-open-event],[data-homework-from-event],[data-ticket],[data-faq-category],[data-faq-open],[data-subject-color-trigger],[data-subject-gradient-key],[data-duration-adjust],[data-avatar-preset],[data-material-delete],[data-material-open],[data-material-download]');
+        const target = origin?.closest('[data-action],[data-page],[data-view],[data-schedule-mode],[data-stream],[data-pick-program],[data-task-delete],[data-task-toggle],[data-task-status],[data-task-attachment],[data-jump-date],[data-open-event],[data-homework-from-event],[data-ticket],[data-faq-category],[data-faq-open],[data-subject-color-trigger],[data-subject-color-preset],[data-subject-gradient-key],[data-duration-adjust],[data-avatar-preset],[data-material-delete],[data-material-open],[data-material-download]');
         if (!target)
             return;
         const action = target.dataset.action;
@@ -1010,6 +1040,17 @@ function bind() {
             }
             return;
         }
+        if (target.dataset.subjectColorPreset) {
+            const key = target.dataset.subjectColorPreset, value = target.dataset.colorValue ?? '';
+            if (!/^#[0-9a-f]{6}$/i.test(value))
+                return;
+            const current = readPersonalization(), colors = { ...current.subjectColors, [key]: value }, gradients = { ...current.subjectGradients };
+            delete gradients[key];
+            state.personalization = updatePersonalization({ subjectColors: colors, subjectGradients: gradients });
+            renderSchedule();
+            renderSettings();
+            return;
+        }
         if (target.dataset.subjectGradientKey) {
             const key = target.dataset.subjectGradientKey;
             const preset = target.dataset.gradientPreset ?? 'none';
@@ -1028,10 +1069,11 @@ function bind() {
             const input = document.createElement('input');
             input.type = 'color';
             input.value = state.personalization.subjectColors[key] || '#7892bf';
-            input.setAttribute('aria-label', 'Цвет предмета');
+            input.setAttribute('aria-label', 'Выберите цвет предмета');
             input.style.position = 'fixed';
             input.style.left = '-10000px';
-            input.addEventListener('input', () => { const colors = { ...readPersonalization().subjectColors, [key]: input.value }; state.personalization = updatePersonalization({ subjectColors: colors }); renderSchedule(); renderSettings(); });
+            input.style.top = '0';
+            input.addEventListener('input', () => { const current = readPersonalization(), colors = { ...current.subjectColors, [key]: input.value }, gradients = { ...current.subjectGradients }; delete gradients[key]; state.personalization = updatePersonalization({ subjectColors: colors, subjectGradients: gradients }); renderSchedule(); renderSettings(); });
             input.addEventListener('change', () => input.remove());
             document.body.appendChild(input);
             input.click();
@@ -1351,7 +1393,8 @@ function bind() {
         renderProfileOptions(); applySelectProfile(); }));
     $('modalProgram').addEventListener('change', () => { const p = $('modalProgram').value; const c = Number($('modalCourse').value); const old = $('modalGroup').value; const g = $('modalGroup'); g.innerHTML = groupOptions(p, c).map(x => `<option value="${esc(x)}">${esc(x || '—')}</option>`).join(''); g.value = groupOptions(p, c).includes(old) ? old : groupOptions(p, c)[0] ?? ''; });
     $('modalCourse').addEventListener('change', () => { const p = $('modalProgram').value; const c = Number($('modalCourse').value); const g = $('modalGroup'); g.innerHTML = groupOptions(p, c).map(x => `<option value="${esc(x)}">${esc(x || '—')}</option>`).join(''); g.value = groupOptions(p, c)[0] ?? ''; });
-    document.querySelectorAll('#typeFilter [data-type]').forEach(b => b.addEventListener('click', () => { state.type = b.dataset.type ?? 'all'; document.querySelectorAll('#typeFilter [data-type]').forEach(x => x.classList.remove('active')); b.classList.add('active'); renderSchedule(); }));
+    document.querySelectorAll('#typeFilter [data-type]').forEach(b => b.addEventListener('click', () => { const requested = b.dataset.type ?? ''; if (!['all', 'lecture', 'practice', 'assessment'].includes(requested))
+        return; state.type = requested; document.querySelectorAll('#typeFilter [data-type]').forEach(x => { x.classList.remove('active'); x.setAttribute('aria-pressed', 'false'); }); b.classList.add('active'); b.setAttribute('aria-pressed', 'true'); renderSchedule(); }));
     $('statusFilter').addEventListener('change', e => { state.statusFilter = e.target.value; renderSchedule(); });
     $('categoryFilter').addEventListener('change', e => { state.categoryFilter = e.target.value; renderSchedule(); });
     $('taskStatusFilter').addEventListener('change', e => { state.taskFilterStatus = e.target.value; renderTasks(); });
@@ -1366,11 +1409,6 @@ function bind() {
         state.tasks = readTasks();
         renderTasks();
         renderSchedule();
-    } if (target.dataset.subjectSetting) {
-        const colors = { ...readPersonalization().subjectColors, [target.dataset.subjectSetting]: target.value };
-        state.personalization = updatePersonalization({ subjectColors: colors });
-        renderSchedule();
-        renderSettings();
     } });
     $('avatarUpload').addEventListener('change', async () => { const input = $('avatarUpload'); const file = input.files?.[0]; if (!file)
         return; try {

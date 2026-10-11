@@ -1,6 +1,6 @@
-import { LIVE_LD_JSON, PROGRAMS, sourceFor, sourcesFor } from '../data/catalog.js?v=2d9a28b1af854a53';
-import { validateScheduleIndex, normalizeLiveEvents, normalizeWeeklyBlocks } from '../core/validate.js?v=2d9a28b1af854a53';
-import { saveCache, readCache } from './cache.js?v=2d9a28b1af854a53';
+import { LIVE_LD_JSON, PROGRAMS, sourceFor, sourcesFor } from '../data/catalog.js?v=3c8a77fe603e71c2';
+import { validateScheduleIndex, normalizeLiveEvents, normalizeWeeklyBlocks } from '../core/validate.js?v=3c8a77fe603e71c2';
+import { saveCache, readCache } from './cache.js?v=3c8a77fe603e71c2';
 const API_BASE = './api/schedule';
 const memory = new Map();
 if (typeof window !== 'undefined')
