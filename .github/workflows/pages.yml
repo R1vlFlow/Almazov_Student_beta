@@ -48,8 +48,8 @@ jobs:
       - name: Release QA and minified production build
         run: npm run qa
         env:
-          REQUIRE_MINIFICATION: "1"
-          REQUIRE_SPECIALIST_SNAPSHOT: "1"
+          REQUIRE_MINIFICATION: '1'
+          REQUIRE_SPECIALIST_SNAPSHOT: '1'
       - run: touch dist/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
