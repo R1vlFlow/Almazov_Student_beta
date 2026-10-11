@@ -1,10 +1,20 @@
-# Almazov Schedule Hub — release 2.8.0-rc.4 (Master RC)
+# Almazov Schedule Hub — release 2.8.0-rc.5 (Master RC)
 
-Версия приложения: **2.8.0-rc.4** (кандидат в релиз).
-Версия интерфейса: **2.8.0-rc.4**.
+Версия приложения: **2.8.0-rc.5** (кандидат в релиз).
+Версия интерфейса: **2.8.0-rc.5**.
 Движок официального расписания: **4.9.0-rc.1**.
 
 > **Статус данных на 10.10.2026: BLOCKED_FOR_PRODUCTION.** Полный live-sync и SHA-256 проверка байтов официальных PDF не выполнены в этой среде (DNS недоступен). Локальный индекс явно помечен как `local-recovery-snapshot` и не является полным живым расписанием. В текущем локальном снимке отсутствуют прямые записи практики для 42 групп лечебного дела: группа 103, группы 217–222 и 225–229, группы 501–512 и группы 601–618. При этом официальные ссылки на соответствующие PDF существуют; эти группы нужно восстановить разбором опубликованных файлов, не синтетическими записями. Текущий официальный хаб публикует 10 комплектов КУГ из 17 возможных сочетаний: Лечебное дело 1–6, Педиатрия 1–2 и Клиническая психология 1–2; для остальных 7 курсов ссылки на хабе не опубликованы. Прямые URL всех 10 опубликованных КУГ внесены в `data/kug-source-manifest.json`, но SHA-256 остаётся пустым до live-загрузки. Практические матрицы 4/5/6 курсов содержат конфликтующие даты/годы в шапках; их нельзя превращать в датированные пары без официальной привязки к неделям. Подробности по каждой группе и источнику: [`reports/official-coverage-audit-2026-10-10.md`](reports/official-coverage-audit-2026-10-10.md) и [`docs/PRODUCTION_SYNC_AND_RELEASE.md`](docs/PRODUCTION_SYNC_AND_RELEASE.md). Не включай `productionEligible`, пока live-хеши, даты недель, все опубликованные группы/потоки и specialist snapshot не будут проверены.
+
+
+## Integration changes in RC5 (2026-10-11)
+
+- The practice parser now emits newline-delimited JSON diagnostics for extractor errors, candidate rejection, garbled matrix cells, missing groups, event counts and parser selection. Candidates from PDFPlumber and PyMuPDF are unioned/deduplicated before whole-roster validation, so a partial extractor does not discard rows recoverable by the other backend.
+- The Stream A 4th-course matrix has a dedicated real-PDF fixture regression: 250 weekly assignments for groups 401–412, no inferred weekdays, exact time bounds, duplicate rejection and structured completion diagnostics. The CI schedule-sync workflow runs this regression before ingestion.
+- Settings now use a touch-friendly 12-color preset grid, a custom color picker, immediate schedule preview, local persistence and optional collapsed gradient presets. Solid colors clear an active gradient for predictable appearance.
+- The timetable exposes only “Все”, “Лекции”, “ПЗ” and “Контроль” as type filters. Seminar, lab and clinical lesson types are still parsed, stored and rendered by “Все”; only their separate filter buttons were removed.
+
+Validation for this patch: TypeScript build passes, Node tests pass 83/83, canonical Python regression passes 13/13, and production/data/cache contracts pass when run individually. The environment lacks npm lockfile/dependencies for minification, so the current `dist` is not minified. Official live-sync remains blocked by network/DNS and the stored recovery snapshot remains explicitly partial; this RC5 is an integration patch, not a production declaration.
 
 ## Установка и правильная публикация
 
@@ -45,7 +55,7 @@
 
 Подробная инструкция Android APK и iPhone PWA находится в [`docs/ANDROID_INSTALL.md`](docs/ANDROID_INSTALL.md). APK создаётся вручную через GitHub Actions workflow `Build Android APK (RC)`; ссылка на APK начнёт работать после успешной сборки и прикрепления файла к GitHub Release.
 
-## Official data recovery status (RC4)
+## Official data recovery status (carried forward from RC4; RC5 code only)
 
 - `npm run recover:offline-safe` applies the official week-number calendar to cached 4A/4B/5B rotation matrices, rebuilds the clearly marked local recovery snapshot for the currently published Pediatrics/Clinical Psychology 1–2 course rules, and refreshes the per-group coverage audit. This is for local review only; it does not pass the production gate.
 - `npm run sync:official` is the production synchronization path. It must run with network access, fetch current official PDFs, record content hashes, build all snapshots and pass `scripts/validate_production_release.py`. Do not replace it with the offline command for deployment.

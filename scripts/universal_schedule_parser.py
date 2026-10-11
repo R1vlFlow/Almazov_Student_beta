@@ -14,8 +14,11 @@ adding a new branch such as `if course == 5`.
 """
 from __future__ import annotations
 from dataclasses import dataclass, asdict
+from datetime import datetime, timezone
 import io
+import json
 import re
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -27,6 +30,22 @@ DAY_WORDS = {
 CLOCK_RE = re.compile(r'(?<!\d)\d{1,2}\s*[:.]\s*\d{2}\s*[-–—]\s*\d{1,2}\s*[:.]\s*\d{2}(?!\d)')
 GROUP_RE = re.compile(r'(?<!\d)(\d{3})(?!\d)')
 WEEK_RE = re.compile(r'(?<!\d)(?:[1-9]|[1-4]\d|5[0-2])(?!\d)')
+
+
+
+def _log_parser_event(level, event, source_url='', course=None, stream=None, **details):
+    """Emit one compact JSON diagnostic per parser decision to stderr."""
+    record = {
+        'timestamp': datetime.now(timezone.utc).isoformat(),
+        'component': 'universal_schedule_parser',
+        'level': level,
+        'event': event,
+        'sourceUrl': str(source_url or ''),
+        'course': course,
+        'stream': stream,
+        **details,
+    }
+    print(json.dumps(record, ensure_ascii=False, default=str), file=sys.stderr, flush=True)
 
 
 @dataclass
@@ -219,108 +238,149 @@ class UniversalScheduleParser:
         return LayoutProfile(course,stream,kind,groups,sorted(week_map),weekday_count,clock_count,vector,grid_score,layout,confidence,reasons)
 
     @staticmethod
-    def _acceptable_practice_events(events, profile):
-        """Reject structurally partial extractor output before accepting it.
-
-        A parser backend can technically return a non-empty list after losing a
-        merged row, one group, or an entire page. Publishing that partial list
-        is worse than trying the next extractor. The final builder still performs
-        the authoritative roster validation; this check only controls fallback.
-        """
+    def _practice_event_issues(events, profile):
+        """Return actionable reasons a candidate must not be imported."""
+        issues = []
         if not events:
-            return False
-        groups={str(e.get('group')) for e in events if re.fullmatch(r'\d{3}',str(e.get('group','')))}
-        expected=set(profile.groups)
-        if expected and not expected.issubset(groups):
-            return False
-        if profile.layout=='weekly-matrix':
+            return ['no_events']
+        groups = {str(e.get('group')) for e in events if re.fullmatch(r'\d{3}', str(e.get('group', '')))}
+        expected = set(profile.groups)
+        missing = sorted(expected - groups)
+        if missing:
+            issues.append('missing_groups:' + ','.join(missing[:30]))
+        if profile.layout == 'weekly-matrix':
             if any(e.get('weekday') is not None for e in events):
-                return False
-            if any(e.get('scheduleMode')!='weekly-block' for e in events):
-                return False
-        return all(e.get('subject') and e.get('start') and e.get('end') for e in events)
+                issues.append('matrix_contains_invented_weekday')
+            if any(e.get('scheduleMode') != 'weekly-block' for e in events):
+                issues.append('matrix_rows_not_marked_weekly_block')
+        for index, event in enumerate(events):
+            subject = str(event.get('subject') or '').strip()
+            if not subject or not event.get('start') or not event.get('end'):
+                issues.append(f'missing_required_field:event_{index}')
+                break
+            if any(marker in subject for marker in ('█', '�')) or re.search(r'(^|\s)I{3,}(?=\s|$)', subject):
+                issues.append(f'garbled_subject:event_{index}')
+                break
+        return issues
+
+    @classmethod
+    def _acceptable_practice_events(cls, events, profile):
+        """Reject structurally partial output before accepting it."""
+        return not cls._practice_event_issues(events, profile)
+
+    def _checked_candidate(self, candidate, profile, parser_name, url, course, stream, attempts):
+        issues = self._practice_event_issues(candidate, profile)
+        group_ids = sorted({str(e.get('group')) for e in candidate if e.get('group')})
+        accepted = not issues
+        attempts.append({'parser': parser_name, 'accepted': accepted, 'events': len(candidate or []), 'issues': issues})
+        _log_parser_event('info' if accepted else 'warning', 'practice_parser_candidate', url, course, stream,
+                          parser=parser_name, accepted=accepted, eventCount=len(candidate or []),
+                          groupCount=len(group_ids), groups=group_ids[:30], issueCodes=issues[:20])
+        return candidate if accepted else []
 
     def parse_practice(self, source, course, url, stream):
-        profile=self.analyze(source,url,course,stream,'practice')
-        raw=self._raw_bytes(source)
-        events=[]
+        profile = self.analyze(source, url, course, stream, 'practice')
+        raw = self._raw_bytes(source)
+        events = []
+        attempts = []
 
-        if profile.layout=='weekly-matrix' and raw is not None:
-            # Matrix extractor is geometry-driven. It does not care whether the
-            # source is 4B, 5A, 5B, a future course, etc. A partial result is
-            # rejected so the next extractor gets a chance to recover it.
+        def extract_raw(parser_name, fn):
             try:
-                merged=self.m.parse_week_matrix_pdfplumber_cells(raw,course,url,stream)
-            except Exception:
-                merged=[]
-            try:
-                coord=self.m.parse_week_matrix_coordinate(raw,course,url,stream)
-            except Exception:
-                coord=[]
-            def is_garbled(e):
-                text=str(e.get('subject',''))
-                return (not text) or '█' in text or '�' in text or bool(re.search(r'(^|\s)I{3,}(?=\s|$)',text))
+                candidate = fn() or []
+                _log_parser_event('info' if candidate else 'warning', 'practice_extractor_result', url, course, stream,
+                                  parser=parser_name, eventCount=len(candidate),
+                                  candidateIssues=self._practice_event_issues(candidate, profile)[:12])
+                attempts.append({'parser': parser_name, 'rawEvents': len(candidate), 'extractorError': None})
+                return candidate
+            except Exception as error:
+                _log_parser_event('warning', 'practice_extractor_failed', url, course, stream,
+                                  parser=parser_name, errorType=type(error).__name__, error=str(error)[:350])
+                attempts.append({'parser': parser_name, 'rawEvents': 0, 'extractorError': type(error).__name__})
+                return []
+
+        def extract(parser_name, fn):
+            candidate = extract_raw(parser_name, fn)
+            return self._checked_candidate(candidate, profile, parser_name, url, course, stream, attempts)
+
+        if profile.layout == 'weekly-matrix' and raw is not None:
+            # Matrix extractors are geometry-driven and course-independent. Keep
+            # partial backend candidates until union/deduplication, then validate
+            # the combined candidate against the complete detected roster.
+            merged = extract_raw('pdfplumber-merged-cell-matrix', lambda: self.m.parse_week_matrix_pdfplumber_cells(raw, course, url, stream))
+            coord = extract_raw('pymupdf-coordinate-matrix', lambda: self.m.parse_week_matrix_coordinate(raw, course, url, stream))
             if merged and coord:
-                key=lambda e:(str(e.get('group','')),int(e.get('weekNumber') or 0),str(e.get('subject','')),str(e.get('location','')),str(e.get('start','')),str(e.get('end','')))
-                seen={key(e) for e in merged}
-                candidate=merged+[e for e in coord if key(e) not in seen]
+                key = lambda e: (str(e.get('group', '')), int(e.get('weekNumber') or 0), str(e.get('subject', '')), str(e.get('location', '')), str(e.get('start', '')), str(e.get('end', '')))
+                seen = {key(e) for e in merged}
+                candidate = merged + [e for e in coord if key(e) not in seen]
             else:
-                candidate=merged or coord
-            if any(is_garbled(e) for e in candidate): candidate=[]
-            if self._acceptable_practice_events(candidate,profile): events=candidate
+                candidate = merged or coord
+            events = self._checked_candidate(candidate, profile, 'merged-pdfplumber-and-coordinate-matrix', url, course, stream, attempts)
             if not events:
-                try:
-                    candidate=self.m.parse_week_matrix_text_fallback(raw,course,url,stream)
-                    if self._acceptable_practice_events(candidate,profile): events=candidate
-                except Exception:
-                    events=[]
+                events = extract('week-matrix-text-fallback', lambda: self.m.parse_week_matrix_text_fallback(raw, course, url, stream))
             if not events:
-                try:
-                    candidate=self.m.parse_week_matrix_tables(raw,course,url,stream)
-                    if self._acceptable_practice_events(candidate,profile): events=candidate
-                except Exception:
-                    events=[]
+                events = extract('week-matrix-table-fallback', lambda: self.m.parse_week_matrix_tables(raw, course, url, stream))
 
-        # Try the PDFPlumber table-grid extractor for daily timetable PDFs before
-        # the PyMuPDF compatibility fallback. It retains the relation between
-        # weekday/time rows and group columns and can reject partial roster output.
+        # Daily grid PDFs can use a separate table engine. The whole candidate is
+        # still validated against the detected roster before it can be imported.
         if not events and raw is not None:
-            try:
-                candidate=self.m.parse_practice_with_pdfplumber(raw,course,url,stream)
-                if self._acceptable_practice_events(candidate,profile):
-                    events=candidate
-            except Exception:
-                pass
+            events = extract('pdfplumber-daily-grid', lambda: self.m.parse_practice_with_pdfplumber(raw, course, url, stream))
 
-        # Daily tables and any unknown future layout use the legacy extractor
-        # chain as a compatibility engine. The universal layer decides this from
-        # observed structure rather than from course number.
+        # Compatibility fallback for older daily tables and newly encountered layouts.
         if not events:
-            if raw is not None:
-                try:
-                    doc=self._doc_from_bytes(raw)
-                    for page in doc:
-                        self.m._add_practice_events_from_table(events,page,course,url,stream)
-                    if len(events)<3:
+            try:
+                if raw is not None:
+                    doc = self._doc_from_bytes(raw)
+                    legacy = []
+                    try:
                         for page in doc:
-                            self.m._add_practice_events_from_words_fallback(events,page,course,url,stream)
-                    doc.close()
-                except Exception:
-                    events=[]
-            else:
-                try:
+                            self.m._add_practice_events_from_table(legacy, page, course, url, stream)
+                        if len(legacy) < 3:
+                            for page in doc:
+                                self.m._add_practice_events_from_words_fallback(legacy, page, course, url, stream)
+                    finally:
+                        doc.close()
+                else:
+                    legacy = []
                     for page in source:
-                        self.m._add_practice_events_from_table(events,page,course,url,stream)
-                    if len(events)<3:
+                        self.m._add_practice_events_from_table(legacy, page, course, url, stream)
+                    if len(legacy) < 3:
                         for page in source:
-                            self.m._add_practice_events_from_words_fallback(events,page,course,url,stream)
-                except Exception:
-                    events=[]
+                            self.m._add_practice_events_from_words_fallback(legacy, page, course, url, stream)
+                events = self._checked_candidate(legacy, profile, 'legacy-daily-table-fallback', url, course, stream, attempts)
+            except Exception as error:
+                _log_parser_event('warning', 'practice_extractor_failed', url, course, stream,
+                                  parser='legacy-daily-table-fallback', errorType=type(error).__name__, error=str(error)[:350])
+                attempts.append({'parser': 'legacy-daily-table-fallback', 'accepted': False, 'events': 0, 'issues': ['extractor_exception']})
+                events = []
 
-        if profile.layout=='weekly-matrix':
-            bad_any=any((not str(e.get('subject','')).strip()) or '█' in str(e.get('subject','')) or '�' in str(e.get('subject','')) or bool(re.fullmatch(r'[I0-9, .-]+',str(e.get('subject','')).strip())) for e in events)
+        if profile.layout == 'weekly-matrix':
+            bad_any = any(
+                (not str(e.get('subject', '')).strip())
+                or '█' in str(e.get('subject', ''))
+                or '�' in str(e.get('subject', ''))
+                or bool(re.fullmatch(r'[I0-9, .-]+', str(e.get('subject', '')).strip()))
+                for e in events
+            )
             if bad_any:
-                events=[]
+                _log_parser_event('error', 'practice_matrix_rejected_as_garbled', url, course, stream,
+                                  eventCount=len(events), layout=profile.layout)
+                events = []
+
+        # Attach provenance; the frontend may ignore it while QA and data audits
+        # retain the structural decision and confidence for diagnosis.
+        for event in events:
+            event.setdefault('parser', 'universal-schedule-parser-v1')
+            event['layoutProfile'] = profile.layout
+            event['parseConfidence'] = round(profile.confidence, 3)
+
+        parsed_groups = sorted({str(e.get('group')) for e in events if e.get('group')})
+        expected_groups = sorted(set(profile.groups))
+        missing_groups = sorted(set(expected_groups) - set(parsed_groups))
+        _log_parser_event('info' if events and not missing_groups else 'error', 'practice_parse_complete', url, course, stream,
+                          layout=profile.layout, confidence=round(profile.confidence, 3), eventCount=len(events),
+                          groupCount=len(parsed_groups), expectedGroupCount=len(expected_groups),
+                          parsedGroups=parsed_groups[:40], missingGroups=missing_groups[:40], attempts=attempts)
+        return events, profile
 
         # Attach a machine-readable provenance marker to every event. The UI can
         # ignore it; diagnostics and future parsers can use it.

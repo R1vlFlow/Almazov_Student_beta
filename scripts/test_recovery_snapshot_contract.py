@@ -61,8 +61,10 @@ check('server labels unverified local and remote snapshots partial', "return{sta
 check('runtime ingestion rejects old fixture rows defensively', all(marker in validate for marker in ("startsWith('fixture://')", 'practice-fallback-fixture', "String(raw?.parser??'')==='fixture'")))
 check('deep live audit preserves strict full-coverage requirement', 'Strict 100% group/stream lesson coverage is required' in audit and 'live-generated' in audit)
 check('cache headers disable cache for dynamic app data', 'no-cache, no-store, must-revalidate, max-age=0' in server)
-check('stream selector and all requested lesson filters are present', 'id="streamSelector"' in html and all(f'data-type="{kind}"' in html for kind in ('lecture', 'practice', 'seminar', 'lab', 'clinical', 'assessment')))
-check('stream selection and per-subject gradients are wired in app', 'data-stream' in app and 'almazov.last-group.' in app and 'SUBJECT_GRADIENT_PRESETS' in app)
+type_filter = re.search(r'<div class="segments" id="typeFilter"[^>]*>(.*?)</div>', html, re.S)
+filter_controls = type_filter.group(1) if type_filter else ''
+check('stream selector and only supported schedule type filters are present', 'id="streamSelector"' in html and all(f'data-type="{kind}"' in filter_controls for kind in ('all', 'lecture', 'practice', 'assessment')) and all(f'data-type="{kind}"' not in filter_controls for kind in ('seminar', 'lab', 'clinical')))
+check('stream selection, solid subject palette and per-subject gradients are wired in app', 'data-stream' in app and 'almazov.last-group.' in app and 'SUBJECT_COLOR_PRESETS' in app and 'SUBJECT_GRADIENT_PRESETS' in app and 'data-subject-color-preset=' in app)
 check('personalization persists only allowlisted gradient presets', 'subjectGradients' in store and 'allowedGradients.has(value)' in store)
 check('known-subject location-tail repair is conservative and tested', 'repair_subject_leaks_from_location' in (ROOT / 'scripts/build_official_schedule.py').read_text(encoding='utf-8'))
 
