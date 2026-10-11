@@ -1,4 +1,4 @@
-import { boot } from './app.js?v=3c8a77fe603e71c2';
+import { boot } from './app.js?v=d1d44af686a9e490';
 boot().catch((err) => { const el = document.getElementById('fatalError'); if (el) {
     el.textContent = err instanceof Error ? err.message : 'Неизвестная ошибка';
     el.classList.add('show');

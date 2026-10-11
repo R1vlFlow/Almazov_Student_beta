@@ -88,19 +88,14 @@ export function normalizeCourse(value) {
     return n >= 1 && n <= 6 ? n : null;
 }
 export function normalizeType(value, subject = '') {
-    const s = `${cleanText(value)} ${cleanText(subject)}`.toLocaleLowerCase('ru-RU');
-    // Check specific categories before the broad practical-session fallback.
+    const s = `${cleanText(value)} ${cleanText(subject)}`.toLowerCase();
     if (/лекц|\blecture\b|\blem\b/.test(s))
         return 'lecture';
-    if (/лабораторн|\blab(?:oratory)?\b|\blab\b/.test(s))
+    if (/лаб(?:оратор)?|\blab(?:oratory)?\b/.test(s))
         return 'lab';
-    if (/клиническ(?:ий|ая|ое|ие)?\s+(?:разбор|практик|заняти)|\bclinical\b|bed[- ]?side/.test(s))
-        return 'clinical';
-    if (/семинар\w*|занятия семинарского|\bseminar\b/.test(s))
-        return 'seminar';
     if (/экзам|зач[её]т|аттест|контрол|коллоквиум|дифференц|\bexam\b|\bassessment\b/.test(s))
         return 'assessment';
-    if (/(?:^|[^а-яё])пз(?:$|[^а-яё])|практическ|\bpractice\b|практика/.test(s))
+    if (/пз|практи|семинар|занятия семинарского|\bpractice\b|\bseminar\b/.test(s))
         return 'practice';
     return 'other';
 }

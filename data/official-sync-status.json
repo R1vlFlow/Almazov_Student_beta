@@ -1,101 +1,1212 @@
 {
-  "status": "local-recovery",
-  "engineVersion": "5.0-universal",
+  "status": "partially-ready",
+  "dataState": "live-generated-partial",
+  "engineVersion": "4.9.0-rc.1",
+  "generatedAt": "2026-10-11T13:48:12.788390+00:00",
+  "sourcePage": "https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/",
   "schemaVersion": 7,
-  "message": "Latest live sync failed; cached payloads were left unchanged. No official PDF SHA-256 was verified and production publication is denied. HTTPSConnectionPool(host='education.almazovcentre.ru', port=443): Max retries exceeded with url: /about_institute/programm/specialist_programme/student/ (Caused by NameResolutionError(\"HTTPSConnection(host='education.almazovcentre.ru', port=443): Failed to resolve 'education.almazovcentre.ru' ([Errno -3] Temporary failure in name resolution)\"))",
-  "officialSource": "https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/",
-  "lastLocalCoverageAuditAt": "2026-10-10",
-  "lastLocalRecoveryChanges": {
-    "parsedCachedOfficialPracticePdfs": [
-      "LD course 4 stream A (250 events)",
-      "LD course 4 stream B (248 events)",
-      "LD course 5 stream B (194 events)"
-    ],
-    "liveSync": "not-performed: outbound DNS unavailable in this execution environment",
-    "productionEligible": false,
-    "officialPdfWebReview": {
-      "reviewedAt": "2026-10-10",
-      "pageCounts": {
-        "LD2B": 5,
-        "LD5A": 1,
-        "LD6": 2,
-        "academicWeekCalendar": 1
-      },
-      "rawBytesDownloaded": false,
-      "officialSourceSha256Verified": false,
-      "confirmed": {
-        "LD2BGroups": [
-          217,
-          218,
-          219,
-          220,
-          221,
-          222,
-          223,
-          224,
-          225,
-          226,
-          227,
-          228,
-          229
-        ],
-        "LD5AGroups": [
-          501,
-          502,
-          503,
-          504,
-          505,
-          506,
-          507,
-          508,
-          509,
-          510,
-          511,
-          512
-        ],
-        "LD6Groups": [
-          601,
-          602,
-          603,
-          604,
-          605,
-          606,
-          607,
-          608,
-          609,
-          610,
-          611,
-          612,
-          613,
-          614,
-          615,
-          616,
-          617,
-          618
-        ]
-      },
-      "status": "visual/text structure reviewed through official PDF web reader; binary re-ingestion required"
+  "courses": {
+    "1": {
+      "groups": 35,
+      "events": 4487,
+      "lecture": 172,
+      "practice": 4315,
+      "coverage": {
+        "status": "full",
+        "streams": {
+          "A": {
+            "status": "full",
+            "expectedGroups": [
+              "101",
+              "102",
+              "103",
+              "104",
+              "105",
+              "106",
+              "107",
+              "108",
+              "109",
+              "110",
+              "111",
+              "112",
+              "113",
+              "114",
+              "115",
+              "116",
+              "117",
+              "118",
+              "119",
+              "120",
+              "121",
+              "122"
+            ],
+            "groups": {
+              "101": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 205
+              },
+              "102": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 205
+              },
+              "103": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 210
+              },
+              "104": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 202
+              },
+              "105": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 209
+              },
+              "106": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 212
+              },
+              "107": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 205
+              },
+              "108": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 205
+              },
+              "109": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 206
+              },
+              "110": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 206
+              },
+              "111": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 206
+              },
+              "112": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 206
+              },
+              "113": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 213
+              },
+              "114": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 213
+              },
+              "115": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 211
+              },
+              "116": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 213
+              },
+              "117": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 210
+              },
+              "118": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 210
+              },
+              "119": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 204
+              },
+              "120": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 204
+              },
+              "121": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 210
+              },
+              "122": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 210
+              }
+            }
+          },
+          "B": {
+            "status": "full",
+            "expectedGroups": [
+              "123",
+              "124",
+              "125",
+              "126",
+              "127",
+              "128",
+              "129",
+              "130",
+              "131",
+              "132",
+              "133",
+              "134",
+              "135"
+            ],
+            "groups": {
+              "123": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 235
+              },
+              "124": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 235
+              },
+              "125": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 203
+              },
+              "126": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 205
+              },
+              "127": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 205
+              },
+              "128": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 205
+              },
+              "129": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 210
+              },
+              "130": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 210
+              },
+              "131": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 210
+              },
+              "132": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 210
+              },
+              "133": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 210
+              },
+              "134": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 210
+              },
+              "135": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 202
+              }
+            }
+          }
+        },
+        "expectedGroups": 35,
+        "missingGroups": [],
+        "coveredGroups": 35
+      }
     },
-    "releaseBuild": {
-      "version": "2.8.0-rc.4",
-      "npmQa": "passed",
-      "productionSync": "failed-network-dns",
-      "buildRcMinification": "blocked-esbuild-missing",
-      "productionEligible": false
+    "2": {
+      "groups": 29,
+      "events": 3135,
+      "lecture": 162,
+      "practice": 2973,
+      "coverage": {
+        "status": "full",
+        "streams": {
+          "A": {
+            "status": "full",
+            "expectedGroups": [
+              "201",
+              "202",
+              "203",
+              "204",
+              "205",
+              "206",
+              "207",
+              "208",
+              "209",
+              "210",
+              "211",
+              "212",
+              "213",
+              "214",
+              "215",
+              "216"
+            ],
+            "groups": {
+              "201": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "202": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "203": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "204": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 192
+              },
+              "205": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "206": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "207": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "208": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "209": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "210": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "211": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "212": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "213": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 173
+              },
+              "214": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 173
+              },
+              "215": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "216": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              }
+            }
+          },
+          "B": {
+            "status": "full",
+            "expectedGroups": [
+              "217",
+              "218",
+              "219",
+              "220",
+              "221",
+              "222",
+              "223",
+              "224",
+              "225",
+              "226",
+              "227",
+              "228",
+              "229"
+            ],
+            "groups": {
+              "217": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "218": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "219": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "220": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "221": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "222": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "223": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "224": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "225": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "226": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "227": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "228": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              },
+              "229": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 184
+              }
+            }
+          }
+        },
+        "expectedGroups": 29,
+        "missingGroups": [],
+        "coveredGroups": 29
+      }
+    },
+    "3": {
+      "groups": 22,
+      "events": 1837,
+      "lecture": 177,
+      "practice": 1660,
+      "coverage": {
+        "status": "full",
+        "streams": {
+          "A": {
+            "status": "full",
+            "expectedGroups": [
+              "301",
+              "302",
+              "303",
+              "304",
+              "305",
+              "306",
+              "307",
+              "308",
+              "309",
+              "310",
+              "311",
+              "312"
+            ],
+            "groups": {
+              "301": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 204
+              },
+              "302": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 204
+              },
+              "303": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 203
+              },
+              "304": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 203
+              },
+              "305": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 204
+              },
+              "306": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 204
+              },
+              "307": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 206
+              },
+              "308": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 206
+              },
+              "309": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 206
+              },
+              "310": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 206
+              },
+              "311": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 196
+              },
+              "312": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 196
+              }
+            }
+          },
+          "B": {
+            "status": "full",
+            "expectedGroups": [
+              "313",
+              "314",
+              "315",
+              "316",
+              "317",
+              "318",
+              "319",
+              "320",
+              "321",
+              "322"
+            ],
+            "groups": {
+              "313": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 112
+              },
+              "314": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 112
+              },
+              "315": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 114
+              },
+              "316": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 114
+              },
+              "317": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 126
+              },
+              "318": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 126
+              },
+              "319": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 115
+              },
+              "320": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 115
+              },
+              "321": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 118
+              },
+              "322": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 118
+              }
+            }
+          }
+        },
+        "expectedGroups": 22,
+        "missingGroups": [],
+        "coveredGroups": 22
+      }
+    },
+    "4": {
+      "groups": 23,
+      "events": 688,
+      "lecture": 142,
+      "practice": 546,
+      "coverage": {
+        "status": "partial",
+        "streams": {
+          "A": {
+            "status": "full",
+            "expectedGroups": [
+              "401",
+              "402",
+              "403",
+              "404",
+              "405",
+              "406",
+              "407",
+              "408",
+              "409",
+              "410",
+              "411",
+              "412"
+            ],
+            "groups": {
+              "401": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 93
+              },
+              "402": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 94
+              },
+              "403": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 96
+              },
+              "404": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 93
+              },
+              "405": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 92
+              },
+              "406": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 92
+              },
+              "407": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 94
+              },
+              "408": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 94
+              },
+              "409": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 91
+              },
+              "410": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 107
+              },
+              "411": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 113
+              },
+              "412": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 112
+              }
+            }
+          },
+          "B": {
+            "status": "partial",
+            "expectedGroups": [
+              "413",
+              "414",
+              "415",
+              "416",
+              "417",
+              "418",
+              "419",
+              "420",
+              "421",
+              "422",
+              "423",
+              "424"
+            ],
+            "groups": {
+              "413": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 89
+              },
+              "414": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 89
+              },
+              "415": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 92
+              },
+              "416": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 92
+              },
+              "417": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 93
+              },
+              "418": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 93
+              },
+              "419": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 91
+              },
+              "420": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 91
+              },
+              "421": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 93
+              },
+              "422": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 93
+              },
+              "423": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 92
+              },
+              "424": {
+                "status": "partial",
+                "missingKinds": [
+                  "practice"
+                ],
+                "verifiedEventCount": 71
+              }
+            }
+          }
+        },
+        "expectedGroups": 24,
+        "missingGroups": [
+          {
+            "stream": "B",
+            "group": "424",
+            "missingKinds": [
+              "practice"
+            ]
+          }
+        ],
+        "coveredGroups": 23
+      }
+    },
+    "5": {
+      "groups": 22,
+      "events": 575,
+      "lecture": 149,
+      "practice": 426,
+      "coverage": {
+        "status": "full",
+        "streams": {
+          "A": {
+            "status": "full",
+            "expectedGroups": [
+              "501",
+              "502",
+              "503",
+              "504",
+              "505",
+              "506",
+              "507",
+              "508",
+              "509",
+              "510",
+              "511",
+              "512"
+            ],
+            "groups": {
+              "501": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 96
+              },
+              "502": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 96
+              },
+              "503": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 94
+              },
+              "504": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 94
+              },
+              "505": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 97
+              },
+              "506": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 98
+              },
+              "507": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 95
+              },
+              "508": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 95
+              },
+              "509": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 96
+              },
+              "510": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 96
+              },
+              "511": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 93
+              },
+              "512": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 94
+              }
+            }
+          },
+          "B": {
+            "status": "full",
+            "expectedGroups": [
+              "513",
+              "514",
+              "515",
+              "516",
+              "517",
+              "518",
+              "519",
+              "520",
+              "521",
+              "522"
+            ],
+            "groups": {
+              "513": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 92
+              },
+              "514": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 92
+              },
+              "515": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 93
+              },
+              "516": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 93
+              },
+              "517": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 92
+              },
+              "518": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 92
+              },
+              "519": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 95
+              },
+              "520": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 95
+              },
+              "521": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 90
+              },
+              "522": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 90
+              }
+            }
+          }
+        },
+        "expectedGroups": 22,
+        "missingGroups": [],
+        "coveredGroups": 22
+      }
+    },
+    "6": {
+      "groups": 18,
+      "events": 623,
+      "lecture": 93,
+      "practice": 530,
+      "coverage": {
+        "status": "full",
+        "streams": {
+          "common": {
+            "status": "full",
+            "expectedGroups": [
+              "601",
+              "602",
+              "603",
+              "604",
+              "605",
+              "606",
+              "607",
+              "608",
+              "609",
+              "610",
+              "611",
+              "612",
+              "613",
+              "614",
+              "615",
+              "616",
+              "617",
+              "618"
+            ],
+            "groups": {
+              "601": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 114
+              },
+              "602": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 129
+              },
+              "603": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 135
+              },
+              "604": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 131
+              },
+              "605": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 131
+              },
+              "606": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 132
+              },
+              "607": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 132
+              },
+              "608": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 127
+              },
+              "609": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 137
+              },
+              "610": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 132
+              },
+              "611": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 113
+              },
+              "612": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 113
+              },
+              "613": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 111
+              },
+              "614": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 111
+              },
+              "615": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 115
+              },
+              "616": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 115
+              },
+              "617": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 113
+              },
+              "618": {
+                "status": "full",
+                "missingKinds": [],
+                "verifiedEventCount": 113
+              }
+            }
+          }
+        },
+        "expectedGroups": 18,
+        "missingGroups": [],
+        "coveredGroups": 18
+      }
     }
   },
-  "lastLiveSyncAttempt": {
-    "attemptedAt": "2026-10-10T21:01:08.401208+00:00",
-    "command": "npm run sync:official",
-    "result": "failed-before-source-bytes",
-    "failedStage": "official-hub-discovery",
-    "exception": "ConnectionError",
-    "reason": "HTTPSConnectionPool(host='education.almazovcentre.ru', port=443): Max retries exceeded with url: /about_institute/programm/specialist_programme/student/ (Caused by NameResolutionError(\"HTTPSConnection(host='education.almazovcentre.ru', port=443): Failed to resolve 'education.almazovcentre.ru' ([Errno -3] Temporary failure in name resolution)\"))",
-    "rawPdfBytesDownloaded": false,
-    "officialPdfSha256Verified": 0,
-    "snapshotFilesReplaced": false,
-    "publicationAllowed": false,
-    "gateStatusAfterAttempt": "BLOCKED_FOR_PRODUCTION"
-  },
-  "previousStatusBeforeFailedAttempt": "local-recovery"
+  "assessmentPeriods": 13,
+  "kugSources": 6,
+  "coverage": {
+    "6": {
+      "status": "partial",
+      "streams": {
+        "common": {
+          "status": "full",
+          "expectedGroups": [
+            "601",
+            "602",
+            "603",
+            "604",
+            "605",
+            "606",
+            "607",
+            "608",
+            "609",
+            "610",
+            "611",
+            "612",
+            "613",
+            "614",
+            "615",
+            "616",
+            "617",
+            "618"
+          ],
+          "groups": {
+            "601": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 114
+            },
+            "602": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 129
+            },
+            "603": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 135
+            },
+            "604": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 131
+            },
+            "605": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 131
+            },
+            "606": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 132
+            },
+            "607": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 132
+            },
+            "608": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 127
+            },
+            "609": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 137
+            },
+            "610": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 132
+            },
+            "611": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 113
+            },
+            "612": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 113
+            },
+            "613": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 111
+            },
+            "614": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 111
+            },
+            "615": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 115
+            },
+            "616": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 115
+            },
+            "617": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 113
+            },
+            "618": {
+              "status": "full",
+              "missingKinds": [],
+              "verifiedEventCount": 113
+            }
+          }
+        }
+      },
+      "expectedGroups": 18,
+      "missingGroups": [],
+      "coveredGroups": 18,
+      "quarantinedEventCount": 6,
+      "quarantinedGroups": [
+        "609"
+      ]
+    }
+  }
 }

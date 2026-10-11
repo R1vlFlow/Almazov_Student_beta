@@ -8,7 +8,20 @@ const html=await readFile(join(dist,'index.html'),'utf8');
 const css=await readFile(join(dist,'styles.css'),'utf8');
 for(const selector of ['.modal-backdrop{','.modal-backdrop.open{','.modal{','.modal-body{'])if(!css.includes(selector))throw new Error(`Required modal/layout CSS missing: ${selector}`);
 const version=JSON.parse(await readFile(join(dist,'version.json'),'utf8'));
+const coverage=JSON.parse(await readFile(join(dist,'data','coverage.json'),'utf8'));
+if(!['ready','partially-ready','not-ready'].includes(coverage.status))throw new Error('Data coverage report has an invalid readiness status');
+if(coverage.counts?.snapshots!==18||coverage.counts?.full+coverage.counts?.partial+coverage.counts?.unpublished!==18)throw new Error('Data coverage report does not account for all 18 schedule snapshots');
 const manifest=JSON.parse(await readFile(join(dist,'manifest.webmanifest'),'utf8'));
+if(!html.includes('data-runtime-mode="static"'))throw new Error('Static local runtime mode is not declared');
+for(const program of ['31.05.01','31.05.02','37.05.01'])for(let course=1;course<=6;course++){
+ const snapshot=JSON.parse(await readFile(join(dist,'data','schedules',program,`${course}.json`),'utf8'));
+ if(snapshot.program!==program||Number(snapshot.course)!==course)throw new Error(`Static schedule identity mismatch: ${program}/${course}`);
+ if(!Array.isArray(snapshot.events)||('weeklyBlocks'in snapshot&&!Array.isArray(snapshot.weeklyBlocks)))throw new Error(`Invalid static schedule rows: ${program}/${course}`);
+ const rowCount=snapshot.events.length+(Array.isArray(snapshot.weeklyBlocks)?snapshot.weeklyBlocks.length:0);
+ if(!rowCount&&!['unpublished','unavailable'].includes(snapshot.status))throw new Error(`Empty static schedule is not marked unavailable: ${program}/${course}`);
+ if(snapshot.status==='unpublished'&&rowCount)throw new Error(`Unpublished schedule contains events: ${program}/${course}`);
+ if(snapshot.status==='partial'&&!snapshot.message)throw new Error(`Partial schedule lacks a user-facing coverage message: ${program}/${course}`);
+}
 if(manifest.display!=='standalone'||!manifest.start_url||!manifest.scope||manifest.prefer_related_applications!==false)throw new Error('PWA manifest missing install-critical fields');
 for(const [size,name] of [[192,'assets/pwa-192.png'],[512,'assets/pwa-512.png'],[512,'assets/pwa-maskable-512.png']]){
  const image=await readFile(join(dist,name));

@@ -26,12 +26,13 @@ test('event created in New York renders on correct Zurich day',()=>{
 });
 
 
-test('official weekly-block source materializes dates and merges continuous matched blocks for 4-6 courses',async()=>{
-  const payload=JSON.parse(await readFile('data/official-schedules.json','utf8'));
-  const events=normalizeLiveEvents(payload);
-  const monday424=events.filter((e)=>e.course===4&&e.group==='424'&&e.date==='2026-10-05'&&e.subject==='Эндокринология');
-  assert.equal(monday424.length,1);
-  assert.deepEqual(monday424.map((e)=>[e.start,e.end,e.double,e.doublePart,e.mergedConsecutive]),[['13:30','16:55',true,undefined,true]]);
+test('official practice matrices stay week-based and never invent a weekday',async()=>{
+  const payload=JSON.parse(await readFile('dist/data/schedules/31.05.01/4.json','utf8'));
+  const blocks=payload.weeklyBlocks;
+  const week6=blocks.filter((e)=>e.group==='413'&&e.weekNumber===5&&e.type==='practice'&&e.start==='13:30');
+  assert.equal(week6.length,1);
+  assert.deepEqual(week6.map((e)=>[e.weekRangeStart,e.weekRangeEnd,e.start,e.end,e.stream]),[['2026-09-28','2026-10-03','13:30','16:55','B']]);
+  assert.equal('weekday' in week6[0]||'date' in week6[0],false);
   const explicitHalves = {schemaVersion:7,generatedAt:'2026-10-01T00:00:00Z',specialty:'31.05.01',courses:{'1':{specialty:'31.05.01',groups:['123'],events:[
     {id:'explicit-half-1',group:'123',stream:'A',date:'2026-10-06',start:'09:00',end:'10:35',subject:'Химия',location:'ауд. 1',teacher:'Иванов И.И.',type:'practice',doubleIndex:1,doubleOf:'verified-series'},
     {id:'explicit-half-2',group:'123',stream:'A',date:'2026-10-06',start:'10:50',end:'12:25',subject:'Химия',location:'ауд. 1',teacher:'Иванов И.И.',type:'practice',doubleIndex:2,doubleOf:'verified-series'}
@@ -39,6 +40,8 @@ test('official weekly-block source materializes dates and merges continuous matc
   const halves = normalizeLiveEvents(explicitHalves);
   assert.equal(halves.length,2,'explicit 1/2 and 2/2 parts must remain separate');
   assert.deepEqual(halves.map(e=>e.doublePart),[1,2]);
-  const groups6=new Set(events.filter((e)=>e.course===6&&['617','618'].includes(e.group)).map((e)=>e.group));
-  assert.deepEqual([...groups6].sort(),['617','618']);
+  const course6=JSON.parse(await readFile('dist/data/schedules/31.05.01/6.json','utf8'));
+  assert.equal(course6.status,'partial','verified weekly blocks remain partial while the integrity report has unresolved time collisions');
+  assert.ok(course6.weeklyBlocks.length>0,'current official 6K PDF practice rows should be included as week-based blocks');
+  assert.ok(course6.message.includes('совпадают по группе, дате и времени'),'partial status explains the unresolved source collision');
 });

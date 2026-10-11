@@ -124,12 +124,14 @@ def bootstrap_event_errors(data: dict) -> list[str]:
             if 'жизнидеятельност и' in sub.lower():
                 errors.append(f'{p}: known PDF wrap typo remains in subject {sub!r}')
             if event.get('double'):
-                if event.get('doubleIndex') not in {1, 2}:
-                    errors.append(f'{p}: invalid doubleIndex {event.get("doubleIndex")!r}')
-                if not event.get('doubleOf'):
-                    errors.append(f'{p}: double event missing doubleOf')
-                if event.get('durationMinutes') not in {85, 90, 95}:
-                    errors.append(f'{p}: invalid double durationMinutes {event.get("durationMinutes")!r}')
+                continuous_merge = bool(event.get('mergedConsecutive') or event.get('orgMerged')) and event.get('durationMinutes') in {185, 205}
+                if not continuous_merge:
+                    if event.get('doubleIndex') not in {1, 2}:
+                        errors.append(f'{p}: invalid doubleIndex {event.get("doubleIndex")!r}')
+                    if not event.get('doubleOf'):
+                        errors.append(f'{p}: double event missing doubleOf')
+                    if event.get('durationMinutes') not in {85, 90, 95}:
+                        errors.append(f'{p}: invalid double durationMinutes {event.get("durationMinutes")!r}')
             key = (
                 typ, stream, event.get('group'), wk, event.get('date'), wd,
                 event.get('start'), event.get('end'), event.get('subject'), event.get('location')

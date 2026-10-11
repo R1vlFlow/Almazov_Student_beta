@@ -1,10 +1,11 @@
 import { LIVE_LD_JSON, PROGRAMS, sourceFor, sourcesFor } from '../data/catalog.js';
-import type { Course, ProgramCode, ScheduleEvent, ScheduleIndex, ScheduleLoadResult } from '../core/types.js';
-import { validateScheduleIndex, normalizeLiveEvents } from '../core/validate.js';
+import type { Course, ProgramCode, ScheduleEvent, ScheduleIndex, ScheduleLoadResult, ScheduleWeeklyBlock } from '../core/types.js';
+import { validateScheduleIndex, normalizeLiveEvents, normalizeWeeklyBlocks } from '../core/validate.js';
 import { saveCache, readCache } from './cache.js';
 
 const API_BASE='./api/schedule';
 const memory=new Map<string,ScheduleLoadResult>();
+function isStaticRuntime(){return typeof document!=='undefined'&&document.documentElement.dataset.runtimeMode==='static';}
 if(typeof window!=='undefined')window.addEventListener('schedule-cache-invalidated',()=>memory.clear());
 
 export async function loadSchedule(program:ProgramCode,course:Course):Promise<ScheduleLoadResult>{
@@ -12,23 +13,34 @@ export async function loadSchedule(program:ProgramCode,course:Course):Promise<Sc
   const cachedResult=memory.get(key);
   if(cachedResult&&cachedResult.status!=='error')return cachedResult;
 
+  // The application is shipped as a static release. Use the schedule snapshot
+  // bundled with that release before trying the optional API, so GitHub Pages
+  // and local static hosting never wait for a backend timeout.
+  const staticResult=await loadStaticSnapshot(program,course);
+  if(staticResult&&(staticResult.events.length>0||staticResult.status==='unavailable')){
+    memory.set(key,staticResult);
+    return staticResult;
+  }
+  if(isStaticRuntime()){
+    const result:ScheduleLoadResult={status:'unavailable',events:[],weeklyBlocks:[],sourceUrl:sourceFor(program,course),issues:['STATIC_SNAPSHOT_MISSING'],message:'Локальный снимок этого расписания отсутствует. Сервер и сетевой источник в статическом режиме не используются.'};
+    memory.set(key,result);return result;
+  }
+
   try{
     const api=await fetch(`${API_BASE}?program=${encodeURIComponent(program)}&course=${course}`,{cache:'no-store',signal:AbortSignal.timeout(8000)});
     if(api.ok){
-      const payload=await api.json() as {events?:ScheduleEvent[];generatedAt?:string;sourceUrl?:string;sourceName?:string;status?:string;issues?:string[];message?:string};
+      const payload=await api.json() as {events?:ScheduleEvent[];weeklyBlocks?:ScheduleWeeklyBlock[];generatedAt?:string;sourceUrl?:string;sourceName?:string;status?:string;issues?:string[];message?:string};
       const status=['partial','cache','unavailable','error','live'].includes(payload.status??'') ? payload.status as ScheduleLoadResult['status'] : 'live';
-      const result:ScheduleLoadResult={status,events:Array.isArray(payload.events)?payload.events:[],generatedAt:payload.generatedAt,sourceUrl:payload.sourceUrl,sourceName:payload.sourceName,issues:Array.isArray(payload.issues)?payload.issues:[],message:payload.message??'Расписание получено от сервера.'};
-      if(result.events.length>0){memory.set(key,result);return result;}
+      const result:ScheduleLoadResult={status,events:Array.isArray(payload.events)?payload.events:[],weeklyBlocks:Array.isArray(payload.weeklyBlocks)?payload.weeklyBlocks:[],generatedAt:payload.generatedAt,sourceUrl:payload.sourceUrl,sourceName:payload.sourceName,issues:Array.isArray(payload.issues)?payload.issues:[],message:payload.message??'Расписание получено от сервера.'};
+      if(result.events.length>0||(result.weeklyBlocks?.length??0)>0){memory.set(key,result);return result;}
       // An old API may still return an empty/unavailable payload after a data
       // deployment. Prefer a non-empty build-stamped static snapshot if present.
-      const staticResult=await loadStaticSnapshot(program,course);
-      if(staticResult&&(staticResult.events.length>0||staticResult.status==='unavailable')){memory.set(key,staticResult);return staticResult;}
       memory.set(key,result);return result;
     }
   }catch{/* static/offline fallback below */}
 
-  const staticResult=await loadStaticSnapshot(program,course);
-  if(staticResult){memory.set(key,staticResult);return staticResult;}
+  const staticFallback=await loadStaticSnapshot(program,course);
+  if(staticFallback){memory.set(key,staticFallback);return staticFallback;}
 
   if(program==='31.05.01')return loadLdRemote(program,course,key);
 
@@ -51,10 +63,12 @@ async function loadStaticSnapshot(program:ProgramCode,course:Course):Promise<Sch
     if(buildId)url.searchParams.set('v',buildId);
     const res=await fetch(url.toString(),{cache:'no-store',signal:AbortSignal.timeout(5000)});
     if(!res.ok)return null;
-    const payload=await res.json() as {events?:ScheduleEvent[];generatedAt?:string;sourceUrl?:string;sourceName?:string;status?:string;issues?:string[];message?:string};
+    const payload=await res.json() as {events?:ScheduleEvent[];weeklyBlocks?:ScheduleWeeklyBlock[];generatedAt?:string;sourceUrl?:string;sourceName?:string;status?:string;issues?:string[];message?:string;coverage?:ScheduleLoadResult['coverage']};
     if(!Array.isArray(payload.events))return null;
-    if(payload.events.length===0){
-      if(payload.status==='unpublished'||payload.status==='unavailable')return {status:'unavailable',events:[],generatedAt:payload.generatedAt,sourceUrl:payload.sourceUrl,sourceName:payload.sourceName,issues:Array.isArray(payload.issues)?payload.issues:[],message:payload.message??'Официальный источник пока не публикует расписание для выбранного курса.'};
+    const weeklyBlocks=Array.isArray(payload.weeklyBlocks)?payload.weeklyBlocks:[];
+    if(payload.events.length===0&&weeklyBlocks.length===0){
+      if(payload.status==='unpublished')return {status:'unavailable',events:[],generatedAt:payload.generatedAt,sourceUrl:payload.sourceUrl,sourceName:payload.sourceName,issues:Array.isArray(payload.issues)?payload.issues:[],coverage:payload.coverage,message:payload.message??'Нет опубликованных данных для выбранного курса.'};
+      if(payload.status==='unavailable')return {status:'unavailable',events:[],generatedAt:payload.generatedAt,sourceUrl:payload.sourceUrl,sourceName:payload.sourceName,issues:Array.isArray(payload.issues)?payload.issues:[],coverage:payload.coverage,message:payload.message??'Расписание для выбранного курса недоступно.'};
       return null;
     }
     const status=(payload.status==='partial'||payload.status==='cache'?'cache'===payload.status?'cache':'partial':'live') as ScheduleLoadResult['status'];
@@ -62,13 +76,13 @@ async function loadStaticSnapshot(program:ProgramCode,course:Course):Promise<Sch
     const finalStatus=stale?'cache':status;
     const issues=Array.isArray(payload.issues)?[...payload.issues]:[];
     if(stale)issues.push('SCHEDULE_SNAPSHOT_STALE');
-    return {status:finalStatus,events:payload.events,generatedAt:payload.generatedAt,sourceUrl:payload.sourceUrl,sourceName:payload.sourceName,issues,message:payload.message??`${stale?'Последний сохранённый snapshot':'Static snapshot'} · ${payload.events.length} событий`};
+    return {status:finalStatus,events:payload.events,weeklyBlocks,generatedAt:payload.generatedAt,sourceUrl:payload.sourceUrl,sourceName:payload.sourceName,issues,coverage:payload.coverage,message:payload.message??`${stale?'Последний сохранённый snapshot':'Static snapshot'} · ${payload.events.length} событий, ${weeklyBlocks.length} назначений по неделям`};
   }catch{return null;}
 }
 
 async function loadLdRemote(program:ProgramCode,course:Course,key:string):Promise<ScheduleLoadResult>{
-  try{const res=await fetch(LIVE_LD_JSON,{cache:'no-store',signal:AbortSignal.timeout(8000)});if(!res.ok)throw new Error(`HTTP ${res.status}`);const payload=await res.json() as ScheduleIndex;const validation=validateScheduleIndex(payload);if(!validation.ok)throw new Error(validation.issues.filter(i=>i.level==='error').map(i=>i.message).join('; '));const events=normalizeLiveEvents(payload).filter(e=>e.program===program&&e.course===course);const result:ScheduleLoadResult={status:'live',events,generatedAt:payload.generatedAt,sourceUrl:LIVE_LD_JSON,sourceName:'official-schedules.json',issues:validation.issues.map(i=>i.message),message:`Live snapshot ${formatInstant(payload.generatedAt)} · ${events.length} событий`};await saveCache(`raw:${program}`,payload);memory.set(key,result);return result;}
-  catch(error){const raw=await readCache<ScheduleIndex>(`raw:${program}`);const payload=(raw as any)?.payload??raw;if(payload){const events=normalizeLiveEvents(payload).filter(e=>e.program===program&&e.course===course);const result:ScheduleLoadResult={status:'cache',events,generatedAt:payload.generatedAt,sourceUrl:LIVE_LD_JSON,sourceName:'last verified snapshot',issues:[],message:`Сеть недоступна. Показан последний проверенный snapshot · ${events.length} событий`};memory.set(key,result);return result;}const result:ScheduleLoadResult={status:'error',events:[],sourceUrl:LIVE_LD_JSON,issues:[error instanceof Error?error.message:'Неизвестная ошибка'],message:'Не удалось загрузить источник расписания. Проверьте интернет и официальный источник.'};memory.set(key,result);return result;}
+  try{const res=await fetch(LIVE_LD_JSON,{cache:'no-store',signal:AbortSignal.timeout(8000)});if(!res.ok)throw new Error(`HTTP ${res.status}`);const payload=await res.json() as ScheduleIndex;const validation=validateScheduleIndex(payload);if(!validation.ok)throw new Error(validation.issues.filter(i=>i.level==='error').map(i=>i.message).join('; '));const events=normalizeLiveEvents(payload).filter(e=>e.program===program&&e.course===course);const weeklyBlocks=normalizeWeeklyBlocks(payload,program,course);const result:ScheduleLoadResult={status:'live',events,weeklyBlocks,generatedAt:payload.generatedAt,sourceUrl:LIVE_LD_JSON,sourceName:'official-schedules.json',issues:validation.issues.map(i=>i.message),message:`Live snapshot ${formatInstant(payload.generatedAt)} · ${events.length} событий, ${weeklyBlocks.length} назначений по неделям`};await saveCache(`raw:${program}`,payload);memory.set(key,result);return result;}
+  catch(error){const raw=await readCache<ScheduleIndex>(`raw:${program}`);const payload=(raw as any)?.payload??raw;if(payload){const events=normalizeLiveEvents(payload).filter(e=>e.program===program&&e.course===course);const weeklyBlocks=normalizeWeeklyBlocks(payload,program,course);const result:ScheduleLoadResult={status:'cache',events,weeklyBlocks,generatedAt:payload.generatedAt,sourceUrl:LIVE_LD_JSON,sourceName:'last verified snapshot',issues:[],message:`Сеть недоступна. Показан последний проверенный snapshot · ${events.length} событий, ${weeklyBlocks.length} назначений по неделям`};memory.set(key,result);return result;}const result:ScheduleLoadResult={status:'error',events:[],sourceUrl:LIVE_LD_JSON,issues:[error instanceof Error?error.message:'Неизвестная ошибка'],message:'Не удалось загрузить источник расписания. Проверьте интернет и официальный источник.'};memory.set(key,result);return result;}
 }
 
 async function readSnapshot(key:string):Promise<{events:ScheduleEvent[];generatedAt?:string}|null>{const raw=await readCache<any>(`snapshot:${key}`);const payload=raw&&'payload'in raw?raw.payload:raw;if(payload&&Array.isArray(payload.events))return payload;return null;}

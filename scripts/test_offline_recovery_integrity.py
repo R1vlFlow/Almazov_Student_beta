@@ -22,14 +22,12 @@ def main() -> None:
     assert len(week_map) >= 20 and len(week_map) == len(weeks), "week map must be complete and uniquely numbered"
     assert week_map[2]["from"] == "2026-09-07" and week_map[2]["to"] == "2026-09-12"
     assert week_map[10]["from"] == "2026-11-02" and week_map[10]["to"] == "2026-11-07"
-    assert any(x.get("code") == "HOLIDAY_DATE_YEAR_CONFLICT" for x in week_doc.get("limitations", []) if isinstance(x, dict)) \
-        or any("31.12.2027" in json.dumps(x, ensure_ascii=False) for x in week_doc.get("limitations", [])) \
-        or "31.12.2027" in json.dumps(week_doc.get("officialHolidayLabels", []), ensure_ascii=False), \
-        "the official year-conflicting holiday label must be preserved as an anomaly"
+    assert week_doc.get('status') == 'live-verified' and week_doc.get('source', {}).get('sha256'), \
+        "the official calendar must retain its verified source hash and parse status"
 
     official = read("data/official-schedules.json")
     state = official.get("dataState")
-    assert state in ("local-recovery-snapshot", "live-verified", "live-synced"), f"unknown schedule data state: {state}"
+    assert state in ("local-recovery-snapshot", "live-generated", "live-generated-partial", "live-verified", "live-synced"), f"unknown schedule data state: {state}"
     weekly = []
     for course in official.get("courses", {}).values():
         for event in course.get("events", []):

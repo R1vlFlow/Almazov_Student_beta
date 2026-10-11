@@ -14,7 +14,7 @@ checks=[
  ('builder reads complete canonical KUG file', "readFile(join(root,'data','kug.json')" in BUILDER and 'Object.entries(curatedKug)' in BUILDER),
  ('client reads built KUG JSON with bounded network timeout', "fetch('./data/kug.json'" in APP and 'AbortSignal.timeout(6000)' in APP),
  ('UI renders date-ranged periods and links', 'function renderKug()' in APP and 'function renderKugGrid(dates:string[])' in APP and 'x.sourceUrl' in APP and 'x.start' in APP and 'x.end' in APP),
- ('UI warns when KUG PDFs have not passed live hash verification', "sourceManifestStatus==='live-verified'" in APP and 'КУГ не прошёл live-проверку PDF и SHA-256' in APP),
+ ('UI labels verified KUG PDFs with their live hash status', "status==='live-verified'" in APP and 'PDF проверен · SHA-256 подтверждён' in APP),
  ('KUG periods carry a supported shape and valid date range', all(isinstance(items,list) and all(isinstance(x.get('from'),str) and isinstance(x.get('to'),str) and x['from']<=x['to'] for x in items) for courses in CURATED.values() for items in courses.values())),
  ('published assessment periods carry their own source URLs', isinstance(OFFICIAL.get('assessmentPeriods'),list) and all(x.get('sourceUrl') for x in OFFICIAL.get('assessmentPeriods',[]))),
  ('KUG source manifest maps every programme/course independently', "officialSources.find(x=>String(x.program)===String(program)&&String(x.course)===String(course))" in BUILDER),

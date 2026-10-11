@@ -1,23 +1,65 @@
 {
   "schemaVersion": 1,
   "academicYear": "2026/2027",
-  "status": "web-text-reviewed-byte-unverified",
+  "generatedAt": "2026-10-11T13:23:14.302468+00:00",
+  "status": "live-verified",
   "source": {
-    "url": "https://education.almazovcentre.ru/wp-content/uploads/2026/08/grafik-uchebnyh-nedel-2026-2027-uch.-god-1.pdf",
-    "title": "График учебных недель 2026-2027 учебный год",
-    "discovery": "official-student-hub",
-    "sha256": null,
-    "contentBytes": null,
-    "checkedAt": null,
+    "sha256": "09271b3c324e1bd1c59f516ed941894217b97032cdfc2f67dbbbb86ca9199244",
+    "contentBytes": 334691,
+    "checkedAt": "2026-10-11T13:23:14.302468+00:00",
     "academicYearInDocument": "2026/2027",
-    "verificationChannel": "Official PDF text and rendered page reviewed through the web reader; raw bytes could not be downloaded in the runtime.",
-    "anomalies": [
-      {
-        "code": "HOLIDAY_DATE_YEAR_CONFLICT",
-        "sourceText": "31.12.2027",
-        "context": "Appears in the non-working holiday list inside the 2026/2027 academic-week PDF. Preserved as a source anomaly; not silently corrected."
-      }
-    ]
+    "dateLabelAudit": {
+      "embeddedDateYears": [
+        2026,
+        2027
+      ],
+      "conflictingDateYears": [],
+      "sampleDateLabels": [
+        "01.09.2026",
+        "05.09.2026",
+        "07.09.2026",
+        "12.09.2026",
+        "14.09.2026",
+        "19.09.2026",
+        "21.09.2026",
+        "26.09.2026",
+        "28.09.2026",
+        "03.10.2026",
+        "05.10.2026",
+        "10.10.2026",
+        "12.10.2026",
+        "17.10.2026",
+        "19.10.2026",
+        "24.10.2026",
+        "26.10.2026",
+        "31.10.2026",
+        "02.11.2026",
+        "07.11.2026",
+        "04.11.2026",
+        "09.11.2026",
+        "14.11.2026",
+        "16.11.2026",
+        "21.11.2026",
+        "23.11.2026",
+        "28.11.2026",
+        "30.11.2026",
+        "05.12.2026",
+        "07.12.2026",
+        "12.12.2026",
+        "14.12.2026",
+        "19.12.2026",
+        "21.12.2026",
+        "26.12.2026",
+        "28.12.2026",
+        "02.01.2027",
+        "31.12.2027",
+        "01.01.2027",
+        "02.01.2027"
+      ],
+      "dateLabelCount": 54
+    },
+    "url": "https://education.almazovcentre.ru/wp-content/uploads/2026/08/grafik-uchebnyh-nedel-2026-2027-uch.-god-1.pdf",
+    "title": "График учебных недель 2026–2027"
   },
   "weeks": [
     {
@@ -130,52 +172,5 @@
       "from": "2027-01-25",
       "to": "2027-01-30"
     }
-  ],
-  "officialHolidayLabels": [
-    {
-      "sourceText": "04.11.2026",
-      "date": "2026-11-04"
-    },
-    {
-      "sourceText": "31.12.2027",
-      "date": null
-    },
-    {
-      "sourceText": "01.01.2027",
-      "date": "2027-01-01"
-    },
-    {
-      "sourceText": "02.01.2027",
-      "date": "2027-01-02"
-    },
-    {
-      "sourceText": "03.01.2027",
-      "date": "2027-01-03"
-    },
-    {
-      "sourceText": "04.01.2027",
-      "date": "2027-01-04"
-    },
-    {
-      "sourceText": "05.01.2027",
-      "date": "2027-01-05"
-    },
-    {
-      "sourceText": "06.01.2027",
-      "date": "2027-01-06"
-    },
-    {
-      "sourceText": "07.01.2027",
-      "date": "2027-01-07"
-    },
-    {
-      "sourceText": "08.01.2027",
-      "date": "2027-01-08"
-    }
-  ],
-  "limitations": [
-    "First-semester weeks 1–22 only; the official document does not provide a trustworthy binary hash in this local recovery.",
-    "The source prints 31.12.2027 in its holiday list; that conflict requires human confirmation.",
-    "This artifact is not live-verified and must not satisfy production release checks."
   ]
 }

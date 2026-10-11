@@ -1,6 +1,7 @@
 const KEY = 'almazov.personal.events.v3';
 const USER_KEY = 'almazov.client.id';
 let apiAvailable = true;
+function isStaticRuntime() { return typeof document !== 'undefined' && document.documentElement.dataset.runtimeMode === 'static'; }
 export function clientId() { let id = localStorage.getItem(USER_KEY); if (id)
     return id; id = crypto.randomUUID(); localStorage.setItem(USER_KEY, id); return id; }
 function localRead() { try {
@@ -34,7 +35,7 @@ catch (error) {
 function isLegacyApiMiss(err) { const status = err.status; return status === 404 || status === 405; }
 function isNetworkError(err) { return err.status === 0; }
 export async function listPersonalEvents(fromUtc, toUtc) {
-    if (apiAvailable) {
+    if (apiAvailable && !isStaticRuntime()) {
         try {
             const res = await request(`./api/events?from=${encodeURIComponent(fromUtc)}&to=${encodeURIComponent(toUtc)}`);
             const payload = await res.json();
@@ -53,7 +54,7 @@ export async function listPersonalEvents(fromUtc, toUtc) {
     return localRead().filter(e => Date.parse(e.endAt) > from && Date.parse(e.startAt) < to).sort((a, b) => a.startAt.localeCompare(b.startAt));
 }
 export async function createPersonalEvent(input) {
-    if (apiAvailable) {
+    if (apiAvailable && !isStaticRuntime()) {
         try {
             const res = await request('./api/events', { method: 'POST', body: JSON.stringify(input) });
             const p = await res.json();
@@ -72,7 +73,7 @@ export async function createPersonalEvent(input) {
     return event;
 }
 export async function updatePersonalEvent(id, input, scope = 'series') {
-    if (apiAvailable) {
+    if (apiAvailable && !isStaticRuntime()) {
         try {
             const res = await request(`./api/events/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify({ ...input, scope }) });
             const p = await res.json();
@@ -94,7 +95,7 @@ export async function updatePersonalEvent(id, input, scope = 'series') {
     return next;
 }
 export async function deletePersonalEvent(id, scope = 'series') {
-    if (apiAvailable) {
+    if (apiAvailable && !isStaticRuntime()) {
         try {
             await request(`./api/events/${encodeURIComponent(id)}?scope=${encodeURIComponent(scope)}`, { method: 'DELETE' });
             return;

@@ -1,51 +1,34 @@
-# Full project package — integration RC5 — 2026-10-11
+# Package and schedule data status — 2026-10-11
 
-- Application package: `almazov-schedule-hub` `2.8.0-rc.5`.
-- UI package: `2.8.0-rc.5`.
-- Schedule engine metadata: `4.9.0-rc.1`; existing sync/recovery data retains its own generation provenance.
-- Package scope: complete source handoff including TypeScript application, server/importer, parser scripts, public UI/PWA assets, generated `dist`, current local schedule/KUG data, source manifests, migrations, tests, PDF/HTML fixtures, GitHub Actions workflows, audit reports, and build metadata.
-- Exclusions: `.git`, `node_modules`, Python bytecode/cache, and `.DS_Store`. No real `.env` file or secrets are included; `.env.production.example` is a template.
+## Readiness
 
-## RC5 integration changes
+**Data status: `not-ready` for publication; static local application is buildable.** The UI and data report distinguish complete snapshots, partial snapshots, unpublished courses, and unresolved source conflicts. A successful static build does not mean the timetable is complete or safe to describe as full.
 
-1. **Practice parser and ingestion diagnostics.** `scripts/universal_schedule_parser.py` now emits newline-delimited structured JSON diagnostics for extractor failures, candidate event counts, candidate rejection reasons, garbled subjects, missing groups, parser choice, layout confidence, and final coverage. Matrix extractors can be unioned and deduplicated before whole-roster validation so a partial backend does not discard complementary rows from the other backend. Weekly blocks retain `weekday: null` and `scheduleMode: weekly-block`; no weekday or date is invented.
-2. **Real Stream A regression.** Added `scripts/test_4k_a_matrix_real_pdf.py` and registered it in both the canonical offline suite and live official-sync workflow. The 4A fixture resolves 250 assignments for groups 401–412, preserves the 09:00–12:25 matrix interval, rejects duplicates, retains week-block semantics, and validates the JSON completion log. Existing 4B and 5B fixture tests still pass. The corrupt 6K fixture remains correctly rejected instead of being filled with garbled subjects.
-3. **Subject color settings.** Replaced native color-input rows and unstyled tiny gradient controls with a 12-color touch-friendly preset grid, an accessible custom color picker, selected-state feedback, immediate schedule re-render, and local personalization persistence. Optional gradients are available in a collapsible section. Choosing a solid color clears the active gradient to make the result predictable. Subjects sourced only from weekly practice blocks are also included in settings.
-4. **Schedule type filters.** The UI now exposes only `Все`, `Лекции`, `ПЗ`, and `Контроль`. Dedicated `Семинары`, `Лабораторные`, and `Клиника` buttons and handlers are absent. Their canonical lesson types remain supported by the normalization/import pipeline and remain visible under `Все`.
-5. **Release metadata.** Bumped the integration candidate to `2.8.0-rc.5` in `package.json`, `version.json`, UI metadata, Android release workflow defaults, docs and tests. GitHub Actions has a dedicated A-stream matrix regression step before sync.
+The machine-generated coverage report is [`reports/data-coverage-latest.json`](reports/data-coverage-latest.json), with a readable summary at [`reports/data-coverage-latest.md`](reports/data-coverage-latest.md). Every build regenerates both and bundles the JSON into `dist/data/coverage.json`.
 
-## Local validation
+## Current source audit
 
-`npm run qa` completed with exit code 0 after the RC5 metadata and install-document contract were aligned.
+- Six General Medicine (31.05.01) course schedules were rebuilt from current official schedule PDFs. The four formerly rejected KUG PDFs now parse through the PDF text-trace fallback; the KUG manifest validates all 10 published PDFs and the official academic-week calendar.
+- The old 42 missing practical assignments were recovered from current official schedules wherever present. One roster assignment remains unconfirmed: General Medicine course 4, stream B, group 424. The current official PDF contains groups 413–423; it does not contain group 424. No replacement lesson was invented.
+- The audit scans all 18 course snapshots. Current snapshot status is generated automatically: the six General Medicine snapshots are classified from group/source integrity, four Pediatrics/Clinical Psychology snapshots remain recovery-only and unverified by source bytes, and eight specialist snapshots have no published schedule.
+- The integrity audit detects same-group, same-date, same-start-time assignments with different lesson data. Affected course snapshots are marked partial and show a warning; rows remain in the bundle for review. Weekly matrix blocks without a weekday are not assigned an inferred date.
+- Latest counts: **2 full, 8 partial, 8 unpublished** of 18 snapshots; **1** missing group practice assignment; **77** same-time conflicts remain for source/subgroup review; **6** malformed PDF rows are quarantined; **0** exact duplicates; all **43/43** schedule/KUG source records pass current hash/year/byte validation.
+- Official source PDFs omit teacher names for the General Medicine rows; the report counts this field separately instead of fabricating teacher names. Missing venues are also counted. Records without group/date/time or with duplicate/conflicting keys are reported as integrity defects.
 
-- TypeScript/typecheck/lint: PASS.
-- Build and dist validation: PASS; build fingerprint `3c8a77fe603e71c2`.
-- JavaScript tests: 83/83 PASS.
-- Canonical Python regression suite: 13/13 PASS, including the new 4A matrix fixture.
-- Current release contract: 13/13 PASS.
-- Recovery-snapshot contract: 20/20 PASS.
-- KUG contract: 13/13 PASS.
-- Schedule coverage contract: 20/20 PASS.
-- 4A practice fixture: 250 assignments / 12 groups / deduplication and structured diagnostics PASS.
-- 4B fixture: 248 assignments / 12 groups PASS.
-- 5B fixture: 194 assignments / 10 groups PASS.
-- 6K malformed practice fixture: rejected with diagnostics; zero garbled schedule rows accepted.
-- Theme contrast, HTTP acceptance, production workflow contracts, recovery integrity, generated-index validation and server smoke test: PASS.
+## Local static application
 
-The local build is **not minified** because `esbuild` is not installed in this runtime and the supplied project has no npm lockfile. Release workflows require minification and install dependencies in CI; the local non-minified output must not be treated as the production artifact.
+Run `node scripts/serve-static.mjs` from this repository to serve `dist/` at `http://127.0.0.1:4173`. Static mode does not use API/Redis/server schedule requests. Personal events and support notes stay in local browser storage; support submissions are not sent.
 
-## Production status — BLOCKED_FOR_PRODUCTION
+The build sequence is `node scripts/clean-dist.mjs`, TypeScript compilation, `scripts/copy-public.mjs` (which generates the coverage report before fingerprinting), then `scripts/validate-dist.mjs`. It must finish without build errors even when the data report is `not-ready`; the report and UI preserve that status instead of presenting partial data as a complete release.
 
-This is a complete integration package, not a certified production release. Live synchronization from this runtime has failed at DNS resolution before raw official PDF bytes were retrieved; consequently, source SHA-256 hashes cannot be claimed as freshly verified. The generated local data remains explicitly marked `local-recovery-snapshot`, not `live`. Specific unresolved data gaps remain: 2B practice data is still partial (12 accepted local cached rows vs official groups 217–229), 5A has not yet produced accepted practice assignments for groups 501–512, and 6K practice is quarantined because the local source's extracted subject text is garbled. Pediatrics and Clinical Psychology snapshots are recovery-only. The official KUG hub exposes 10 published programme/course PDF sets out of 17 anticipated programme/course combinations.
+## Release blockers
 
-Do not publish the recovery snapshot as live or complete. Run `npm run sync:official` in a network-enabled runner, obtain current source bytes and SHA-256 values, verify all published group/stream and KUG coverage, resolve date/week anomalies without inferred weekdays, pass `python3 scripts/validate_production_release.py`, and run `npm run build:rc` before deployment. Release remains denied until the production gate reports zero errors.
+1. Confirm or correct the missing 4/B group 424 practical assignment from a current official source.
+2. Resolve same-time schedule collisions against the original PDFs, including whether any represent unlabelled subgroups or parser overlap.
+3. Re-parse and verify official source bytes/SHA-256 for the four Pediatrics/Clinical Psychology recovery snapshots.
+4. Keep the eight unpublished specialist snapshots visibly unavailable until the university publishes them.
+5. Local runtime does not have `esbuild`; its bundle is not minified and is not a production artifact.
 
-## Entry points
+Latest offline validation: **74/74** Node tests, **14/14** KUG data-contract checks, **16/16** schedule-coverage checks, offline recovery integrity, official parser contract, generated-index validation, and schedule-data validation all pass. The production audit still reports `not-ready` with the blockers above; local QA does not waive them.
 
-- Start here: `README_FIRST.md`.
-- Setup/build/test: `README.md`, `package.json`.
-- Parser: `scripts/universal_schedule_parser.py`, `scripts/build_official_schedule.py`.
-- Regression: `scripts/test_4k_a_matrix_real_pdf.py`, `data/ci-regression-contract.json`.
-- Official sync/release: `docs/PRODUCTION_SYNC_AND_RELEASE.md`, `.github/workflows/sync-official-schedules.yml`.
-- GitHub Pages: `.github/workflows/pages.yml`.
-- Android build: `.github/workflows/android-apk.yml`.
+Do not label this checkout release-ready until the generated audit has no unresolved errors/blockers and the production bundle passes the minified release checks.

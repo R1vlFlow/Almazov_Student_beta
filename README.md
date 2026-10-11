@@ -84,19 +84,18 @@ A failed remote fetch never replaces a valid snapshot with empty or malformed da
 
 ```bash
 npm install
-npm run qa
-npm start
+npm run start:static
 ```
 
-Open `http://127.0.0.1:4173`.
+Open `http://127.0.0.1:4173`. This local mode builds and serves only the static client and its bundled schedule snapshots. It does not start the API, Redis, or any other backend. To use the optional full-stack API instead, run `npm start`.
 
 ## Synchronise official sources
 
 ```bash
-npm run sync
+npm run sync:official
 ```
 
-This command fetches published official sources, parses them through adapters, validates output and stores atomic snapshots under `storage/snapshots/`.
+This command fetches published official PDFs, parses them through the adapters, validates source hashes and schedule coverage, and updates the local JSON snapshots. It requires network access and the Python packages in `requirements-official-sync.txt`. Confirmed rows can be retained when a source omits a roster group, but the resulting course is marked partial and the audit lists the gap; unconfirmed rows are never filled in. Run `npm run start:static` afterward to review the bundled result.
 
 ## Production deployment
 
@@ -161,7 +160,7 @@ scripts/
 
 `npm run qa` runs TypeScript checks, build/distribution validation, parser unit tests, project checks, Node syntax checks and HTTP runtime smoke. The suite includes merged-cell HTML/XLSX fixtures, PDF coordinate fixtures, week/date normalization, stream isolation, deduplication, split 1/2 and 2/2, malformed-record validation, all 18 program/course selectors and a 10,000-event filter stress case.
 
-Before deployment, also run `npm run sync` against the current official sources and review the generated snapshot validation report. `npm run sync` never replaces a valid snapshot with empty/malformed data. The browser QA harness is separate from the deterministic parser test suite because some sandboxed CI environments cannot launch Chromium reliably.
+Before deployment, also run `npm run sync:official` against the current official sources and review the generated snapshot validation report. The official sync never replaces a valid snapshot with empty/malformed data. The browser QA harness is separate from the deterministic parser test suite because some sandboxed CI environments cannot launch Chromium reliably.
 
 ## Quality checks
 

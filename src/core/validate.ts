@@ -1,4 +1,4 @@
-import type { ScheduleEvent, ScheduleIndex, ProgramCode, Course } from './types.js';
+import type { ScheduleEvent, ScheduleIndex, ScheduleWeeklyBlock, ProgramCode, Course } from './types.js';
 import { cleanLocation, cleanSubject, cleanTeacher, isoDate, normalizeCourse, normalizeGroup, normalizeHalf, normalizeStream, normalizeTime, normalizeTimeRange, normalizeType } from './normalize.js';
 
 export interface ValidationIssue{level:'error'|'warning';index:number;message:string;field?:string;}
@@ -62,6 +62,39 @@ export function normalizeLiveEvents(payload:unknown):ScheduleEvent[]{
   }
   return mergeAutoSplitDoubleSlots(dedupe(result));
 }
+
+export function normalizeWeeklyBlocks(payload:unknown,program:ProgramCode,course:Course):ScheduleWeeklyBlock[]{
+  const p=payload as any;
+  const courseData=p?.courses?.[String(course)];
+  if(!courseData||courseData.specialty!==program)return [];
+  const rows=Array.isArray(courseData.events)?courseData.events:[];
+  const result:ScheduleWeeklyBlock[]=[];
+  for(const [index,raw] of rows.entries()){
+    if(raw?.scheduleMode!=='weekly-block')continue;
+    const weekNumber=Number(raw?.calendarWeekNumber??raw?.weekNumber??raw?.matrixWeekNumber);
+    if(!Number.isInteger(weekNumber)||weekNumber<1||weekNumber>52)continue;
+    const time=normalizeTimeRange(`${raw?.start??''} ${raw?.end??''}`)??normalizeTimeRange(raw?.time);
+    const subject=cleanSubject(raw?.subject??raw?.discipline??raw?.name);
+    if(!time||!subject)continue;
+    const stream=normalizeStream(raw?.stream);
+    const group=normalizeGroup(raw?.group)||(stream?'ALL':'');
+    if(!group)continue;
+    const weekRangeStart=isoDate(raw?.weekRangeStart)?raw.weekRangeStart:undefined;
+    const weekRangeEnd=isoDate(raw?.weekRangeEnd)?raw.weekRangeEnd:undefined;
+    result.push({id:String(raw?.id??`${program}-${course}-${group}-${stream??'all'}-week-${weekNumber}-${time.start}-${subject}-${index}`),program,course,group,stream,weekNumber,weekRangeStart,weekRangeEnd,start:time.start,end:time.end,subject,location:cleanLocation(raw?.location),teacher:cleanTeacher(raw?.teacher),type:normalizeType(raw?.type,subject),sourceUrl:typeof raw?.sourceUrl==='string'?raw.sourceUrl:undefined});
+  }
+  return dedupeWeeklyBlocks(result);
+}
+
+function dedupeWeeklyBlocks(blocks:ScheduleWeeklyBlock[]):ScheduleWeeklyBlock[]{
+  const unique=new Map<string,ScheduleWeeklyBlock>();
+  for(const block of blocks){
+    const key=[block.program,block.course,block.group,block.stream??'',block.weekNumber,block.start,block.end,block.subject.toLocaleLowerCase('ru-RU'),block.location.toLocaleLowerCase('ru-RU')].join('|');
+    if(!unique.has(key))unique.set(key,block);
+  }
+  return [...unique.values()];
+}
+
 function mergeAutoSplitDoubleSlots(events:ScheduleEvent[]):ScheduleEvent[]{
   const ordered=[...events].sort((a,b)=>[a.program,a.course,a.group,a.stream??'',a.date,a.subject,a.location,a.teacher,a.type,a.half??'',a.start].join('|').localeCompare([b.program,b.course,b.group,b.stream??'',b.date,b.subject,b.location,b.teacher,b.type,b.half??'',b.start].join('|')));
   const out:ScheduleEvent[]=[];let i=0;

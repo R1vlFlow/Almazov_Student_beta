@@ -56,7 +56,7 @@ if bootstrap_errors:
 if data.get('dataState') == 'bootstrap-pending':
     print(f'GENERATED INDEX VALIDATION: OK — bootstrap-pending; strict event validation is deferred to the first live GitHub synchronization.')
     raise SystemExit(0)
-if data.get('dataState') not in {None, 'live-generated', 'local-recovery-snapshot'}:
+if data.get('dataState') not in {None, 'live-generated', 'live-generated-partial', 'local-recovery-snapshot'}:
     fail(f"unsupported dataState={data.get('dataState')!r}")
 
 courses = data.get('courses')
@@ -65,6 +65,7 @@ if not isinstance(courses, dict):
 
 errors=[]
 recovery = data.get('dataState') == 'local-recovery-snapshot'
+documented_partial = data.get('dataState') == 'live-generated-partial'
 for cid, roster in EXPECTED.items():
     c = courses.get(cid)
     if not isinstance(c, dict):
@@ -84,7 +85,7 @@ for cid, roster in EXPECTED.items():
     events = c.get('events') or []
     if not events: errors.append(f'{cid}: events empty')
     if not any(e.get('type')=='lecture' for e in events): errors.append(f'{cid}: lecture events missing')
-    if not any(e.get('type')=='practice' for e in events) and not recovery: errors.append(f'{cid}: practice events missing')
+    if not any(e.get('type')=='practice' for e in events) and not recovery and not (documented_partial and any('practice' in x.get('missingKinds',[]) for x in c.get('coverage',{}).get('missingGroups',[]))): errors.append(f'{cid}: practice events missing')
     seen=set()
     for e in events:
         if str(e.get('sourceUrl','')).startswith('fixture://') or e.get('sourceKind')=='practice-fallback-fixture': errors.append(f'{cid}: fixture-derived event must not be shipped')
@@ -110,7 +111,7 @@ for cid, roster in EXPECTED.items():
     if cid in {'1','2','3','4','5'}:
         for st in ('A','B'):
             if not any(e.get('stream','')==st and e.get('type')=='lecture' for e in events): errors.append(f'{cid}/{st}: lecture missing')
-            if data.get('dataState') != 'local-recovery-snapshot' and not any(e.get('stream','')==st and e.get('type')=='practice' for e in events): errors.append(f'{cid}/{st}: practice missing')
+            if data.get('dataState') != 'local-recovery-snapshot' and not any(e.get('stream','')==st and e.get('type')=='practice' for e in events) and not (documented_partial and any(str(x.get('stream'))==st and 'practice' in x.get('missingKinds',[]) for x in c.get('coverage',{}).get('missingGroups',[]))): errors.append(f'{cid}/{st}: practice missing')
     else:
         if not any(e.get('stream','')=='' and e.get('type')=='lecture' for e in events): errors.append('6: lecture missing')
         if not recovery and not any(e.get('stream','')=='' and e.get('type')=='practice' for e in events): errors.append('6: practice missing')
@@ -119,4 +120,4 @@ if errors:
     fail(*errors)
 
 print(f'GENERATED INDEX VALIDATION: OK — schema={schema}, generatedAt={data.get("generatedAt")}')
-print('All six courses have valid local structure; this recovery snapshot explicitly lacks some verified practical-session coverage.' if recovery else 'All six courses have valid local structure and lecture/practice coverage for every stream.')
+print('All six courses have valid local structure; this recovery snapshot explicitly lacks some verified practical-session coverage.' if recovery else ('All six courses have valid local structure; documented practice coverage gaps remain.' if documented_partial else 'All six courses have valid local structure and lecture/practice coverage for every stream.'))

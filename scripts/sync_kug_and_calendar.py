@@ -6,6 +6,7 @@ and the academic-week calendar have been fetched, hashed, identity-checked and p
 """
 from __future__ import annotations
 import datetime as dt
+import hashlib
 import json
 import re
 import sys
@@ -44,6 +45,7 @@ FALLBACK_KUG_URLS = {
 }
 DATE_RANGE_RE = re.compile(r'(?<!\d)(\d{2}\.\d{2}\.\d{4})\s*[-–—]\s*(\d{2}\.\d{2}\.\d{4})(?!\d)')
 WEEK_RE = re.compile(r'(?<!\d)(\d{1,2})\s+(\d{2}\.\d{2}\.\d{4})\s*[-–—]\s*(\d{2}\.\d{2}\.\d{4})')
+SYNC_DIAGNOSTICS = {'rawPdfBytesDownloaded': 0, 'officialPdfSha256Verified': 0}
 
 
 def program_from_label(text: str) -> str | None:
@@ -95,7 +97,17 @@ def discover_kug_urls(sess: requests.Session) -> dict[tuple[str, int], tuple[str
 
 def parse_kug_pdf(data: bytes, program: str, course: int, url: str) -> tuple[list[dict], str]:
     doc = fitz.open(stream=data, filetype='pdf')
-    text = norm('\n'.join(page.get_text('text') for page in doc))
+    # Some official KUGs store the date and its label in separate positioned
+    # text objects. PyMuPDF's default extraction can emit a whole column before
+    # the adjacent labels, so retain both logical and visual reading orders.
+    text_candidates = [
+        norm('\n'.join(page.get_text('text') for page in doc)),
+        norm('\n'.join(page.get_text('text', sort=True) for page in doc)),
+        norm('\n'.join(extract_trace_text(page) for page in doc)),
+    ]
+    text_candidates = list(dict.fromkeys(text_candidates))
+    # Prefer trace text when the PDF's ToUnicode map replaces Cyrillic glyphs.
+    text = next((candidate for candidate in text_candidates if '\ufffd' not in candidate), text_candidates[0])
     expected_code = program
     if expected_code not in text:
         raise ValueError(f'KUG_SPECIALTY_MISMATCH expected={expected_code}; URL={url}')
@@ -105,37 +117,54 @@ def parse_kug_pdf(data: bytes, program: str, course: int, url: str) -> tuple[lis
     course_pattern = re.search(rf'(?<!\d){course}\s*КУРС\b', text, re.I)
     if not course_pattern:
         raise ValueError(f'KUG_COURSE_MISMATCH expected={course}; URL={url}')
-    matches = list(DATE_RANGE_RE.finditer(text))
     periods: list[dict] = []
-    for index, match in enumerate(matches):
-        label_start = match.end()
-        label_end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
-        label = norm(text[label_start:label_end])
-        # Section headings may appear between a period and the next date range.
-        label = re.sub(r'^\d{1,2}\s+семестр\s*', '', label, flags=re.I)
-        label = re.split(r'\s+\d{1,2}\s+семестр\b', label, maxsplit=1, flags=re.I)[0]
-        if not label:
-            continue
-        low = label.casefold()
-        if 'нерабочие праздничные дни' in low or 'праздничные дни' in low:
-            continue
-        if 'государственная итоговая аттестация' in low:
-            kind = 'assessment'
-        elif 'промежуточная аттестация' in low or 'сессия' in low:
-            kind = 'assessment'
-        elif 'каникул' in low:
-            kind = 'vacation'
-        elif 'практик' in low:
-            kind = 'practice'
-        elif 'обучение' in low or 'дискретная' in low:
-            kind = 'study'
-        else:
-            continue
-        start = dt.datetime.strptime(match.group(1), '%d.%m.%Y').date()
-        end = dt.datetime.strptime(match.group(2), '%d.%m.%Y').date()
-        if end < start or start.year < 2026 or end.year > 2027:
-            raise ValueError(f'KUG_INVALID_DATE_RANGE {match.group(0)}; URL={url}')
-        periods.append({'from': start.isoformat(), 'to': end.isoformat(), 'label': label, 'kind': kind, 'sourceUrl': url})
+    parsed_text = text
+    for candidate in text_candidates:
+        matches = list(DATE_RANGE_RE.finditer(candidate))
+        candidate_periods: list[dict] = []
+        for index, match in enumerate(matches):
+            label_start = match.end()
+            label_end = matches[index + 1].start() if index + 1 < len(matches) else len(candidate)
+            label = norm(candidate[label_start:label_end])
+            # Section headings may appear between a period and the next date range.
+            label = re.sub(r'^\d{1,2}\s+семестр\s*', '', label, flags=re.I)
+            label = re.split(r'\s+\d{1,2}\s+семестр\b', label, maxsplit=1, flags=re.I)[0]
+            if not label:
+                continue
+            low = label.casefold()
+            if 'нерабочие праздничные дни' in low or 'праздничные дни' in low:
+                continue
+            if 'обучение' in low or 'дискретная' in low:
+                kind = 'study'
+            elif 'государственная итоговая аттестация' in low:
+                kind = 'assessment'
+            elif 'промежуточная аттестация' in low or 'сессия' in low:
+                kind = 'assessment'
+            elif 'каникул' in low:
+                kind = 'vacation'
+            elif 'практик' in low:
+                kind = 'practice'
+            else:
+                continue
+            start = dt.datetime.strptime(match.group(1), '%d.%m.%Y').date()
+            end = dt.datetime.strptime(match.group(2), '%d.%m.%Y').date()
+            if end < start or start.year < 2026 or end.year > 2027:
+                raise ValueError(f'KUG_INVALID_DATE_RANGE {match.group(0)}; URL={url}')
+            candidate_periods.append({'from': start.isoformat(), 'to': end.isoformat(), 'label': label, 'kind': kind, 'sourceUrl': url})
+        if any(p['kind'] == 'study' for p in candidate_periods):
+            if not any(p['kind'] == 'study' for p in periods):
+                periods, parsed_text = candidate_periods, candidate
+            if any(p['kind'] == 'assessment' for p in candidate_periods):
+                periods, parsed_text = candidate_periods, candidate
+                break
+    # Some KUGs place the first line of a wrapped right-column label just above
+    # its date row. Text-flow extraction then associates only the last line with
+    # the date and loses the "theoretical study" category. Pair date cells with
+    # their visual right-column labels before declaring the document malformed.
+    if not any(p['kind'] == 'study' for p in periods):
+        trace_periods = extract_kug_periods_from_trace(doc, url)
+        if any(p['kind'] == 'study' for p in trace_periods):
+            periods, parsed_text = trace_periods, norm('\n'.join(extract_trace_text(page) for page in doc))
     # Range rows must be present for study, attestation, and any explicit vacation/practice
     # published by that programme. Study and exam ranges are mandatory for every active KUG.
     if not any(p['kind'] == 'study' for p in periods):
@@ -146,7 +175,99 @@ def parse_kug_pdf(data: bytes, program: str, course: int, url: str) -> tuple[lis
     unique: dict[tuple, dict] = {}
     for p in periods:
         unique.setdefault((p['from'], p['to'], p['kind'], p['label']), p)
-    return list(unique.values()), text
+    return list(unique.values()), parsed_text
+
+
+def extract_trace_text(page: fitz.Page) -> str:
+    """Rebuild PDF text from glyph trace when the ToUnicode map is broken.
+
+    Several official KUG PDFs embed Identity-H Times fonts whose normal text
+    extraction maps Cyrillic glyphs to U+FFFD. PyMuPDF's text trace retains the
+    actual Unicode code point for each painted glyph. Reassemble spans by their
+    visual baseline and x position so table rows remain paired with their dates.
+    """
+    lines: list[dict] = []
+    for span in page.get_texttrace():
+        chars = span.get('chars') or ()
+        value = ''.join(chr(int(char[0])) if int(char[0]) > 0 else ' ' for char in chars)
+        value = value.strip()
+        if not value:
+            continue
+        x0, y0, x1, y1 = span.get('bbox', (0, 0, 0, 0))
+        baseline = float(y1)
+        line = next((row for row in lines if abs(row['baseline'] - baseline) <= 1.5), None)
+        if line is None:
+            line = {'baseline': baseline, 'spans': []}
+            lines.append(line)
+        line['spans'].append((float(x0), float(x1), value))
+
+    rebuilt = []
+    for line in sorted(lines, key=lambda row: row['baseline']):
+        spans = sorted(line['spans'], key=lambda row: row[0])
+        parts: list[str] = []
+        previous_end: float | None = None
+        for x0, x1, value in spans:
+            if previous_end is not None and x0 - previous_end > 2.2:
+                parts.append(' ')
+            parts.append(value)
+            previous_end = max(previous_end or x1, x1)
+        rebuilt.append(''.join(parts))
+    return '\n'.join(rebuilt)
+
+
+def extract_kug_periods_from_trace(doc: fitz.Document, url: str) -> list[dict]:
+    """Pair KUG table date cells to adjacent label glyphs using page geometry."""
+    periods: list[dict] = []
+    for page in doc:
+        spans = []
+        for span in page.get_texttrace():
+            chars = span.get('chars') or ()
+            value = ''.join(chr(int(char[0])) if int(char[0]) > 0 else ' ' for char in chars).strip()
+            if not value:
+                continue
+            x0, y0, x1, y1 = span.get('bbox', (0, 0, 0, 0))
+            spans.append({'x0': float(x0), 'x1': float(x1), 'y': float(y1), 'text': value})
+
+        date_rows: dict[int, list[dict]] = {}
+        for span in spans:
+            # The official KUG layout places dates in the left table column.
+            if span['x0'] >= 340:
+                continue
+            row_key = round(span['y'] * 2)
+            date_rows.setdefault(row_key, []).append(span)
+        for row in date_rows.values():
+            row.sort(key=lambda item: item['x0'])
+            row_text = ''.join(item['text'] for item in row)
+            match = DATE_RANGE_RE.search(row_text)
+            if not match:
+                continue
+            baseline = sum(item['y'] for item in row) / len(row)
+            label_spans = [span for span in spans
+                           if span['x0'] >= 340 and abs(span['y'] - baseline) <= 14.5]
+            label_spans.sort(key=lambda item: (item['y'], item['x0']))
+            label = norm(' '.join(span['text'] for span in label_spans))
+            low = label.casefold()
+            if 'нерабочие праздничные дни' in low or 'праздничные дни' in low:
+                continue
+            if 'обучение' in low or 'дискретная' in low:
+                kind = 'study'
+            elif 'государственная итоговая аттестация' in low:
+                kind = 'assessment'
+            elif 'промежуточная аттестация' in low or 'сессия' in low:
+                kind = 'assessment'
+            elif 'каникул' in low:
+                kind = 'vacation'
+            elif 'практик' in low:
+                kind = 'practice'
+            else:
+                continue
+            start = dt.datetime.strptime(match.group(1), '%d.%m.%Y').date()
+            end = dt.datetime.strptime(match.group(2), '%d.%m.%Y').date()
+            if end < start or start.year < 2026 or end.year > 2027:
+                raise ValueError(f'KUG_INVALID_DATE_RANGE {match.group(0)}; URL={url}')
+            periods.append({'from': start.isoformat(), 'to': end.isoformat(), 'label': label,
+                            'kind': kind, 'sourceUrl': url})
+    return list({(p['from'], p['to'], p['kind'], p['label']): p for p in periods}.values())
 
 
 def parse_week_calendar(data: bytes, url: str) -> tuple[list[dict], str]:
@@ -181,6 +302,10 @@ def main() -> int:
     for (program, course), (url, title, discovery) in kug_urls.items():
         try:
             data = fetch_pdf(sess, url)
+            if data:
+                SYNC_DIAGNOSTICS['rawPdfBytesDownloaded'] += 1
+                hashlib.sha256(data).hexdigest()
+                SYNC_DIAGNOSTICS['officialPdfSha256Verified'] += 1
             periods, text = parse_kug_pdf(data, program, course, url)
             prov = source_provenance(data, text, url, checked_at=checked_at)
             row = {'program': program, 'programName': EXPECTED[program]['title'], 'course': course,
@@ -200,6 +325,10 @@ def main() -> int:
 
     week_data, week_text = None, None
     week_bytes = fetch_pdf(sess, WEEK_URL)
+    if week_bytes:
+        SYNC_DIAGNOSTICS['rawPdfBytesDownloaded'] += 1
+        hashlib.sha256(week_bytes).hexdigest()
+        SYNC_DIAGNOSTICS['officialPdfSha256Verified'] += 1
     weeks, week_text = parse_week_calendar(week_bytes, WEEK_URL)
     week_prov = source_provenance(week_bytes, week_text, WEEK_URL, checked_at=checked_at)
     week_data = {'schemaVersion': 1, 'academicYear': '2026/2027', 'generatedAt': checked_at,
@@ -244,8 +373,9 @@ def write_sync_failure_diagnostic(error: Exception) -> dict:
         'exceptionType': type(error).__name__,
         'error': str(error),
         'officialSource': PAGE,
-        'rawPdfBytesDownloaded': False if discovery_failed else 'unknown',
-        'officialPdfSha256Verified': 0,
+        'rawPdfBytesDownloaded': SYNC_DIAGNOSTICS['rawPdfBytesDownloaded'] > 0,
+        'rawPdfFileCount': SYNC_DIAGNOSTICS['rawPdfBytesDownloaded'],
+        'officialPdfSha256Verified': SYNC_DIAGNOSTICS['officialPdfSha256Verified'],
         'snapshotFilesReplaced': False,
         'publicationAllowed': False,
         'recoveryPolicy': 'keep-last-known-snapshot; never promote cached data to live-verified',
@@ -269,16 +399,18 @@ def write_sync_failure_diagnostic(error: Exception) -> dict:
         'failedStage': stage,
         'exception': type(error).__name__,
         'reason': str(error),
-        'rawPdfBytesDownloaded': False if discovery_failed else 'unknown',
-        'officialPdfSha256Verified': 0,
+        'rawPdfBytesDownloaded': SYNC_DIAGNOSTICS['rawPdfBytesDownloaded'] > 0,
+        'rawPdfFileCount': SYNC_DIAGNOSTICS['rawPdfBytesDownloaded'],
+        'officialPdfSha256Verified': SYNC_DIAGNOSTICS['officialPdfSha256Verified'],
         'snapshotFilesReplaced': False,
         'publicationAllowed': False,
         'gateStatusAfterAttempt': 'BLOCKED_FOR_PRODUCTION',
     }
     sync_status['previousStatusBeforeFailedAttempt'] = sync_status.get('status')
     sync_status['status'] = 'local-recovery'
-    sync_status['message'] = ('Latest live sync failed; cached payloads were left unchanged. '
-                              'No official PDF SHA-256 was verified and production publication is denied. '
+    sync_status['message'] = (f"Latest live sync failed after downloading {SYNC_DIAGNOSTICS['rawPdfBytesDownloaded']} PDF files "
+                              f"and computing {SYNC_DIAGNOSTICS['officialPdfSha256Verified']} SHA-256 fingerprints; "
+                              'cached payloads were left unchanged and production publication is denied. '
                               + str(error))
     status_tmp = status_path.with_suffix(status_path.suffix + '.tmp')
     status_tmp.write_text(json.dumps(sync_status, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

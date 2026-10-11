@@ -1,7 +1,7 @@
 import { cp, copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join, relative, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root=fileURLToPath(new URL('..',import.meta.url));
 const dist=join(root,'dist');
@@ -13,7 +13,7 @@ await mkdir(join(dist,'data'),{recursive:true});
 await cp(join(root,'public','data'),join(dist,'data'),{recursive:true});
 
 try{
-  const {normalizeLiveEvents,normalizeWeeklyBlocks}=await import(join(dist,'core','validate.js'));
+  const {normalizeLiveEvents,normalizeWeeklyBlocks}=await import(pathToFileURL(join(dist,'core','validate.js')).href);
   const payload=JSON.parse(await readFile(join(root,'data','official-schedules.json'),'utf8'));
   const curatedKug=JSON.parse(await readFile(join(root,'data','kug.json'),'utf8'));
   const kugManifest=JSON.parse(await readFile(join(root,'data','kug-source-manifest.json'),'utf8').catch(()=>'{"sources":[]}'));
@@ -56,12 +56,16 @@ try{
     const dir=join(dist,'data','schedules','31.05.01');
     await mkdir(dir,{recursive:true});
     const liveGenerated=payload.dataState==='live-generated';
-    const snapshotStatus=liveGenerated?'live':payload.dataState==='local-recovery-snapshot'?'partial':'cache';
-    const issues=liveGenerated?[]:['LOCAL_RECOVERY_SNAPSHOT','SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'];
-    const message=liveGenerated
-      ? `Официальный snapshot · ${courseEvents.length} событий`
-      : `Частичный локальный snapshot · ${courseEvents.length} подтверждённых событий. Данные требуют синхронизации с официальным источником.`;
-    await writeFile(join(dir,`${course}.json`),JSON.stringify({version:1,generatedAt:payload.generatedAt,program:'31.05.01',course,status:snapshotStatus,events:courseEvents,weeklyBlocks,issues,message,sourceUrl:payload.sourcePage,sourceName:'official-schedules.json'}));
+    const courseCoverage=payload.coverage?.[String(course)]??{status:'partial',missingGroups:[]};
+    const partial=courseCoverage.status!=='full'||!liveGenerated;
+    const snapshotStatus=partial?'partial':'live';
+    const issues=partial?['SCHEDULE_COVERAGE_INCOMPLETE']:[];
+    if(courseCoverage.quarantinedEventCount)issues.push('PDF_CELL_PARSE_ANOMALIES');
+    const missing=Array.isArray(courseCoverage.missingGroups)?courseCoverage.missingGroups:[];
+    const message=partial
+      ? `Частичное официальное расписание · ${courseEvents.length} событий, ${weeklyBlocks.length} назначений по неделям${missing.length?`. Нет полных назначений для групп: ${missing.map(x=>typeof x==='string'?x:`${x.stream??''}/${x.group} (${(x.missingKinds??[]).join(', ')})`).join(', ')}.`:''}${courseCoverage.quarantinedEventCount?` ${courseCoverage.quarantinedEventCount} назначений для групп ${(courseCoverage.quarantinedGroups??[]).join(', ')} скрыты из-за ошибок разбора PDF и перечислены как неподтверждённые.`:''}`
+      : `Официальное расписание · ${courseEvents.length} событий, ${weeklyBlocks.length} назначений по неделям`;
+    await writeFile(join(dir,`${course}.json`),JSON.stringify({version:1,generatedAt:payload.generatedAt,program:'31.05.01',course,status:snapshotStatus,coverage:courseCoverage,events:courseEvents,weeklyBlocks,quarantinedEvents:payload.courses?.[String(course)]?.quarantinedEvents??[],issues,message,sourceUrl:payload.sourcePage,sourceName:'official-schedules.json'}));
   }
 }catch(error){
   console.warn(`static schedule snapshot generation skipped: ${error instanceof Error?error.message:String(error)}`);
@@ -84,11 +88,12 @@ try{
       const events=courseData.events;
       const recoveryOnly=specialist.dataState!=='live-generated';
       const fallbackMessage=recoveryOnly
-        ? (events.length?`Восстановительный локальный снимок · ${events.length} событий. Исходные PDF не проверены по SHA-256; не считать актуальным расписанием.`:'Официальный источник для этого курса пока не дал опубликованных данных.')
+        ? (events.length?`Восстановительный локальный снимок · ${events.length} событий. Исходные PDF не проверены по SHA-256; не считать актуальным расписанием.`:'Нет опубликованных данных: официальный источник пока не опубликовал расписание для этого курса.')
         : (events.length?`Официальный снимок · ${events.length} событий`:'Официальный источник пока не опубликовал расписание.');
+      const unpublished=!events.length||courseData.status==='unpublished';
       await writeFile(target,JSON.stringify({version:1,generatedAt:courseData.generatedAt??specialist.generatedAt??null,
-        program,course,status:recoveryOnly?(events.length?'partial':'unpublished'):(courseData.status??(events.length?'live':'unpublished')),events,
-        issues:[...(Array.isArray(courseData.issues)?courseData.issues:[]),...(recoveryOnly?['LOCAL_RECOVERY_SNAPSHOT','SOURCE_BYTES_AND_SHA256_NOT_VERIFIED','NOT_FOR_PRODUCTION']:[])],
+        program,course,status:recoveryOnly?(unpublished?'unpublished':'partial'):(courseData.status??(events.length?'live':'unpublished')),events,
+        issues:[...(Array.isArray(courseData.issues)?courseData.issues:[]),...(unpublished?['UNPUBLISHED_DATA']:[]),...(recoveryOnly&&!unpublished?['LOCAL_RECOVERY_SNAPSHOT','SOURCE_BYTES_AND_SHA256_NOT_VERIFIED','NOT_FOR_PRODUCTION']:[])],
         message:recoveryOnly?fallbackMessage:(courseData.message??fallbackMessage),
         sourceUrl:courseData.sourceUrl??specialist.sourcePage,sourceName:courseData.sourceName??programData.title}));
     }
@@ -100,6 +105,10 @@ try{
   if(process.env.REQUIRE_SPECIALIST_SNAPSHOT==='1')throw new Error(`Specialist schedule snapshot required: ${error instanceof Error?error.message:String(error)}`);
   console.warn(`specialist snapshot generation skipped: ${error instanceof Error?error.message:String(error)}`);
 }
+
+// Generate the source-integrity and coverage report before fingerprinting so
+// the report and per-course partial states belong to this exact build.
+await import('./generate-data-coverage.mjs');
 
 async function walk(dir){
   const result=[];

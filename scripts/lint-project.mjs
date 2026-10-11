@@ -8,9 +8,10 @@ async function walk(dir){
   for(const entry of await readdir(dir,{withFileTypes:true})){
     if(['node_modules','dist','storage','.git'].includes(entry.name))continue;
     const path=join(dir,entry.name);
+    const portablePath=path.replaceAll('\\','/');
     if(entry.isDirectory())await walk(path);
-    else if(path.endsWith('server/sync-official.mjs'))continue;
-    else if(path.endsWith('scripts/lint-project.mjs'))continue;
+    else if(portablePath.endsWith('server/sync-official.mjs'))continue;
+    else if(portablePath.endsWith('scripts/lint-project.mjs'))continue;
     else if(extensions.has(path.slice(path.lastIndexOf('.')))){
       const text=await readFile(path,'utf8');
       if(/console\.log\s*\(/.test(text))failures.push(`${path}: console.log is not allowed`);

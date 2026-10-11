@@ -24,7 +24,7 @@ if bootstrap_errors:
 if DATA.get('dataState') == 'bootstrap-pending':
     print('SCHEDULE DATA VALIDATION: OK — bootstrap-pending; strict event validation is deferred to the first live GitHub synchronization.')
     raise SystemExit(0)
-if DATA.get('dataState') not in {None, 'live-generated', 'local-recovery-snapshot'}:
+if DATA.get('dataState') not in {None, 'live-generated', 'live-generated-partial', 'local-recovery-snapshot'}:
     raise SystemExit(f"Unsupported dataState={DATA.get('dataState')!r}")
 courses=DATA.get('courses',{})
 expected={
@@ -37,6 +37,7 @@ expected={
 }
 errors=[]
 recovery = DATA.get('dataState') == 'local-recovery-snapshot'
+documented_partial = DATA.get('dataState') == 'live-generated-partial'
 for cid, roster in expected.items():
     c=courses.get(cid,{})
     groups=set(map(str,c.get('groups',[])))
@@ -66,7 +67,7 @@ for cid, roster in expected.items():
     if cid in {'1','2','3','4','5'}:
         for st in ('A','B'):
             if not c.get('streams',{}).get(st): errors.append(f'{cid}: stream {st} has no groups')
-            if not recovery and not any(e.get('stream')==st and e.get('type')=='practice' for e in events): errors.append(f'{cid}: stream {st} has no practice events')
+            if not recovery and not any(e.get('stream')==st and e.get('type')=='practice' for e in events) and not (documented_partial and any(str(x.get('stream'))==st and 'practice' in x.get('missingKinds',[]) for x in c.get('coverage',{}).get('missingGroups',[]))): errors.append(f'{cid}: stream {st} has no practice events')
             if not any(e.get('stream')==st and e.get('type')=='lecture' for e in events): errors.append(f'{cid}: stream {st} has no lecture events')
     else:
         if not recovery and not any(e.get('type')=='practice' for e in events): errors.append('6: no practice events')
@@ -75,4 +76,4 @@ if errors:
     print('SCHEDULE DATA VALIDATION FAILED')
     print('\n'.join(' - '+x for x in errors))
     raise SystemExit(1)
-print('SCHEDULE DATA VALIDATION: OK — 1–6 rosters and event shape verified; recovery snapshot is explicitly partial.' if recovery else 'SCHEDULE DATA VALIDATION: OK — 1–6 rosters, event shape, duplicates and source coverage are consistent.')
+print('SCHEDULE DATA VALIDATION: OK — 1–6 rosters and event shape verified; recovery snapshot is explicitly partial.' if recovery else ('SCHEDULE DATA VALIDATION: OK — 1–6 rosters, event shape, duplicates and documented partial coverage are consistent.' if documented_partial else 'SCHEDULE DATA VALIDATION: OK — 1–6 rosters, event shape, duplicates and source coverage are consistent.'))

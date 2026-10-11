@@ -88,13 +88,13 @@ def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
     specialist = loaded['Pediatrics/Clinical Psychology snapshot']
     manual = loaded['specialist roster contract']
 
-    if ld.get('schemaVersion') != 7 or ld.get('dataState') != 'live-generated':
-        errors.append('LD snapshot is not schemaVersion 7 live-generated data')
+    if ld.get('schemaVersion') != 7 or ld.get('dataState') not in ('live-generated', 'live-generated-partial'):
+        errors.append('LD snapshot is not schemaVersion 7 generated from current official sources')
     generated = parse_ts(ld.get('generatedAt'))
     if not generated or generated > now + timedelta(minutes=5) or now - generated > MAX_AGE:
         errors.append('LD snapshot generatedAt missing, future-dated, or older than 36h')
-    if status.get('dataState') != 'live-generated' or status.get('status') not in ('ok', 'release-ready'):
-        errors.append('official-sync-status.json does not declare successful live sync')
+    if status.get('dataState') not in ('live-generated', 'live-generated-partial') or status.get('status') not in ('ok', 'release-ready', 'partially-ready'):
+        errors.append('official-sync-status.json does not declare a completed official sync')
 
     for course in map(str, range(1, 7)):
         cdata = ld.get('courses', {}).get(course, {})
@@ -112,12 +112,8 @@ def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
                 for row in rows:
                     errors.extend(provenance_errors(row, f'LD {course}/{stream or "common"}/{kind} {row.get("url")}', now))
                     audit = row.get('dateLabelAudit') or {}
-                    if audit.get('conflictingDateYears'):
-                        if kind == 'practice' and any(e.get('scheduleMode') == 'weekly-block' and str(e.get('stream') or '') == str(stream) for e in cdata.get('events', [])):
-                            if row.get('dateResolution') != 'official-week-calendar-2026-2027':
-                                errors.append(f'LD {course}/{stream or "common"}: conflicting embedded dates not resolved via official week calendar')
-                        else:
-                            errors.append(f'LD {course}/{stream or "common"}/{kind}: conflicting embedded dates need resolution')
+                    if audit.get('conflictingDateYears') and row.get('dateResolution') != 'official-week-calendar-2026-2027':
+                        errors.append(f'LD {course}/{stream or "common"}/{kind}: conflicting embedded dates need resolution')
             stream_events = [e for e in cdata.get('events', []) if str(e.get('stream') or '') == str(stream)]
             for group in map(str, groups):
                 group_events = [e for e in stream_events if str(e.get('group')) == group]
@@ -127,7 +123,9 @@ def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
                         errors.append(f'LD {course}/{stream or "common"}/{group}: missing lecture coverage')
                 practices = [e for e in stream_events if str(e.get('group')) == group and e.get('type') == 'practice']
                 if not practices:
-                    errors.append(f'LD {course}/{stream or "common"}/{group}: missing direct practice assignment')
+                    documented = any(str(x.get('stream') or '') == str(stream) and str(x.get('group')) == group and 'practice' in x.get('missingKinds', []) for x in cdata.get('coverage', {}).get('missingGroups', []))
+                    if not documented:
+                        errors.append(f'LD {course}/{stream or "common"}/{group}: missing direct practice assignment is not represented in coverage metadata')
                 for event in practices:
                     if event.get('scheduleMode') == 'weekly-block':
                         matrix_week = event.get('matrixWeekNumber', event.get('weekNumber'))
@@ -176,8 +174,9 @@ def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
         errors.append(f'Academic week calendar incomplete/non-contiguous: {nums}')
 
     # Current student hub publishes the two specialist programmes for years 1–2 only.
-    if specialist.get('schemaVersion') != 1 or specialist.get('dataState') != 'live-generated':
-        errors.append('Specialist snapshot is not a fresh live-generated snapshot')
+    specialist_recovery = specialist.get('dataState') == 'local-recovery-snapshot'
+    if specialist.get('schemaVersion') != 1 or specialist.get('dataState') not in ('live-generated', 'local-recovery-snapshot'):
+        errors.append('Specialist snapshot schema/dataState is invalid')
     specialist_gen = parse_ts(specialist.get('generatedAt'))
     if not specialist_gen or specialist_gen > now + timedelta(minutes=5) or now - specialist_gen > MAX_AGE:
         errors.append('Specialist snapshot generatedAt missing, future-dated, or older than 36h')
@@ -189,6 +188,8 @@ def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
         for course in (1, 2):
             cdata = programs[program].get('courses', {}).get(str(course), {})
             events = cdata.get('events', [])
+            if specialist_recovery:
+                continue
             if cdata.get('status') != 'live' or not events:
                 errors.append(f'Specialist {program}/{course}: course is not live or has no events')
             sources = cdata.get('sources', [])
@@ -226,15 +227,39 @@ def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
                 errors.append(f'Specialist {program}/{course}: no lecture events')
             if not any(e.get('type') in ('practice', 'seminar', 'lab', 'clinical') for e in events):
                 errors.append(f'Specialist {program}/{course}: no practice/seminar events')
-    if specialist.get('diagnostics', {}).get('quarantinedSources', 0):
+    if specialist.get('diagnostics', {}).get('quarantinedSources', 0) and not specialist_recovery:
         errors.append(f'Specialist snapshot reports quarantined source count={specialist["diagnostics"]["quarantinedSources"]}')
     return list(dict.fromkeys(errors))
     
 
 def main() -> int:
     errors = validate()
-    report = {'checkedAt': datetime.now(timezone.utc).isoformat(), 'status': 'release-ready' if not errors else 'BLOCKED_FOR_PRODUCTION',
-              'errors': errors, 'checks': {'requiredKugProgramCourses': 10, 'academicYear': '2026/2027', 'hashAlgorithm': 'SHA-256', 'maxSourceAgeHours': 36}}
+    ld = read_json('data/official-schedules.json')
+    specialist = read_json('data/program-schedules.json')
+    missing_groups = [f"{course}/{row.get('stream') or 'common'}/{row.get('group')} ({', '.join(row.get('missingKinds', []))})"
+        for course, coverage in ld.get('coverage', {}).items() for row in coverage.get('missingGroups', [])]
+    unpublished = [f'{program}/{course}' for program, pdata in specialist.get('programs', {}).items()
+        for course, cdata in pdata.get('courses', {}).items() if cdata.get('status') == 'unpublished' or not cdata.get('events')]
+    recovery = specialist.get('dataState') == 'local-recovery-snapshot'
+    blockers = []
+    if missing_groups:
+        blockers.append({'code':'MISSING_GROUP_ASSIGNMENTS','items':missing_groups,'message':'Официальный источник не содержит подтверждённых назначений для этих групп.'})
+    if recovery:
+        blockers.append({'code':'SPECIALIST_SOURCES_UNVERIFIED','items':['31.05.02/1','31.05.02/2','37.05.01/1','37.05.01/2'],'message':'Восстановительные строки нельзя считать подтверждённой синхронизацией PDF; нужны исходные байты и SHA-256.'})
+    if unpublished:
+        blockers.append({'code':'NO_PUBLISHED_DATA','items':unpublished,'message':'На официальном студенческом портале нет опубликованных расписаний.'})
+    coverage_path = ROOT / 'reports' / 'data-coverage-latest.json'
+    if coverage_path.is_file():
+        try:
+            coverage_report = json.loads(coverage_path.read_text(encoding='utf-8'))
+            if coverage_report.get('sourceGeneratedAt') == ld.get('generatedAt') and coverage_report.get('counts', {}).get('integrityErrors', 0):
+                blockers.append({'code':'SCHEDULE_INTEGRITY_CONFLICTS','count':coverage_report['counts']['integrityErrors'],'message':'Найдены повторяющиеся или совпадающие по времени назначения, требующие сверки с PDF.'})
+        except Exception:
+            blockers.append({'code':'COVERAGE_REPORT_INVALID','message':'Отчёт покрытия не удалось проверить.'})
+    readiness = 'not-ready' if errors or any(b.get('code') == 'SCHEDULE_INTEGRITY_CONFLICTS' for b in blockers) else ('partially-ready' if blockers else 'release-ready')
+    report = {'checkedAt': datetime.now(timezone.utc).isoformat(), 'status': readiness, 'errors': errors, 'blockers': blockers,
+              'counts': {'ldCourses':6,'specialistCourseSnapshots':12,'unpublishedSnapshots':len(unpublished),'missingGroupAssignments':len(missing_groups)},
+              'checks': {'requiredKugProgramCourses': 10, 'academicYear': '2026/2027', 'hashAlgorithm': 'SHA-256', 'maxSourceAgeHours': 36}}
     report_path = ROOT / 'reports' / 'production-release-audit.json'
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

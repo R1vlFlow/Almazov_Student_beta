@@ -17,17 +17,18 @@ for course_key,course in courses.items():
     for event in course['events']:
         events.append((str(course_key),event))
         date=event.get('date')
-        # Weekly-block rows intentionally defer the concrete date until the matrix normalizer.
+        # Weekly-block rows intentionally defer a concrete date and weekday;
+        # the official academic-week range is retained instead.
         valid_date=bool(re.fullmatch(r'\d{4}-\d{2}-\d{2}',str(date or '')))
-        valid_week_block=event.get('scheduleMode')=='weekly-block' and bool(re.fullmatch(r'\d{4}-\d{2}-\d{2}',str(event.get('weekStart','')))) and isinstance(event.get('matrixSlots'),list) and bool(event.get('matrixSlots'))
+        valid_week_block=event.get('scheduleMode')=='weekly-block' and isinstance(event.get('weekNumber'),int) and event.get('matrixWeekNumber')==event.get('calendarWeekNumber') and event.get('weekCalendarOffset')==0 and bool(re.fullmatch(r'\d{4}-\d{2}-\d{2}',str(event.get('weekRangeStart','')))) and bool(re.fullmatch(r'\d{4}-\d{2}-\d{2}',str(event.get('weekRangeEnd',''))))
         assert valid_date or valid_week_block, f"event has neither date nor a materializable weekly block: {event.get('id')}"
         assert re.fullmatch(r'\d{2}:\d{2}',str(event.get('start',''))), f"invalid start time: {event.get('id')}"
         assert re.fullmatch(r'\d{2}:\d{2}',str(event.get('end',''))), f"invalid end time: {event.get('id')}"
         group=event.get('group') or event.get('groupName') or event.get('groups')
         assert group, f"event without group: {event.get('id')}"
-# Regression for double-index metadata in group 123 source rows; materialized date/time rendering is covered in Node QA.
-double_indices={e.get('doubleIndex') for course,e in events if course=='1' and str(e.get('group'))=='123' and e.get('subject') in ('Химия','Анатомия человека') and e.get('doubleIndex') is not None}
-assert {1,2}.issubset(double_indices), f'group 123 double-index metadata is incomplete: {double_indices}'
+# Repeated adjacent identical slots are represented as one continuous source event.
+merged=[e for course,e in events if course=='1' and str(e.get('group'))=='123' and e.get('mergedConsecutive')]
+assert merged and all(e.get('durationMinutes') in (185,205) for e in merged), 'group 123 adjacent source slots were not safely consolidated'
 assert isinstance(payload.get('kugSources'),list) and isinstance(payload.get('assessmentPeriods'),list)
 assert all(x.get('sourceUrl') for x in payload['assessmentPeriods']), 'assessment period without source URL'
 print(f"OFFICIAL DATA PARSER CONTRACT: PASS — {len(events)} events, {len(payload['kugSources'])} KUG sources, {len(payload['assessmentPeriods'])} source-linked periods")

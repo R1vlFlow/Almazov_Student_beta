@@ -144,7 +144,8 @@ def doc_metadata(candidate: dict, data: bytes, fmt: str) -> dict:
         canonical_url(candidate['url']) == 'https://education.almazovcentre.ru/wp-content/uploads/2026/09/raspisanielekczij_2k_pediatry-osen-1.pdf'
         and program == '31.05.02' and int(candidate.get('courseHint') or 0) == 2
         and candidate.get('kindHint') == 'lecture' and body_program == '31.05.01'
-        and re.search(r'201\s*П', header, re.I) and re.search(r'202\s*П', header, re.I) and re.search(r'203\s*П', header, re.I)
+        and (re.search(r'201\s*П\s*[–—-]\s*203\s*П', header, re.I)
+             or all(re.search(rf'{group}\s*П', header, re.I) for group in (201, 202, 203)))
         and re.search(r'ПОТОК\s*[AА]', header, re.I)
     )
     if body_program and body_program != program:

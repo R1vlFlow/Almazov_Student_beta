@@ -92,16 +92,15 @@ test('large schedule remains filterable without accidental cross-group leakage',
   assert.ok(r.length>0);assert.ok(r.every(e=>e.group==='123'||e.group==='ALL'));
 });
 
-test('static snapshot fallback works on GitHub Pages style relative paths',async()=>{
+test('static snapshot loads without making an API request',async()=>{
   const {loadSchedule,clearScheduleMemory}=await import('../dist/services/scheduleService.js');
   clearScheduleMemory();
   const originalFetch=globalThis.fetch;
-  let calls=0;
+  let apiCalls=0,staticCalls=0;
   globalThis.fetch=async (input)=>{
-    calls++;
     const url=String(input);
-    if(url.includes('/api/schedule'))return new Response('not found',{status:404});
-    if(url.includes('/data/schedules/31.05.02/1.json'))return new Response(JSON.stringify({status:'live',events:[{id:'p1',program:'31.05.02',course:1,group:'101П',stream:null,date:'2026-10-06',start:'09:00',end:'10:35',subject:'Химия',location:'ауд. 2.11',teacher:'',type:'lecture'}],generatedAt:'2026-10-06T00:00:00Z',message:'static'}),{status:200,headers:{'content-type':'application/json'}});
+    if(url.includes('/api/schedule')){apiCalls++;throw new Error('static release must not call API');}
+    if(url.includes('/data/schedules/31.05.02/1.json')){staticCalls++;return new Response(JSON.stringify({status:'live',events:[{id:'p1',program:'31.05.02',course:1,group:'101П',stream:null,date:'2026-10-06',start:'09:00',end:'10:35',subject:'Химия',location:'ауд. 2.11',teacher:'',type:'lecture'}],generatedAt:'2026-10-06T00:00:00Z',message:'static'}),{status:200,headers:{'content-type':'application/json'}});}
     throw new Error(`unexpected fetch ${url}`);
   };
   try{
@@ -109,7 +108,8 @@ test('static snapshot fallback works on GitHub Pages style relative paths',async
     assert.equal(result.status,'live');
     assert.equal(result.events.length,1);
     assert.equal(result.events[0].group,'101П');
-    assert.ok(calls>=2);
+    assert.equal(staticCalls,1);
+    assert.equal(apiCalls,0);
   }finally{globalThis.fetch=originalFetch;clearScheduleMemory();}
 });
 

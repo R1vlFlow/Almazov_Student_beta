@@ -65,6 +65,24 @@ export interface ScheduleEvent {
   privacy?: 'public'|'private';
 }
 
+export interface ScheduleWeeklyBlock {
+  id:string;
+  program:ProgramCode;
+  course:Course;
+  group:string;
+  stream:Stream;
+  weekNumber:number;
+  weekRangeStart?:string;
+  weekRangeEnd?:string;
+  start:string;
+  end:string;
+  subject:string;
+  location:string;
+  teacher:string;
+  type:LessonType;
+  sourceUrl?:string;
+}
+
 export interface ScheduleIndex {
   schemaVersion: number;
   generatedAt: string;
@@ -103,11 +121,13 @@ export interface CourseAvailability {
 export interface ScheduleLoadResult {
   status: LoadStatus;
   events: ScheduleEvent[];
+  weeklyBlocks?:ScheduleWeeklyBlock[];
   generatedAt?: string;
   sourceUrl?: string;
   sourceName?: string;
   issues: string[];
   message: string;
+  coverage?: { status?: 'full'|'partial'|'unpublished'|'missing'; expectedGroups?: number; coveredGroups?: number; missingGroups?: Array<string|{stream?:string;group?:string;missingKinds?:string[]}>; streams?: Record<string,{status?:string;groups?:Record<string,{status?:string;missingKinds?:string[]}>}>; groups?: Record<string,{status?:string;missingKinds?:string[]}> };
 }
 
 export interface UserProfile {

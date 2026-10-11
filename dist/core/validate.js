@@ -1,4 +1,4 @@
-import { cleanLocation, cleanSubject, cleanTeacher, isoDate, normalizeCourse, normalizeGroup, normalizeHalf, normalizeStream, normalizeTime, normalizeTimeRange, normalizeType } from './normalize.js?v=3c8a77fe603e71c2';
+import { cleanLocation, cleanSubject, cleanTeacher, isoDate, normalizeCourse, normalizeGroup, normalizeHalf, normalizeStream, normalizeTime, normalizeTimeRange, normalizeType } from './normalize.js?v=d1d44af686a9e490';
 const VALID_PROGRAMS = new Set(['31.05.01', '31.05.02', '37.05.01']);
 export function validateScheduleIndex(payload) {
     const issues = [];
@@ -22,6 +22,8 @@ export function validateScheduleIndex(payload) {
     }
     return { ok: !issues.some(i => i.level === 'error'), issues };
 }
+function addIsoDays(date, days) { if (!isoDate(date))
+    return null; const d = new Date(`${date}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10); }
 function splitDoubleTimes(start, end) {
     const [shs, sms] = start.split(':');
     const [ehs, ems] = end.split(':');
@@ -35,48 +37,6 @@ function splitDoubleTimes(start, end) {
     const fmt = (v) => `${String(Math.floor(v / 60)).padStart(2, '0')}:${String(v % 60).padStart(2, '0')}`;
     return [{ start: fmt(a), end: fmt(firstEnd), double: true, doublePart: 1, durationMinutes: slot }, { start: fmt(secondStart), end: fmt(b), double: true, doublePart: 2, durationMinutes: slot }];
 }
-export function normalizeWeeklyBlocks(payload, programFilter, courseFilter) {
-    const out = [];
-    const p = payload;
-    for (const [courseKey, courseData] of Object.entries(p?.courses ?? {})) {
-        const course = normalizeCourse(courseKey);
-        if (!course || (courseFilter !== undefined && course !== courseFilter))
-            continue;
-        const rawEvents = Array.isArray(courseData?.events) ? courseData.events : [];
-        for (const [index, raw] of rawEvents.entries()) {
-            if (raw?.scheduleMode !== 'weekly-block' || isoDate(raw?.date ?? raw?.dateHint ?? raw?.weekDate))
-                continue;
-            const sourceUrl = String(raw?.sourceUrl ?? '');
-            if (sourceUrl.startsWith('fixture://') || raw?.sourceKind === 'practice-fallback-fixture' || raw?.parser === 'fixture')
-                continue;
-            const program = raw?.program ?? courseData?.specialty ?? p?.specialty;
-            if (!VALID_PROGRAMS.has(program) || (programFilter !== undefined && program !== programFilter))
-                continue;
-            const weekStart = isoDate(raw?.weekStart);
-            const weekNumber = Number(raw?.weekNumber);
-            const time = normalizeTimeRange(`${raw?.start ?? ''} ${raw?.end ?? ''}`) ?? normalizeTimeRange(raw?.time);
-            const subject = cleanSubject(raw?.subject ?? raw?.discipline ?? raw?.name);
-            if (!weekStart || !Number.isInteger(weekNumber) || weekNumber < 1 || weekNumber > 60 || !time || !subject)
-                continue;
-            const stream = normalizeStream(raw?.stream);
-            const rawGroups = Array.isArray(raw?.groups) ? raw.groups : (raw?.group != null ? [raw.group] : []);
-            const groups = rawGroups.map(normalizeGroup).filter(Boolean);
-            // An unscoped row must not be made visible to every student.
-            if (!groups.length)
-                continue;
-            for (const group of groups) {
-                out.push({ id: String(raw?.id ?? `${program}-${course}-${group}-${weekNumber}-${time.start}-${time.end}-${subject}-${index}`), program, course, group, stream, weekNumber, weekStart, weekRangeStart: isoDate(raw?.weekRangeStart) || undefined, weekRangeEnd: isoDate(raw?.weekRangeEnd) || undefined, start: time.start, end: time.end, subject, location: cleanLocation(raw?.location), teacher: cleanTeacher(raw?.teacher), type: normalizeType([raw?.type, raw?.classType, raw?.lessonType, raw?.sessionType].filter(Boolean).join(' '), raw?.subject ?? raw?.discipline ?? raw?.name ?? subject), sourceUrl: sourceUrl || undefined, sourceTitle: typeof raw?.sourceTitle === 'string' ? raw.sourceTitle : undefined });
-            }
-        }
-    }
-    const unique = new Map();
-    for (const e of out) {
-        const key = [e.program, e.course, e.group, e.stream ?? '', e.weekNumber, e.weekStart, e.start, e.end, e.subject.toLocaleLowerCase('ru-RU'), e.location.toLocaleLowerCase('ru-RU')].join('|');
-        if (!unique.has(key))
-            unique.set(key, e);
-    }
-    return [...unique.values()].sort((a, b) => a.weekNumber - b.weekNumber || a.group.localeCompare(b.group, 'ru') || a.start.localeCompare(b.start) || a.subject.localeCompare(b.subject, 'ru'));
-}
 export function normalizeLiveEvents(payload) {
     const result = [];
     const p = payload;
@@ -86,17 +46,10 @@ export function normalizeLiveEvents(payload) {
             continue;
         const rawEvents = Array.isArray(courseData?.events) ? courseData.events : [];
         for (const [index, raw] of rawEvents.entries()) {
-            // Fixture/test schedules are never production timetable data. Fail closed even if a stale or
-            // misconfigured remote manifest accidentally includes them.
-            const sourceUrl = String(raw?.sourceUrl ?? '');
-            const sourceKind = String(raw?.sourceKind ?? '');
-            if (sourceUrl.startsWith('fixture://') || sourceKind === 'practice-fallback-fixture' || String(raw?.parser ?? '') === 'fixture')
-                continue;
             const directDate = isoDate(raw?.date ?? raw?.dateHint ?? raw?.weekDate);
-            // Weekly rotation-matrix columns are not weekday identifiers. Never turn matrixSlots
-            // into calendar dates; those assignments are emitted by normalizeWeeklyBlocks instead.
+            const matrixSlots = Array.isArray(raw?.matrixSlots) ? raw.matrixSlots.map((v) => Number(v)).filter((n) => Number.isInteger(n) && n >= 0 && n <= 6) : [];
             const weekStart = isoDate(raw?.weekStart);
-            const blockDates = directDate ? [directDate] : [];
+            const blockDates = directDate ? [directDate] : (raw?.scheduleMode === 'weekly-block' && weekStart && matrixSlots.length ? matrixSlots.map((slot) => addIsoDays(weekStart, slot)).filter(Boolean) : []);
             const time = normalizeTimeRange(`${raw?.start ?? ''} ${raw?.end ?? ''}`) ?? normalizeTimeRange(raw?.time);
             const subject = cleanSubject(raw?.subject ?? raw?.discipline ?? raw?.name);
             const stream = normalizeStream(raw?.stream);
@@ -117,12 +70,48 @@ export function normalizeLiveEvents(payload) {
                     if (!group)
                         continue;
                     for (const slot of doubleSlots) {
-                        result.push({ id: String(raw?.id ? `${raw.id}-${date}-${slot.doublePart ?? 0}` : `${program}-${course}-${group}-${date}-${slot.start}-${slot.end}-${subject}-${index}-${slot.doublePart ?? 0}`), program, course, group, stream, date, start: slot.start, end: slot.end, subject, location: cleanLocation(raw?.location), teacher: cleanTeacher(raw?.teacher), type: normalizeType([raw?.type, raw?.classType, raw?.lessonType, raw?.sessionType].filter(Boolean).join(' '), raw?.subject ?? raw?.discipline ?? raw?.name ?? subject), half: normalizeHalf(raw?.half), double: slot.double, orgMerged: raw?.orgMerged === true || undefined, mergedConsecutive: raw?.mergedConsecutive === true || undefined, doublePart: slot.doublePart, doubleOf: slot.doubleOf, durationMinutes: slot.durationMinutes, weeks: raw?.weekNumber ? `нед. ${Array.isArray(raw.weekNumber) ? raw.weekNumber.join(', ') : String(raw.weekNumber)}` : undefined, sourceUrl: raw?.sourceUrl, sourceTitle: raw?.sourceTitle, sourceKind: 'live-json', confidence: 1 });
+                        result.push({ id: String(raw?.id ? `${raw.id}-${date}-${slot.doublePart ?? 0}` : `${program}-${course}-${group}-${date}-${slot.start}-${slot.end}-${subject}-${index}-${slot.doublePart ?? 0}`), program, course, group, stream, date, start: slot.start, end: slot.end, subject, location: cleanLocation(raw?.location), teacher: cleanTeacher(raw?.teacher), type: normalizeType(raw?.type, subject), half: normalizeHalf(raw?.half), double: slot.double, orgMerged: raw?.orgMerged === true || undefined, mergedConsecutive: raw?.mergedConsecutive === true || undefined, doublePart: slot.doublePart, doubleOf: slot.doubleOf, durationMinutes: slot.durationMinutes, weeks: raw?.weekNumber ? `нед. ${Array.isArray(raw.weekNumber) ? raw.weekNumber.join(', ') : String(raw.weekNumber)}` : undefined, sourceUrl: raw?.sourceUrl, sourceTitle: raw?.sourceTitle, sourceKind: 'live-json', confidence: 1 });
                     }
                 }
         }
     }
     return mergeAutoSplitDoubleSlots(dedupe(result));
+}
+export function normalizeWeeklyBlocks(payload, program, course) {
+    const p = payload;
+    const courseData = p?.courses?.[String(course)];
+    if (!courseData || courseData.specialty !== program)
+        return [];
+    const rows = Array.isArray(courseData.events) ? courseData.events : [];
+    const result = [];
+    for (const [index, raw] of rows.entries()) {
+        if (raw?.scheduleMode !== 'weekly-block')
+            continue;
+        const weekNumber = Number(raw?.calendarWeekNumber ?? raw?.weekNumber ?? raw?.matrixWeekNumber);
+        if (!Number.isInteger(weekNumber) || weekNumber < 1 || weekNumber > 52)
+            continue;
+        const time = normalizeTimeRange(`${raw?.start ?? ''} ${raw?.end ?? ''}`) ?? normalizeTimeRange(raw?.time);
+        const subject = cleanSubject(raw?.subject ?? raw?.discipline ?? raw?.name);
+        if (!time || !subject)
+            continue;
+        const stream = normalizeStream(raw?.stream);
+        const group = normalizeGroup(raw?.group) || (stream ? 'ALL' : '');
+        if (!group)
+            continue;
+        const weekRangeStart = isoDate(raw?.weekRangeStart) ? raw.weekRangeStart : undefined;
+        const weekRangeEnd = isoDate(raw?.weekRangeEnd) ? raw.weekRangeEnd : undefined;
+        result.push({ id: String(raw?.id ?? `${program}-${course}-${group}-${stream ?? 'all'}-week-${weekNumber}-${time.start}-${subject}-${index}`), program, course, group, stream, weekNumber, weekRangeStart, weekRangeEnd, start: time.start, end: time.end, subject, location: cleanLocation(raw?.location), teacher: cleanTeacher(raw?.teacher), type: normalizeType(raw?.type, subject), sourceUrl: typeof raw?.sourceUrl === 'string' ? raw.sourceUrl : undefined });
+    }
+    return dedupeWeeklyBlocks(result);
+}
+function dedupeWeeklyBlocks(blocks) {
+    const unique = new Map();
+    for (const block of blocks) {
+        const key = [block.program, block.course, block.group, block.stream ?? '', block.weekNumber, block.start, block.end, block.subject.toLocaleLowerCase('ru-RU'), block.location.toLocaleLowerCase('ru-RU')].join('|');
+        if (!unique.has(key))
+            unique.set(key, block);
+    }
+    return [...unique.values()];
 }
 function mergeAutoSplitDoubleSlots(events) {
     const ordered = [...events].sort((a, b) => [a.program, a.course, a.group, a.stream ?? '', a.date, a.subject, a.location, a.teacher, a.type, a.half ?? '', a.start].join('|').localeCompare([b.program, b.course, b.group, b.stream ?? '', b.date, b.subject, b.location, b.teacher, b.type, b.half ?? '', b.start].join('|')));

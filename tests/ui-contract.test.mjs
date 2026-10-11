@@ -69,11 +69,17 @@ test('responsive and accessibility contract is present',()=>{
  assert.match(html,/aria-live="polite"/);
 });
 
-test('built static schedule exposes normalized continuous 4K double block',async()=>{
+test('built static schedule exposes 4K practice blocks by official week without inventing dates',async()=>{
  const snapshot=JSON.parse(await readFile(new URL('../dist/data/schedules/31.05.01/4.json',import.meta.url),'utf8'));
- assert.ok(snapshot.events.length>500);
- const rows=snapshot.events.filter(e=>e.group==='424'&&e.date==='2026-10-05'&&e.subject==='Эндокринология');
- assert.deepEqual(rows.map(e=>[e.start,e.end,e.doublePart,e.type,e.mergedConsecutive]),[['13:30','16:55',undefined,'practice',true]]);
+ assert.ok(snapshot.events.length+snapshot.weeklyBlocks.length>500);
+ const rows=snapshot.weeklyBlocks.filter(e=>e.group==='413'&&e.weekNumber===5&&e.type==='practice'&&e.start==='13:30');
+ assert.deepEqual(rows.map(e=>[e.weekRangeStart,e.weekRangeEnd,e.start,e.end,e.stream,e.type]),[['2026-09-28','2026-10-03','13:30','16:55','B','practice']]);
+ assert.equal('weekday' in rows[0]||'date' in rows[0],false);
+});
+
+test('unpublished courses are labelled as unpublished rather than as load failures',()=>{
+ assert.match(app,/Нет опубликованных данных/);
+ assert.match(app,/healthMessage\.includes\('нет опубликован'\)/);
 });
 
 

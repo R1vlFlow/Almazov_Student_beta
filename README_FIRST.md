@@ -4,7 +4,9 @@
 Версия интерфейса: **2.8.0-rc.5**.
 Движок официального расписания: **4.9.0-rc.1**.
 
-> **Статус данных на 10.10.2026: BLOCKED_FOR_PRODUCTION.** Полный live-sync и SHA-256 проверка байтов официальных PDF не выполнены в этой среде (DNS недоступен). Локальный индекс явно помечен как `local-recovery-snapshot` и не является полным живым расписанием. В текущем локальном снимке отсутствуют прямые записи практики для 42 групп лечебного дела: группа 103, группы 217–222 и 225–229, группы 501–512 и группы 601–618. При этом официальные ссылки на соответствующие PDF существуют; эти группы нужно восстановить разбором опубликованных файлов, не синтетическими записями. Текущий официальный хаб публикует 10 комплектов КУГ из 17 возможных сочетаний: Лечебное дело 1–6, Педиатрия 1–2 и Клиническая психология 1–2; для остальных 7 курсов ссылки на хабе не опубликованы. Прямые URL всех 10 опубликованных КУГ внесены в `data/kug-source-manifest.json`, но SHA-256 остаётся пустым до live-загрузки. Практические матрицы 4/5/6 курсов содержат конфликтующие даты/годы в шапках; их нельзя превращать в датированные пары без официальной привязки к неделям. Подробности по каждой группе и источнику: [`reports/official-coverage-audit-2026-10-10.md`](reports/official-coverage-audit-2026-10-10.md) и [`docs/PRODUCTION_SYNC_AND_RELEASE.md`](docs/PRODUCTION_SYNC_AND_RELEASE.md). Не включай `productionEligible`, пока live-хеши, даты недель, все опубликованные группы/потоки и specialist snapshot не будут проверены.
+> **Статус данных на 11.10.2026: BLOCKED_FOR_PRODUCTION.** Последняя записанная синхронизация получила 10 PDF КУГ, но отчёт содержит SHA-256 только для 6 и четыре ошибки разбора; новый прямой запрос PDF завершился тайм-аутом. Официальный хаб публикует 10 КУГ: Лечебное дело 1–6, Педиатрия 1–2, Клиническая психология 1–2. Локальный снимок неполон: нет прямой практики для группы 103, групп 217–222 и 225–229, групп 501–512 и групп 601–618. Пока официальные PDF не будут скачаны и разобраны, недостающие занятия не добавлять по догадке. См. [`reports/official-coverage-audit-2026-10-10.md`](reports/official-coverage-audit-2026-10-10.md) и [`docs/PRODUCTION_SYNC_AND_RELEASE.md`](docs/PRODUCTION_SYNC_AND_RELEASE.md).
+
+> **Локальный режим:** данные расписания загружаются из `dist/data/schedules`; для работы не требуются API, Redis или доступ к сети. Личные события и настройки хранятся в браузере. Обращения и заметки поддержки также остаются на этом устройстве и не отправляются. Это работоспособная статическая сборка, но её расписание пока неполное.
 
 
 ## Integration changes in RC5 (2026-10-11)
@@ -16,25 +18,30 @@
 
 Validation for this patch: TypeScript build passes, Node tests pass 83/83, canonical Python regression passes 13/13, and production/data/cache contracts pass when run individually. The environment lacks npm lockfile/dependencies for minification, so the current `dist` is not minified. Official live-sync remains blocked by network/DNS and the stored recovery snapshot remains explicitly partial; this RC5 is an integration patch, not a production declaration.
 
-## Установка и правильная публикация
+## Локально, без API/backend
 
-1. Распакуй ZIP локально.
-2. Загрузи **содержимое** архива в корень GitHub-репозитория, включая `.github/`, `public/`, `src/`, `scripts/`, `package.json` и актуальный `dist/`.
-3. В GitHub открой **Settings → Pages → Build and deployment** и выбери **GitHub Actions** как источник публикации. Не выбирай `Deploy from a branch` для старой root-страницы.
-4. Открой **Actions → Deploy GitHub Pages** и дождись зелёного завершения `build-deploy`. После публикации открывай адрес Pages **без `/dist/`** (например, `https://<owner>.github.io/<repo>/`): workflow публикует содержимое папки `dist/` как корень сайта. Для обновления официального расписания отдельно запускай workflow синхронизации.
-5. В приложении открой **Настройки** и проверь значение «Версия сборки». Оно должно соответствовать файлу `dist/version.json` из последнего релиза.
+```bash
+npm run start:static
+```
 
-Если адрес в браузере содержит `/dist/`, проверь **Settings → Pages → Build and deployment**: это обычно указывает на публикацию ветки вместо GitHub Actions либо на открытие вложенного каталога. При GitHub Actions правильный адрес — корень Pages-сайта. Service worker проверяет новый релиз, а HTML/JS/CSS получают content-based версию.
+Открой `http://127.0.0.1:4173`. Эта команда запускает только статическую раздачу уже собранной папки `dist/`. Если нужно пересобрать приложение после изменения исходников: `npm install`, затем `npm run build:start:static`. Без npm можно запустить имеющуюся сборку напрямую: `node scripts/serve-static.mjs`. В любом случае API, Redis и `npm start` не нужны.
+
+Static-режим показывает опубликованные источником курсы, потоки и группы, которые присутствуют в снимках. Непубликованные сочетания остаются пустыми с пометкой об отсутствии официального источника; приложение не подставляет расписание другой группы или курса.
+
+## Публикация
+
+Запрос охватывает локальный статический запуск. В этой копии репозитория отсутствует каталог `.github/workflows`, а live-данные не проходят production gate. Публикация на GitHub Pages не настроена и не выполняется.
 
 ## Независимая перепроверка кода
 
 По итогам аудита обновлены регрессионные контракты, исправлена текущая ссылка на ПЗ 4Б, добавлена узкая проверка метаданных Педиатрии 2 курса и введён строгий pre-deploy gate. `npm run qa` завершился с кодом 0 (последний локальный прогон); новая проверка Педиатрии закрыта отдельными позитивными/негативными тестами. Локальная сборка по-прежнему неминифицирована, live SHA-256 отсутствуют, и `python scripts/validate_production_release.py` обязан завершаться с BLOCKED до сетевой синхронизации. Подробности: [`docs/PRODUCTION_SYNC_AND_RELEASE.md`](docs/PRODUCTION_SYNC_AND_RELEASE.md).
 
-## Установка (подробно)
+## Данные и функции локальной версии
 
-1. Убедись, что `.github/workflows/sync-official-schedules.yml` сохранён.
-2. Открой **Actions → Sync official schedules and deploy → Run workflow**.
-3. GitHub Actions обнаружит официальные документы, обновит `data/official-schedules.json`, проверит данные и опубликует `dist/`.
+- Расписание, курс/поток/группа и КУГ читаются из статических файлов `dist/`; приложение не обращается к API, Redis, внешнему серверу расписаний или аналитике.
+- Профиль, тема, домашние задания, личные события и ссылки сохраняются в браузере. Файлы материалов и заметки поддержки хранятся в IndexedDB этого браузера.
+- Запись поддержки — локальная заметка, а не отправленное обращение. Приложение показывает это рядом с записью.
+- Данные расписания в этом снимке неполные для части групп. Статическая сборка не заполняет пропуски расписанием другой группы и не назначает день недели матричному занятию.
 
 ## Важное
 
@@ -44,7 +51,7 @@ Validation for this patch: TypeScript build passes, Node tests pass 83/83, canon
 - Персонализация хранится в `localStorage`, бинарные пользовательские материалы — в IndexedDB браузера (до 25 MiB на файл). Первая миграция схемы делает резервную копию прежнего центрального JSON и не удаляет legacy-ключи. Личные данные не синхронизируются между устройствами автоматически; очистка хранилища браузера может удалить локальные материалы.
 - GitHub Pages не распаковывает ZIP автоматически: в репозиторий загружается содержимое архива, а не сам ZIP.
 
-**Ручной импорт расписания:** PDF, XLSX/XLS, ODS, CSV/TSV, DOCX, PPTX, HTML, TXT/RTF и изображения с OCR; формат определяется по содержимому, а не только по расширению.
+**Обновление официального расписания:** пользовательского импорта файлов в интерфейсе нет. Статический сайт читает только вложенные snapshots. Команда `npm run sync:official` предназначена для обновления исходных данных в среде с доступом к сайту; перед её использованием нужно устранить текущие пробелы покрытия и пройти строгие проверки.
 
 **Пользовательские материалы:** PDF, DOCX, XLSX, PPTX, ZIP, JPG/JPEG и PNG; файлы доступны в том же браузере для выбранной программы/курса/группы.
 
@@ -65,4 +72,4 @@ Validation for this patch: TypeScript build passes, Node tests pass 83/83, canon
 
 ## Full project package (2026-10-11)
 
-This archive contains the complete current project tree, generated `dist`, schedule data, tests, fixtures, workflows and audit reports. See [`PACKAGE_STATUS_2026-10-11.md`](PACKAGE_STATUS_2026-10-11.md) for the latest package scope and exact production blockers. `npm run qa` passed locally, but the build is not minified in this runtime and official live-sync/SHA-256 verification has not passed; the project remains `BLOCKED_FOR_PRODUCTION` until the live release gate is zero.
+This archive contains the current project tree, generated `dist`, schedule data, tests, fixtures and audit reports. See [`PACKAGE_STATUS_2026-10-11.md`](PACKAGE_STATUS_2026-10-11.md) and [`reports/data-coverage-latest.md`](reports/data-coverage-latest.md) for current readiness and blockers. The static build works locally, but the schedule data remains `not-ready` for publication until missing and conflicting assignments are resolved and specialist recovery snapshots are verified.

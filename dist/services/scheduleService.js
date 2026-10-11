@@ -1,8 +1,9 @@
-import { LIVE_LD_JSON, PROGRAMS, sourceFor, sourcesFor } from '../data/catalog.js?v=3c8a77fe603e71c2';
-import { validateScheduleIndex, normalizeLiveEvents, normalizeWeeklyBlocks } from '../core/validate.js?v=3c8a77fe603e71c2';
-import { saveCache, readCache } from './cache.js?v=3c8a77fe603e71c2';
+import { LIVE_LD_JSON, PROGRAMS, sourceFor, sourcesFor } from '../data/catalog.js?v=d1d44af686a9e490';
+import { validateScheduleIndex, normalizeLiveEvents, normalizeWeeklyBlocks } from '../core/validate.js?v=d1d44af686a9e490';
+import { saveCache, readCache } from './cache.js?v=d1d44af686a9e490';
 const API_BASE = './api/schedule';
 const memory = new Map();
+function isStaticRuntime() { return typeof document !== 'undefined' && document.documentElement.dataset.runtimeMode === 'static'; }
 if (typeof window !== 'undefined')
     window.addEventListener('schedule-cache-invalidated', () => memory.clear());
 export async function loadSchedule(program, course) {
@@ -10,6 +11,19 @@ export async function loadSchedule(program, course) {
     const cachedResult = memory.get(key);
     if (cachedResult && cachedResult.status !== 'error')
         return cachedResult;
+    // The application is shipped as a static release. Use the schedule snapshot
+    // bundled with that release before trying the optional API, so GitHub Pages
+    // and local static hosting never wait for a backend timeout.
+    const staticResult = await loadStaticSnapshot(program, course);
+    if (staticResult && (staticResult.events.length > 0 || staticResult.status === 'unavailable')) {
+        memory.set(key, staticResult);
+        return staticResult;
+    }
+    if (isStaticRuntime()) {
+        const result = { status: 'unavailable', events: [], weeklyBlocks: [], sourceUrl: sourceFor(program, course), issues: ['STATIC_SNAPSHOT_MISSING'], message: 'Локальный снимок этого расписания отсутствует. Сервер и сетевой источник в статическом режиме не используются.' };
+        memory.set(key, result);
+        return result;
+    }
     try {
         const api = await fetch(`${API_BASE}?program=${encodeURIComponent(program)}&course=${course}`, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
         if (api.ok) {
@@ -22,20 +36,15 @@ export async function loadSchedule(program, course) {
             }
             // An old API may still return an empty/unavailable payload after a data
             // deployment. Prefer a non-empty build-stamped static snapshot if present.
-            const staticResult = await loadStaticSnapshot(program, course);
-            if (staticResult && (staticResult.events.length > 0 || staticResult.status === 'unavailable')) {
-                memory.set(key, staticResult);
-                return staticResult;
-            }
             memory.set(key, result);
             return result;
         }
     }
     catch { /* static/offline fallback below */ }
-    const staticResult = await loadStaticSnapshot(program, course);
-    if (staticResult) {
-        memory.set(key, staticResult);
-        return staticResult;
+    const staticFallback = await loadStaticSnapshot(program, course);
+    if (staticFallback) {
+        memory.set(key, staticFallback);
+        return staticFallback;
     }
     if (program === '31.05.01')
         return loadLdRemote(program, course, key);
@@ -64,9 +73,12 @@ async function loadStaticSnapshot(program, course) {
         const payload = await res.json();
         if (!Array.isArray(payload.events))
             return null;
-        if (payload.events.length === 0 && (payload.weeklyBlocks?.length ?? 0) === 0) {
-            if (payload.status === 'unpublished' || payload.status === 'unavailable')
-                return { status: 'unavailable', events: [], weeklyBlocks: Array.isArray(payload.weeklyBlocks) ? payload.weeklyBlocks : [], generatedAt: payload.generatedAt, sourceUrl: payload.sourceUrl, sourceName: payload.sourceName, issues: Array.isArray(payload.issues) ? payload.issues : [], message: payload.message ?? 'Официальный источник пока не публикует расписание для выбранного курса.' };
+        const weeklyBlocks = Array.isArray(payload.weeklyBlocks) ? payload.weeklyBlocks : [];
+        if (payload.events.length === 0 && weeklyBlocks.length === 0) {
+            if (payload.status === 'unpublished')
+                return { status: 'unavailable', events: [], generatedAt: payload.generatedAt, sourceUrl: payload.sourceUrl, sourceName: payload.sourceName, issues: Array.isArray(payload.issues) ? payload.issues : [], coverage: payload.coverage, message: payload.message ?? 'Нет опубликованных данных для выбранного курса.' };
+            if (payload.status === 'unavailable')
+                return { status: 'unavailable', events: [], generatedAt: payload.generatedAt, sourceUrl: payload.sourceUrl, sourceName: payload.sourceName, issues: Array.isArray(payload.issues) ? payload.issues : [], coverage: payload.coverage, message: payload.message ?? 'Расписание для выбранного курса недоступно.' };
             return null;
         }
         const status = (payload.status === 'partial' || payload.status === 'cache' ? 'cache' === payload.status ? 'cache' : 'partial' : 'live');
@@ -75,7 +87,7 @@ async function loadStaticSnapshot(program, course) {
         const issues = Array.isArray(payload.issues) ? [...payload.issues] : [];
         if (stale)
             issues.push('SCHEDULE_SNAPSHOT_STALE');
-        return { status: finalStatus, events: payload.events, weeklyBlocks: Array.isArray(payload.weeklyBlocks) ? payload.weeklyBlocks : [], generatedAt: payload.generatedAt, sourceUrl: payload.sourceUrl, sourceName: payload.sourceName, issues, message: payload.message ?? `${stale ? 'Последний сохранённый snapshot' : 'Static snapshot'} · ${payload.events.length} событий` };
+        return { status: finalStatus, events: payload.events, weeklyBlocks, generatedAt: payload.generatedAt, sourceUrl: payload.sourceUrl, sourceName: payload.sourceName, issues, coverage: payload.coverage, message: payload.message ?? `${stale ? 'Последний сохранённый snapshot' : 'Static snapshot'} · ${payload.events.length} событий, ${weeklyBlocks.length} назначений по неделям` };
     }
     catch {
         return null;
@@ -92,7 +104,7 @@ async function loadLdRemote(program, course, key) {
             throw new Error(validation.issues.filter(i => i.level === 'error').map(i => i.message).join('; '));
         const events = normalizeLiveEvents(payload).filter(e => e.program === program && e.course === course);
         const weeklyBlocks = normalizeWeeklyBlocks(payload, program, course);
-        const result = { status: 'live', events, weeklyBlocks, generatedAt: payload.generatedAt, sourceUrl: LIVE_LD_JSON, sourceName: 'official-schedules.json', issues: validation.issues.map(i => i.message), message: `Live snapshot ${formatInstant(payload.generatedAt)} · ${events.length} событий` };
+        const result = { status: 'live', events, weeklyBlocks, generatedAt: payload.generatedAt, sourceUrl: LIVE_LD_JSON, sourceName: 'official-schedules.json', issues: validation.issues.map(i => i.message), message: `Live snapshot ${formatInstant(payload.generatedAt)} · ${events.length} событий, ${weeklyBlocks.length} назначений по неделям` };
         await saveCache(`raw:${program}`, payload);
         memory.set(key, result);
         return result;
@@ -103,7 +115,7 @@ async function loadLdRemote(program, course, key) {
         if (payload) {
             const events = normalizeLiveEvents(payload).filter(e => e.program === program && e.course === course);
             const weeklyBlocks = normalizeWeeklyBlocks(payload, program, course);
-            const result = { status: 'cache', events, weeklyBlocks, generatedAt: payload.generatedAt, sourceUrl: LIVE_LD_JSON, sourceName: 'last verified snapshot', issues: [], message: `Сеть недоступна. Показан последний проверенный snapshot · ${events.length} событий` };
+            const result = { status: 'cache', events, weeklyBlocks, generatedAt: payload.generatedAt, sourceUrl: LIVE_LD_JSON, sourceName: 'last verified snapshot', issues: [], message: `Сеть недоступна. Показан последний проверенный snapshot · ${events.length} событий, ${weeklyBlocks.length} назначений по неделям` };
             memory.set(key, result);
             return result;
         }

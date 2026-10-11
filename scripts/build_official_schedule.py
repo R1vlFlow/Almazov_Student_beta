@@ -58,6 +58,50 @@ def normalize_event_time(event):
     event['start'],event['end']=start,end
     return True
 
+def materialize_official_weekday_dates(courses):
+    """Resolve explicitly printed weekday + academic-week rows to real dates.
+
+    Daily schedule PDFs expose both a week number and a weekday. Only those
+    records can be dated this way. Week-matrix columns without a printed weekday
+    remain weekly blocks and are never converted to arbitrary dates.
+    """
+    path=Path('data/academic-weeks-2026-2027.json')
+    if not path.exists():
+        raise RuntimeError('Official academic-week calendar is required to resolve dated timetable rows')
+    calendar=json.loads(path.read_text(encoding='utf-8'))
+    if calendar.get('status')!='live-verified' or calendar.get('academicYear')!='2026/2027':
+        raise RuntimeError('Official academic-week calendar is not live-verified')
+    weeks={int(row['weekNumber']):row for row in calendar.get('weeks',[]) if isinstance(row,dict)
+           and str(row.get('weekNumber','')).isdigit()}
+    unresolved=[]; mapped=0
+    for course_id,course in courses.items():
+        for event in course.get('events',[]):
+            if event.get('date') or event.get('scheduleMode')=='weekly-block':
+                continue
+            try:
+                week=weeks.get(int(event.get('weekNumber')))
+                weekday=int(event.get('weekday'))
+                if not week or weekday not in range(7):
+                    raise ValueError('missing_official_week_or_weekday')
+                first=datetime.date.fromisoformat(week['from']); last=datetime.date.fromisoformat(week['to'])
+                target=first+datetime.timedelta(days=(weekday-first.weekday())%7)
+                if target>last:
+                    raise ValueError('weekday_outside_official_week')
+                event['date']=target.isoformat()
+                event['scheduleMode']='official-weekday-occurrence'
+                event['calendarWeekNumber']=int(event['weekNumber'])
+                event['weekRangeStart']=week['from']; event['weekRangeEnd']=week['to']
+                event['weekCalendarSource']=calendar.get('source',{}).get('url')
+                event['weekCalendarSha256']=calendar.get('source',{}).get('sha256')
+                event['weekCalendarStatus']=calendar.get('status')
+                event['dateResolution']='official-week-calendar-2026-2027'
+                mapped+=1
+            except (TypeError,ValueError,KeyError) as exc:
+                unresolved.append({'course':str(course_id),'group':str(event.get('group','')),
+                                   'weekNumber':event.get('weekNumber'),'weekday':event.get('weekday'),
+                                   'reason':str(exc),'sourceUrl':event.get('sourceUrl')})
+    return mapped,unresolved,calendar.get('source',{}).get('url')
+
 
 def _clock_minutes(value):
     h,m=map(int,str(value).split(':')); return h*60+m
@@ -1522,6 +1566,10 @@ def discover_sources(sess):
         for a in soup.find_all('a',href=True):
             href=urljoin(PAGE,a['href'])
             txt=norm(a.get_text(' ',strip=True)); low=(txt+' '+href).lower()
+            # Debt-liquidation notices are not the regular course schedule. A
+            # zero-event document must never be accepted as a practice source.
+            if any(token in low for token in ('ликвидац', 'задолженн', 'likvidacziya', 'zadolzhenn')):
+                continue
             if any(x in low for x in ('педиатрия','клиническая психология','куг','календар','индивидуаль','зач.кн')): continue
             if not re.search(r'(?:[1-6]k|[1-6]\s*курс)',low,re.I): continue
             # Schedule documents may be PDF, XLSX, XLS, ODS, DOCX, HTML, CSV,
@@ -1699,6 +1747,36 @@ def validate_course(course_id,c):
         if pc<3: errs.append(f'{cid}/{label}: suspiciously few practice events: {pc}')
     return errs
 
+def course_group_coverage(course_id,c):
+    """Describe expected group/kind coverage without inferring missing lessons."""
+    cid=str(course_id); streams=c.get('streams') if isinstance(c.get('streams'),dict) else {}
+    events=c.get('events') if isinstance(c.get('events'),list) else []
+    result={'status':'full','streams':{},'expectedGroups':0,'missingGroups':[]}
+    expected_streams=('A','B') if cid in {'1','2','3','4','5'} else ('',)
+    for stream in expected_streams:
+        groups=[str(group) for group in ROSTER_CONTRACT.get(cid,{}).get(stream,[])]
+        rows={}
+        for group in groups:
+            group_events=[e for e in events if str(e.get('group'))==group and str(e.get('stream') or '')==stream]
+            shared_lectures=[e for e in events if str(e.get('group','')).upper()=='ALL'
+                             and e.get('type')=='lecture' and str(e.get('stream') or '') in ('',stream)]
+            missing=[]
+            if not any(e.get('type')=='lecture' for e in group_events) and not shared_lectures:
+                missing.append('lecture')
+            if not any(e.get('type')=='practice' for e in group_events):
+                missing.append('practice')
+            rows[group]={'status':'partial' if missing else 'full','missingKinds':missing,
+                         'verifiedEventCount':len(group_events)+len(shared_lectures)}
+            if missing:
+                result['missingGroups'].append({'stream':stream,'group':group,'missingKinds':missing})
+        result['streams'][stream or 'common']={'status':'partial' if any(x['status']=='partial' for x in rows.values()) else 'full',
+                'expectedGroups':groups,'groups':rows}
+        result['expectedGroups']+=len(groups)
+    if result['missingGroups']:
+        result['status']='partial'
+    result['coveredGroups']=result['expectedGroups']-len({x['group'] for x in result['missingGroups']})
+    return result
+
 def apply_verified_schedule_overrides(courses):
     """Apply explicitly verified student-schedule overlays after official parsing.
 
@@ -1816,7 +1894,25 @@ def main():
     applied_overrides=apply_verified_schedule_overrides(courses)
     if applied_overrides:
         print(f'APPLIED VERIFIED SCHEDULE OVERRIDES: {applied_overrides}')
+    mapped_weekday_events,unresolved_weekday_events,week_calendar_source=materialize_official_weekday_dates(courses)
+    week_calendar_rows={int(row['weekNumber']):row for row in json.loads(Path('data/academic-weeks-2026-2027.json').read_text(encoding='utf-8')).get('weeks',[])}
+    for course in courses.values():
+        for source in course.get('sources',[]):
+            source_events=[e for e in course.get('events',[]) if e.get('sourceUrl')==source.get('url')]
+            def date_is_in_official_week(event):
+                date_value=event.get('date')
+                if not date_value:
+                    return event.get('scheduleMode')=='weekly-block' and event.get('weekCalendarStatus')=='live-verified'
+                week=week_calendar_rows.get(int(event.get('weekNumber') or event.get('calendarWeekNumber') or 0))
+                if not week:
+                    return date_value.startswith(('2026-','2027-'))
+                return week.get('from')<=date_value<=week.get('to')
+            if source_events and all(date_is_in_official_week(event) for event in source_events):
+                source['dateResolution']='official-week-calendar-2026-2027'
+                source['matrixWeekOffset']=0
+                source['matrixWeekAlignment']='explicit source dates/weekdays verified against official calendar ranges'
     course_warnings=[]
+    course_coverage={}
     known_subjects=[str(e.get('subject','')) for course_data in courses.values() for e in course_data.get('events',[]) if str(e.get('subject','')).strip()]
     for cid,c in courses.items():
         # First-week and semester lecture PDFs can overlap on week 1. Remove
@@ -1828,13 +1924,31 @@ def main():
             if key in seen: continue
             seen.add(key); unique.append(e)
         c['events']=unique
-        c['groups']=sorted({g for gs in c['streams'].values() for g in gs},key=int)
+        # Roster identity comes from the established official roster contract,
+        # not from the set of groups that happen to appear in the PDF. Keeping
+        # group 424 selectable lets coverage mark its missing assignment.
+        if cid in ROSTER_CONTRACT:
+            for stream,groups in ROSTER_CONTRACT[cid].items(): c['streams'][stream]=[str(g) for g in groups]
+        c['groups']=sorted({str(g) for gs in c['streams'].values() for g in gs},key=int)
+        quarantined=list(c.get('quarantinedEvents',[])); cleaned=[]
         for e in c['events']:
             e['location']=repair_subject_leaks_from_location(e.get('location',''),known_subjects)
             subject,leading_location=split_leading_location(e.get('subject',''))
             if leading_location:
                 e['subject']=subject
                 e['location']=clean_location('; '.join(x for x in (leading_location,e.get('location','')) if x))
+            if not str(e.get('location') or '').strip() and LEADING_LOCATION_START_RE.match(str(e.get('subject') or '')):
+                quarantined.append({**e,'quarantineReason':'PDF extraction placed an off-site address in the subject field; source cell could not be split without guessing'})
+                continue
+            cleaned.append(e)
+        # A text-trace/pdfplumber fallback may emit the same merged matrix cell
+        # twice after its subject/location repair. Drop only byte-equivalent
+        # semantic duplicates; preserve simultaneous distinct subjects below.
+        seen=set(); c['events']=[]
+        for e in cleaned:
+            key=(e.get('type'),e.get('stream'),e.get('group'),e.get('weekNumber'),e.get('date'),e.get('weekday'),e.get('start'),e.get('end'),e.get('subject'),e.get('location'))
+            if key not in seen: seen.add(key); c['events'].append(e)
+        if quarantined:c['quarantinedEvents']=quarantined
         c['events'].sort(key=event_sort_key)
         for e in c['events']:
             if not normalize_event_time(e): raise RuntimeError(f'{cid}: invalid time {e.get("start")} - {e.get("end")}')
@@ -1842,25 +1956,42 @@ def main():
             if not e.get('subject'): raise RuntimeError(f'{cid}: empty subject')
             if e.get('type')=='practice' and not re.fullmatch(r'\d{3}',str(e.get('group'))): raise RuntimeError(f'{cid}: practice without group')
             if e.get('type')=='lecture' and e.get('group')!='ALL': raise RuntimeError(f'{cid}: lecture became group-specific')
+        coverage=course_group_coverage(cid,c)
+        if quarantined:
+            coverage['status']='partial'
+            coverage['quarantinedEventCount']=len(quarantined)
+            coverage['quarantinedGroups']=sorted({str(e.get('group')) for e in quarantined if e.get('group')})
+        c['coverage']=coverage
+        course_coverage[cid]=coverage
         course_warnings.extend(validate_course(cid,c))
-    if course_warnings:
-        raise RuntimeError('SYNC VALIDATION FAILED:\n'+'\n'.join('  - '+w for w in course_warnings))
+    # A source may legitimately omit an expected group. Keep the freshly
+    # verified events and mark that group as missing; block malformed parsing,
+    # invalid fields, or absent source roles as before.
+    documented_coverage_gaps=[w for w in course_warnings if 'practice roster missing groups:' in w or 'no practice events for groups:' in w]
+    if unresolved_weekday_events:
+        documented_coverage_gaps.append(f'{len(unresolved_weekday_events)} official week/weekday records could not be placed within an official week')
+    blocking_warnings=[w for w in course_warnings if w not in documented_coverage_gaps]
+    if blocking_warnings:
+        raise RuntimeError('SYNC VALIDATION FAILED:\n'+'\n'.join('  - '+w for w in blocking_warnings))
     generated_at=datetime.datetime.now(datetime.timezone.utc).isoformat()
-    payload={'schemaVersion':7,'dataState':'live-generated','generatedAt':generated_at,'sourcePage':PAGE,'specialty':'31.05.01','courses':courses,'assessmentPeriods':assessment_periods,'kugSources':kug_sources,'bootstrapNote':'Generated from the official Almazov student schedule page. KUG periods are date ranges for attestation; exact exam appointments are a separate source layer when published.'}
+    has_coverage_gaps=any(row.get('status')!='full' for row in course_coverage.values()) or bool(unresolved_weekday_events)
+    data_state='live-generated-partial' if has_coverage_gaps else 'live-generated'
+    payload={'schemaVersion':7,'dataState':data_state,'generatedAt':generated_at,'sourcePage':PAGE,'specialty':'31.05.01','courses':courses,'coverage':course_coverage,'coverageWarnings':documented_coverage_gaps,'dateMapping':{'mappedWeekdayEvents':mapped_weekday_events,'unresolvedWeekdayEvents':unresolved_weekday_events,'calendarSource':week_calendar_source},'assessmentPeriods':assessment_periods,'kugSources':kug_sources,'bootstrapNote':'Generated from the official Almazov student schedule page. KUG periods are date ranges for attestation; exact exam appointments are a separate source layer when published.'}
     OUT.parent.mkdir(parents=True,exist_ok=True); tmp=OUT.with_suffix('.json.tmp'); tmp.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8'); tmp.replace(OUT)
     total=sum(len(c['events']) for c in courses.values())
     status={
-        'status':'ok','dataState':'live-generated','engineVersion':Path('SCHEDULE_ENGINE_VERSION.txt').read_text(encoding='utf-8').splitlines()[0].split(':',1)[-1].strip(),
+        'status':'partially-ready' if has_coverage_gaps else 'ok','dataState':data_state,'engineVersion':Path('SCHEDULE_ENGINE_VERSION.txt').read_text(encoding='utf-8').splitlines()[0].split(':',1)[-1].strip(),
         'generatedAt':generated_at,'sourcePage':PAGE,'schemaVersion':7,
         'courses':{k:{'groups':len(v['groups']),'events':len(v['events']),
                        'lecture':sum(e['type']=='lecture' for e in v['events']),
-                       'practice':sum(e['type']=='practice' for e in v['events'])} for k,v in courses.items()},
+                       'practice':sum(e['type']=='practice' for e in v['events']),
+                       'coverage':course_coverage.get(k)} for k,v in courses.items()},
         'assessmentPeriods':len(assessment_periods),'kugSources':len(kug_sources)
     }
     status_path=Path('data/official-sync-status.json'); status_path.write_text(json.dumps(status,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({'schemaVersion':7,'sources':len(manifest),'kugSources':len(kug_sources),'assessmentPeriods':len(assessment_periods),'events':total,'courses':{k:{'groups':len(v['groups']),'events':len(v['events']),'lecture':sum(e['type']=='lecture' for e in v['events']),'practice':sum(e['type']=='practice' for e in v['events'])} for k,v in courses.items()}},ensure_ascii=False,indent=2))
-    if course_warnings:
-        print('SYNC VALIDATION WARNINGS (published anyway, these courses/streams need a closer look):',file=sys.stderr)
-        for w in course_warnings: print('  - '+w,file=sys.stderr)
+    if documented_coverage_gaps:
+        print('SYNC PARTIAL COVERAGE (published with explicit missing-group markers):')
+        for w in documented_coverage_gaps: print('  - '+w)
 
 if __name__=='__main__': main()
