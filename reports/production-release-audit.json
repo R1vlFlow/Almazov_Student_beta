@@ -1,0 +1,55 @@
+{
+  "checkedAt": "2026-10-11T17:30:57.947954+00:00",
+  "status": "not-ready",
+  "errors": [],
+  "blockers": [
+    {
+      "code": "MISSING_GROUP_ASSIGNMENTS",
+      "items": [
+        "4/B/424 (practice)"
+      ],
+      "message": "Официальный источник не содержит подтверждённых назначений для этих групп."
+    },
+    {
+      "code": "SPECIALIST_SOURCES_UNVERIFIED",
+      "items": [
+        "31.05.02/1",
+        "31.05.02/2",
+        "37.05.01/1",
+        "37.05.01/2"
+      ],
+      "message": "Восстановительные строки нельзя считать подтверждённой синхронизацией PDF; нужны исходные байты и SHA-256."
+    },
+    {
+      "code": "NO_PUBLISHED_DATA",
+      "items": [
+        "31.05.02/3",
+        "31.05.02/4",
+        "31.05.02/5",
+        "31.05.02/6",
+        "37.05.01/3",
+        "37.05.01/4",
+        "37.05.01/5",
+        "37.05.01/6"
+      ],
+      "message": "На официальном студенческом портале нет опубликованных расписаний."
+    },
+    {
+      "code": "SCHEDULE_INTEGRITY_CONFLICTS",
+      "count": 77,
+      "message": "Найдены повторяющиеся или совпадающие по времени назначения, требующие сверки с PDF."
+    }
+  ],
+  "counts": {
+    "ldCourses": 6,
+    "specialistCourseSnapshots": 12,
+    "unpublishedSnapshots": 8,
+    "missingGroupAssignments": 1
+  },
+  "checks": {
+    "requiredKugProgramCourses": 10,
+    "academicYear": "2026/2027",
+    "hashAlgorithm": "SHA-256",
+    "maxSourceAgeHours": 36
+  }
+}

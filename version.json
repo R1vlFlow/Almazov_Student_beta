@@ -1,0 +1,9 @@
+{
+  "version": "2.8.0-rc.5",
+  "uiVersion": "2.8.0-rc.5",
+  "engineVersion": "4.9.0-rc.1",
+  "release": "OFFICIAL-PDF-RECOVERY-WEEK-MAP-STRICT-RELEASE-GATE-RC",
+  "released": "2026-10-10",
+  "releaseChannel": "rc",
+  "releaseStatus": "BLOCKED_FOR_PRODUCTION_UNTIL_LIVE_SYNC_GATE_PASSES"
+}

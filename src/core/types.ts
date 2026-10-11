@@ -1,0 +1,163 @@
+export type ProgramCode = '31.05.01' | '31.05.02' | '37.05.01';
+export type Course = 1 | 2 | 3 | 4 | 5 | 6;
+export type LessonType = 'lecture' | 'practice' | 'lab' | 'assessment' | 'other';
+export type Stream = 'A' | 'B' | null;
+export type ThemeMode = 'dark' | 'light' | 'system';
+export type LoadStatus = 'loading' | 'live' | 'cache' | 'unavailable' | 'partial' | 'error';
+export type EventStatus = 'planned' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
+export type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
+
+export interface Program {
+  code: ProgramCode;
+  title: string;
+  shortTitle: string;
+  faculty: string;
+  scheduleCourses: Course[];
+  publishedCourses: Course[];
+  officialStudentUrl: string;
+}
+
+export interface GroupRef {
+  program: ProgramCode;
+  course: Course;
+  group: string;
+  stream?: Stream;
+}
+
+export interface ScheduleEvent {
+  id: string;
+  program: ProgramCode;
+  course: Course;
+  group: string;
+  stream: Stream;
+  date: string;
+  start: string;
+  end: string;
+  subject: string;
+  location: string;
+  teacher: string;
+  type: LessonType;
+  half?: '1/2' | '2/2';
+  double?: boolean;
+  orgMerged?: boolean;
+  mergedConsecutive?: boolean;
+  doublePart?: 1 | 2;
+  doubleOf?: string;
+  durationMinutes?: number;
+  weeks?: string;
+  sourceUrl?: string;
+  sourceTitle?: string;
+  sourceKind?: 'live-json' | 'official-pdf' | 'official-xlsx' | 'official-html' | 'manual';
+  confidence?: number;
+  kind?: 'schedule' | 'personal';
+  startAt?: string;
+  endAt?: string;
+  timeZone?: string;
+  allDay?: boolean;
+  status?: EventStatus;
+  category?: string;
+  description?: string;
+  meetingUrl?: string;
+  attendees?: string[];
+  recurrence?: {frequency:RecurrenceFrequency;interval:number;weekdays?:number[];until?:string|null}|null;
+  seriesId?: string;
+  readOnly?: boolean;
+  privacy?: 'public'|'private';
+}
+
+export interface ScheduleWeeklyBlock {
+  id:string;
+  program:ProgramCode;
+  course:Course;
+  group:string;
+  stream:Stream;
+  weekNumber:number;
+  weekRangeStart?:string;
+  weekRangeEnd?:string;
+  start:string;
+  end:string;
+  subject:string;
+  location:string;
+  teacher:string;
+  type:LessonType;
+  sourceUrl?:string;
+}
+
+export interface ScheduleIndex {
+  schemaVersion: number;
+  generatedAt: string;
+  sourcePage: string;
+  specialty: ProgramCode;
+  courses: Record<string, {
+    specialty: ProgramCode;
+    groups: string[];
+    streams?: Record<string, string[]>;
+    events?: unknown[];
+    sources?: Array<{kind:string; stream?:string; title:string; url:string; events?:number}>;
+  }>;
+}
+
+export interface SourceDescriptor {
+  id: string;
+  program: ProgramCode;
+  course: Course;
+  kind: 'live-json' | 'official-pdf' | 'official-xlsx' | 'official-html' | 'unpublished';
+  title: string;
+  url: string;
+  status: 'verified' | 'published' | 'unpublished' | 'quarantined';
+  expectedSpecialty?: ProgramCode;
+  stream?: Stream;
+  notes?: string;
+}
+
+export interface CourseAvailability {
+  program: ProgramCode;
+  course: Course;
+  status: 'published' | 'partial' | 'unpublished';
+  sourceCount: number;
+  message: string;
+}
+
+export interface ScheduleLoadResult {
+  status: LoadStatus;
+  events: ScheduleEvent[];
+  weeklyBlocks?:ScheduleWeeklyBlock[];
+  generatedAt?: string;
+  sourceUrl?: string;
+  sourceName?: string;
+  issues: string[];
+  message: string;
+  coverage?: { status?: 'full'|'partial'|'unpublished'|'missing'; expectedGroups?: number; coveredGroups?: number; missingGroups?: Array<string|{stream?:string;group?:string;missingKinds?:string[]}>; streams?: Record<string,{status?:string;groups?:Record<string,{status?:string;missingKinds?:string[]}>}>; groups?: Record<string,{status?:string;missingKinds?:string[]}> };
+}
+
+export interface UserProfile {
+  program: ProgramCode;
+  course: Course;
+  group: string;
+}
+
+export type HomeworkStatus = 'todo' | 'in_progress' | 'done';
+export type HomeworkPriority = 'low' | 'medium' | 'high';
+export interface Task {
+  id: string;
+  subject: string;
+  text: string;
+  due?: string;
+  done: boolean;
+  status?: HomeworkStatus;
+  priority?: HomeworkPriority;
+  link?: string;
+  attachmentName?: string;
+  attachmentData?: string;
+  program: ProgramCode;
+  course: Course;
+  group: string;
+  createdAt: string;
+}
+
+export interface ParsedTable {
+  rows: string[][];
+  headers: string[];
+  source?: string;
+  warnings: string[];
+}

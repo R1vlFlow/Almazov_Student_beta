@@ -1,0 +1,43 @@
+{
+  "name": "almazov-schedule-hub",
+  "version": "2.8.0-rc.5",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.json && node scripts/copy-public.mjs && node scripts/validate-dist.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test tests/calendar.test.mjs tests/core.test.mjs tests/local-runtime.test.mjs tests/local-support.test.mjs tests/org-normalization.test.mjs tests/personalization-features.test.mjs tests/phase2.test.mjs tests/static-server.test.mjs tests/ui-contract.test.mjs",
+    "test:backend": "node --test tests/api.test.mjs",
+    "test:local": "npm test",
+    "qa:local": "npm run lint && npm run test:local && node scripts/validate-dist.mjs",
+    "validate": "npm run build && node scripts/validate-dist.mjs",
+    "qa": "npm run lint && npm test && python3 scripts/run_regression_suite.py && node scripts/test-cache-invalidation.mjs && node scripts/test-deployment-contract.mjs && python3 scripts/test_kug_grid_contract.py && python3 scripts/test_live_release_contracts.py && python3 scripts/test_ci_consistency.py && python3 scripts/test_double_lesson_and_bookmark_contract.py && python3 scripts/test_schedule_coverage_contract.py && python3 tests/test_sync_parser.py && python3 tests/test_phase3_parser.py && python3 tests/test_specialist_source_discovery.py && node scripts/test-rc-contract.mjs && python3 scripts/check_theme_contrast.py && node scripts/http-acceptance.mjs && node --check server/server.mjs && node --check server/pipeline.mjs && node --check server/source-parser.mjs && node --check server/academic-config.mjs && node --check server/pdf-adapter.mjs && node --check server/xlsx-adapter.mjs && node --check server/html-adapter.mjs && node --check server/sync-schedules.mjs && node scripts/validate-project.mjs && python3 scripts/verify_engine_version.py && python3 scripts/verify_workflow_contract.py && python3 scripts/validate_release.py && python3 scripts/validate_schedule_data.py && python3 scripts/validate_generated_index.py && python3 scripts/test_official_coverage_audit.py && python3 scripts/test_offline_recovery_integrity.py && node scripts/test_recovery_snapshot_ui_contract.mjs && node scripts/smoke-server.mjs",
+    "start": "npm run build && node server/server.mjs",
+    "start:static": "node scripts/serve-static.mjs",
+    "build:start:static": "npm run build && node scripts/serve-static.mjs",
+    "sync": "node server/sync-schedules.mjs",
+    "validate-live": "node server/sync-official.mjs --validate-only",
+    "lint": "npm run typecheck && node scripts/lint-project.mjs",
+    "build:rc": "REQUIRE_MINIFICATION=1 npm run build",
+    "android:sync": "npm run build:rc && npx cap sync android",
+    "audit:official-coverage": "python3 scripts/audit_official_coverage.py",
+    "sync:official": "python3 scripts/sync_kug_and_calendar.py && python3 scripts/build_official_schedule.py && python3 scripts/build_specialist_program_schedules.py && python3 scripts/validate_production_release.py",
+    "validate:production": "python3 scripts/validate_production_release.py",
+    "recover:offline-safe": "python3 scripts/apply_official_week_calendar_to_recovery.py && python3 scripts/build_specialist_recovery_snapshot.py && python3 scripts/audit_official_coverage.py && python3 scripts/test_offline_recovery_integrity.py"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^5.4.296",
+    "xlsx": "^0.18.5",
+    "redis": "^5.7.0",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/android": "8.5.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "@capacitor/cli": "8.5.3",
+    "esbuild": "0.28.2"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

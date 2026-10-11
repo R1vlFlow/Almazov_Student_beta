@@ -1,0 +1,4 @@
+Almazov Student schedule engine: 4.9.0-rc.1
+Universal multi-faculty ingestion: v9
+Double-lessons: content-verified contiguous merge; explicit subgroup halves remain distinct
+Cache: build fingerprint + schedule-only invalidation; JSON/manifest no-store

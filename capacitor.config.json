@@ -1,0 +1,15 @@
+{
+  "appId": "com.almazov.student",
+  "appName": "Almazov Student",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false
+  },
+  "ios": {
+    "contentInset": "automatic"
+  },
+  "server": {
+    "androidScheme": "https",
+    "cleartext": false
+  }
+}
