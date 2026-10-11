@@ -1,20 +1,21 @@
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=76d98fa553e85cb5';
-import { groupsFor, streamForGroup } from './data/roster.js?v=76d98fa553e85cb5';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO } from './core/date.js?v=76d98fa553e85cb5';
-import { eventAppliesToGroup } from './core/filter.js?v=76d98fa553e85cb5';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=76d98fa553e85cb5';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=76d98fa553e85cb5';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=76d98fa553e85cb5';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=76d98fa553e85cb5';
-import { FAQ } from './ui/faq.js?v=76d98fa553e85cb5';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=76d98fa553e85cb5';
-import { fileToAttachment } from './services/supportService.js?v=76d98fa553e85cb5';
-import { createTicket, listTickets, getTicket, addTicketMessage } from './services/supportService.js?v=76d98fa553e85cb5';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=76d98fa553e85cb5';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=76d98fa553e85cb5';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=76d98fa553e85cb5';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=76d98fa553e85cb5';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=76d98fa553e85cb5';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=40390771abfddef1';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=40390771abfddef1';
+import { groupsFor, streamForGroup } from './data/roster.js?v=40390771abfddef1';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO } from './core/date.js?v=40390771abfddef1';
+import { eventAppliesToGroup } from './core/filter.js?v=40390771abfddef1';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=40390771abfddef1';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=40390771abfddef1';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=40390771abfddef1';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=40390771abfddef1';
+import { FAQ } from './ui/faq.js?v=40390771abfddef1';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=40390771abfddef1';
+import { fileToAttachment } from './services/supportService.js?v=40390771abfddef1';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=40390771abfddef1';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=40390771abfddef1';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=40390771abfddef1';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=40390771abfddef1';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=40390771abfddef1';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=40390771abfddef1';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -89,7 +90,7 @@ function localMidnightUtc(date) { return localDateTimeToUtc(`${date}T00:00`, sta
 function getDisplayEvents() {
     if (state.scheduleMode === 'kug')
         return [];
-    const selected = state.official.filter(e => eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent(e, state.timezone));
+    const selected = state.official.filter(e => eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
     const personal = state.personal.map(e => ({ id: e.id, kind: 'personal', title: e.title, description: e.description ?? '', category: e.category, status: e.status, startAt: e.startAt, endAt: e.endAt, timeZone: e.timeZone, allDay: e.allDay, location: e.location ?? '', meetingUrl: e.meetingUrl, attendees: e.attendees, recurrence: e.recurrence, seriesId: e.seriesId, readOnly: false }));
     const combined = [...selected, ...personal];
     return combined.filter(e => {
@@ -148,7 +149,7 @@ async function reloadEvents() {
     renderShell();
     renderSchedule();
 }
-export async function boot() { await ensureScheduleCacheVersion(document.documentElement.dataset.buildId ?? 'dev'); initTheme(); loadAppearance(); applyAppearance(); ensureProfile(); enhanceControls(); renderShell(); bind(); render(); void loadKugData(); await reloadEvents(); await refreshHomePersonal(); await refreshUploadedMaterials(); render(); window.setInterval(() => { if (state.page === 'home')
+export async function boot() { await ensureScheduleCacheVersion(document.documentElement.dataset.buildId ?? 'dev'); initTheme(); loadAppearance(); applyAppearance(); ensureProfile(); enhanceControls(); renderShell(); bind(); render(); void loadKugData(); await reloadEvents(); await refreshHomePersonal(); await refreshUploadedMaterials(); render(); window.dispatchEvent(new Event('app:ready')); window.setInterval(() => { if (state.page === 'home')
     renderHome(); }, 30000); }
 function render() { renderShell(); renderProfileOptions(); renderSchedule(); renderTasks(); renderFaculties(); renderResources(); renderKug(); renderFaq(state.faqQuery); renderHome(); renderSettings(); renderProfilePage(); refreshControls(); }
 function nav(page) {
@@ -161,7 +162,7 @@ function nav(page) {
     state.page = page;
     document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p === destination));
     document.querySelectorAll('[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === page));
-    $('pageTitle').textContent = { home: 'Главная', schedule: 'Расписание', homework: 'Задачи', kug: 'КУГ', resources: 'Материалы', faculties: 'Факультеты', faq: 'FAQ', settings: 'Настройки', profilePage: 'Профиль' }[page] ?? 'Almazov';
+    $('pageTitle').textContent = { home: 'Главная', schedule: 'Расписание', homework: 'Задачи', kug: 'КУГ', resources: 'Материалы', addresses: 'Адреса', faculties: 'Факультеты', faq: 'FAQ', support: 'Поддержка', settings: 'Настройки', profilePage: 'Профиль' }[page] ?? 'Almazov';
     document.body.classList.remove('menu-open');
     if (page === 'schedule')
         renderSchedule();
@@ -177,7 +178,8 @@ function nav(page) {
         renderResources();
         void refreshUploadedMaterials();
     }
-
+    if (page === 'addresses')
+        renderAddresses();
     if (page === 'settings')
         renderSettings();
     if (page === 'profilePage')
@@ -199,7 +201,7 @@ function countdownLabel(milliseconds) { const minutes = Math.max(0, Math.floor(M
     return `${hours} ч ${mins} мин`; return `${mins} мин`; }
 function renderHome() {
     const today = todayISO(state.timezone), now = Date.now();
-    const official = state.official.filter(e => eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent(e, state.timezone));
+    const official = state.official.filter(e => eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
     const events = [...official, ...state.homePersonal.map(calendarPersonal)].sort((a, b) => a.startAt.localeCompare(b.startAt));
     const weekEvents = events.filter(e => { const d = localDate(e.startAt, state.timezone); return d >= startOfWeek(today) && d <= addDays(startOfWeek(today), 6); });
     const todayEvents = events.filter(e => localDate(e.startAt, state.timezone) === today || localDate(e.endAt, state.timezone) === today);
@@ -464,6 +466,8 @@ function renderKug() {
     periodsEl.innerHTML = periods.length ? periods.map(x => `<article class="kug-period kug-${esc(x.kind)}"><div class="kug-period-mark">${x.kind === 'assessment' ? 'А' : x.kind === 'vacation' ? 'К' : x.kind === 'practice' ? 'П' : 'У'}</div><div class="kug-period-main"><b>${esc(x.label || 'Учебный период')}</b><span>${esc(kugDay(x.start))} — ${esc(kugDay(x.end))}${x.semester ? ` · семестр ${x.semester}` : ''}</span></div>${x.sourceUrl ? `<a class="btn small" href="${esc(x.sourceUrl)}" target="_blank" rel="noopener noreferrer">Источник ↗</a>` : ''}</article>`).join('') : '<div class="empty-state compact"><h3>Периоды не опубликованы</h3><p>В доступном официальном источнике пока нет подтверждённых периодов для выбранного курса. Проверьте PDF по ссылке справа.</p></div>';
     sourcesEl.innerHTML = sources.length ? sources.map(x => `<article class="kug-source"><div><b>${esc(x.title)}</b><small>${esc(kugSourceStatus(x.status))} · периодов в данных: ${x.periods}</small></div><a class="btn small" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${x.status === 'verified-bootstrap' ? 'Все документы ↗' : 'Открыть источник ↗'}</a></article>`).join('') : '<div class="empty-state compact"><h3>Источник не найден</h3><p>Для выбранного курса не найден отдельный PDF в текущем snapshot.</p><a class="btn" href="https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/" target="_blank" rel="noopener noreferrer">Все официальные документы ↗</a></div>';
 }
+function renderAddresses() { const container = $('addressList'); if (!container)
+    return; container.innerHTML = ALMAZOV_ADDRESSES.map(item => { const map = 'https://yandex.ru/maps/?text=' + encodeURIComponent(item.address); return '<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">Центр Алмазова</p><h2>' + esc(item.name) + '</h2><p>' + esc(item.address) + '</p><a class="address-source" href="' + esc(item.sourceUrl) + '" target="_blank" rel="noopener noreferrer">Официальный источник ↗</a></div><a class="btn primary address-map-link" href="' + esc(map) + '" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах ↗</a></article>'; }).join(''); }
 async function loadKugData() {
     state.kugStatus = 'loading';
     renderKug();
@@ -483,7 +487,11 @@ async function loadKugData() {
     renderKug();
 }
 function renderFaq(filter = '') { const q = filter.trim().toLowerCase(); const items = FAQ.filter(x => (state.faqCategory === 'Все' || x.category === state.faqCategory) && (`${x.question} ${x.answer}`).toLowerCase().includes(q)); $('faqCategories').innerHTML = ['Все', ...Array.from(new Set(FAQ.map(x => x.category)))].map(c => `<button class="chip-button ${c === state.faqCategory ? 'active' : ''}" data-faq-category="${esc(c)}">${esc(c)}</button>`).join(''); $('faqPopular').innerHTML = FAQ.filter(x => x.popular).slice(0, 4).map(x => `<button class="faq-popular" data-faq-open="${esc(x.id)}"><b>${esc(x.question)}</b><small>${esc(x.category)}</small></button>`).join(''); $('faqList').innerHTML = items.length ? items.map(x => `<details id="faq-${esc(x.id)}"><summary>${esc(x.question)}<span>+</span></summary><p>${esc(x.answer)}</p></details>`).join('') : `<div class="empty-state compact card"><h3>Ничего не найдено</h3><p>Попробуйте изменить запрос или категорию.</p><a class="btn" href="https://t.me/R1vlFlow_GY" target="_blank" rel="noopener noreferrer">Написать в Telegram ↗</a></div>`; }
+function renderTeacherSettings() { const box = $('subjectTeacherSettings'); if (!box)
+    return; const subjects = Array.from(new Set(state.official.filter(e => eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).map(e => e.subject))).sort((a, b) => a.localeCompare(b, 'ru')); box.innerHTML = subjects.length ? subjects.map(subject => { const key = subjectColorKey(subject), value = state.personalization.subjectTeachers[key] || ''; return '<label class="teacher-setting-row"><span><b>' + esc(subject) + '</b><small>Имя преподавателя появится в расписании</small></span><input type="text" data-subject-teacher="' + esc(key) + '" value="' + esc(value) + '" maxlength="120" autocomplete="off" placeholder="ФИО преподавателя" aria-label="Преподаватель: ' + esc(subject) + '"></label>'; }).join('') : '<p class="muted">Загрузите расписание выбранной группы, чтобы добавить преподавателей.</p>'; }
 function renderSettings() {
+    renderTeacherSettings();
+    renderTeacherSettings();
     const tz = $('settingsTimezone');
     if (tz) {
         const common = ['Europe/Zurich', 'Europe/Moscow', 'Europe/London', 'Europe/Berlin', 'Asia/Tokyo', 'America/New_York', 'America/Los_Angeles', 'UTC'];
@@ -491,11 +499,7 @@ function renderSettings() {
         tz.value = state.timezone;
     }
     const theme = themeMode();
-    document.querySelectorAll('[data-theme-choice]').forEach(button => {
-        const selected = button.dataset.themeChoice === theme;
-        button.classList.toggle('active', selected);
-        button.setAttribute('aria-checked', String(selected));
-    });
+    document.querySelectorAll('[data-theme-choice]').forEach(button => { const selected = button.dataset.themeChoice === theme; button.classList.toggle('active', selected); button.setAttribute('aria-checked', String(selected)); });
     const firstColor = $('double1');
     const secondColor = $('double2');
     firstColor.value = state.personalization.double1 || state.double1;
@@ -920,13 +924,6 @@ function bind() {
         if (!target)
             return;
         const action = target.dataset.action;
-        if (target.dataset.themeChoice) {
-            const mode = target.dataset.themeChoice;
-            applyTheme(mode);
-            state.theme = mode;
-            renderSettings();
-            return;
-        }
         if (target.dataset.page) {
             nav(target.dataset.page);
             return;
@@ -1045,6 +1042,13 @@ function bind() {
             openEventById(target.dataset.openEvent);
             return;
         }
+        if (target.dataset.themeChoice) {
+            const mode = target.dataset.themeChoice;
+            applyTheme(mode);
+            state.theme = mode;
+            renderSettings();
+            return;
+        }
         if (action === 'kug-retry') {
             void loadKugData();
             return;
@@ -1087,7 +1091,7 @@ function bind() {
             return;
         }
         if (action === 'next-period') {
-            state.focusDate = state.view === 'month' ? addDays(state.focusDate, 30) : addDays(state.focusDate, state.view === 'day' ? 1 : 7);
+            state.focusDate = state.view === 'month' ? addDays(state.focusDate, 30) : addDays(state.focusDate, state.view === 'day' ? 1 : -7);
             state.week = mondayOf(state.focusDate);
             await reloadEvents();
             render();
@@ -1177,20 +1181,6 @@ function bind() {
             await deleteSelected(id);
             return;
         }
-        if (action === 'support-new') {
-            openModal('ticketModal');
-            return;
-        }
-        if (action === 'support-retry') {
-            state.supportStatus = 'idle';
-            await loadSupport();
-            return;
-        }
-        if (action === 'support-close') {
-            state.ticketSelected = '';
-            renderSupport();
-            return;
-        }
         if (action === 'save-settings') {
             try {
                 setTimezone($('settingsTimezone').value);
@@ -1262,27 +1252,7 @@ function bind() {
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
     dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); const file = e.dataTransfer?.files?.[0]; if (!file)
         return; const transfer = new DataTransfer(); transfer.items.add(file); uploadInput.files = transfer.files; updateSelectedFile(file); });
-    document.addEventListener('submit', async (e) => { if (e.target instanceof HTMLFormElement) {
-        if (e.target.id === 'ticketForm') {
-            e.preventDefault();
-            await handleSupportSubmit(e.target);
-        }
-        if (e.target.id === 'ticketReplyForm') {
-            e.preventDefault();
-            const id = state.ticketSelected;
-            const body = $('ticketReply').value.trim();
-            if (id && body) {
-                try {
-                    const t = await addTicketMessage(id, body);
-                    state.ticketList = state.ticketList.map(x => x.id === id ? t : x);
-                    renderSupport();
-                }
-                catch (error) {
-                    toast(error instanceof Error ? error.message : 'Не удалось сохранить заметку', 'error');
-                }
-            }
-        }
-    } });
+    document.addEventListener('submit', async (e) => { if (e.target instanceof HTMLFormElement) { } });
     document.addEventListener('input', e => { const t = e.target; if (t.closest('#eventModal')) {
         saveDraft();
     } if (t.id === 'scheduleSearch') {
@@ -1346,6 +1316,11 @@ function bind() {
         const s = $('eventStart'), en = $('eventEnd');
         if (s.value && en.value) { /* values remain in selected zone by design */ }
     } setEventNotice(''); }));
+    document.addEventListener('change', e => { const input = e.target; if (!(input instanceof HTMLInputElement) || !input.dataset.subjectTeacher)
+        return; const teachers = { ...readPersonalization().subjectTeachers }; const value = input.value.trim().slice(0, 120); if (value)
+        teachers[input.dataset.subjectTeacher] = value;
+    else
+        delete teachers[input.dataset.subjectTeacher]; state.personalization = updatePersonalization({ subjectTeachers: teachers }); renderSchedule(); });
     document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         $('scheduleSearch').focus();

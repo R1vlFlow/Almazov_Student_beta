@@ -1,6 +1,6 @@
 {
-  "appId": "ru.almazov.schedulehub",
-  "appName": "Almazov Schedule Hub",
+  "appId": "com.almazov.student",
+  "appName": "Almazov Student",
   "webDir": "dist",
   "android": {
     "allowMixedContent": false

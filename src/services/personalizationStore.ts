@@ -33,6 +33,7 @@ export interface PersonalizationState {
   double1: string;
   double2: string;
   subjectColors: Record<string, string>;
+  subjectTeachers: Record<string, string>;
   tasks: HomeworkTask[];
   materials: PersonalMaterial[];
 }
@@ -46,7 +47,7 @@ const INITIAL: PersonalizationState = {
   academicProfile: { program: '31.05.01', course: 1, group: '123' },
   displayName: '', avatarPreset: '🎓', avatarDataUrl: '', accentColor: '#315fce',
   theme: 'system', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Moscow',
-  double1: '#315fce', double2: '#1f9073', subjectColors: {}, tasks: [], materials: []
+  double1: '#315fce', double2: '#1f9073', subjectColors: {}, subjectTeachers: {}, tasks: [], materials: []
 };
 let cache: PersonalizationState | null = null;
 const color = (v: unknown, fallback: string) => typeof v === 'string' && /^#[\da-f]{6}$/i.test(v) ? v : fallback;
@@ -84,6 +85,8 @@ function normalize(raw: unknown): PersonalizationState {
   const materialRaw = Array.isArray(raw.materials) ? raw.materials : [];
   const colors: Record<string, string> = {};
   if (plain(raw.subjectColors)) for (const [key, value] of Object.entries(raw.subjectColors)) { const c = color(value, ''); const normalizedKey = subjectColorKey(key); if (c && normalizedKey) colors[normalizedKey] = c; }
+  const teachers: Record<string, string> = {};
+  if (plain(raw.subjectTeachers)) for (const [key, value] of Object.entries(raw.subjectTeachers)) { const normalizedKey = subjectColorKey(key); if (normalizedKey && typeof value === 'string' && value.trim()) teachers[normalizedKey] = value.trim().slice(0, 120); }
   const normalizedTasks = taskRaw.map(normalizeTask).filter((x): x is HomeworkTask => x !== null);
   const normalizedMaterials = materialRaw.map(normalizeMaterial).filter((x): x is PersonalMaterial => x !== null);
   const swatches = ['#5478d4', '#138a72', '#bc674d', '#8567be', '#b18120', '#247eae', '#b14d7d', '#657c4e'];
@@ -105,7 +108,7 @@ function normalize(raw: unknown): PersonalizationState {
     accentColor: color(raw.accentColor, INITIAL.accentColor), theme,
     timezone: typeof raw.timezone === 'string' && raw.timezone.length < 80 ? raw.timezone : INITIAL.timezone,
     double1: color(raw.double1, INITIAL.double1), double2: color(raw.double2, INITIAL.double2),
-    subjectColors: colors, tasks: normalizedTasks, materials: normalizedMaterials
+    subjectColors: colors, subjectTeachers: teachers, tasks: normalizedTasks, materials: normalizedMaterials
   };
 }
 function migrateLegacy(): PersonalizationState {

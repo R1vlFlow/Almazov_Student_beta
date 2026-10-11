@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root=fileURLToPath(new URL('..',import.meta.url));
 const dist=join(root,'dist');
 await mkdir(join(dist,'assets'),{recursive:true});
-for(const name of ['index.html','styles.css','sw.js','boot.js','runtime-config.js','telemetry.js','manifest.webmanifest','offline.html'])
+for(const name of ['index.html','styles.css','splash.css','sw.js','boot.js','runtime-config.js','telemetry.js','manifest.webmanifest','offline.html'])
   await copyFile(join(root,'public',name),join(dist,name));
 await cp(join(root,'public','assets'),join(dist,'assets'),{recursive:true});
 await mkdir(join(dist,'data'),{recursive:true});
@@ -169,7 +169,7 @@ await writeFile(bootPath,bootSource.replaceAll('__BUILD_ID__',buildId));
 let html=await readFile(join(dist,'index.html'),'utf8');
 html=html.replace(/<html\b([^>]*)>/i,(_match,attrs)=>`<html${attrs} data-build-id="${buildId}">`);
 html=html.replace(/(<meta\s+name="description"[^>]*>)/i,`$1\n<meta name="app-build" content="${buildId}">`);
-html=html.replace(/((?:src|href)="\.\/)(boot\.js|runtime-config\.js|telemetry\.js|styles\.css|main\.js|manifest\.webmanifest)(?:\?[^\"]*)?("\s*)/g,`$1$2?v=${buildId}$3`);
+html=html.replace(/((?:src|href)="\.\/)(boot\.js|runtime-config\.js|telemetry\.js|styles\.css|splash\.css|main\.js|manifest\.webmanifest)(?:\?[^\"]*)?("\s*)/g,`$1$2?v=${buildId}$3`);
 await writeFile(join(dist,'index.html'),html);
 
 const jsFiles=(await walk(dist)).filter(path=>path.endsWith('.js')&&!path.endsWith(`${sep}sw.js`));
@@ -182,7 +182,7 @@ for(const path of jsFiles){
 // Versioned assets make the SW install safe even while an older SW still
 // controls the page. Do not precache index.html: navigation is network-first.
 const versionedPaths=[
-  './styles.css', './boot.js', './manifest.webmanifest', './offline.html',
+  './styles.css', './splash.css', './boot.js', './manifest.webmanifest', './offline.html',
   ...jsFiles.map(path=>'./'+relative(dist,path).split(sep).join('/'))
 ].map(path=>`${path}?v=${buildId}`);
 const uniqueVersionedPaths=[...new Set(versionedPaths)];

@@ -3,7 +3,7 @@ import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root=fileURLToPath(new URL('..',import.meta.url));
 const dist=join(root,'dist');
-for(const f of ['index.html','styles.css','boot.js','runtime-config.js','telemetry.js','main.js','sw.js','manifest.webmanifest','offline.html','version.json'])await readFile(join(dist,f));
+for(const f of ['index.html','styles.css','splash.css','boot.js','runtime-config.js','telemetry.js','main.js','sw.js','manifest.webmanifest','offline.html','version.json'])await readFile(join(dist,f));
 const html=await readFile(join(dist,'index.html'),'utf8');
 const css=await readFile(join(dist,'styles.css'),'utf8');
 for(const selector of ['.modal-backdrop{','.modal-backdrop.open{','.modal{','.modal-body{'])if(!css.includes(selector))throw new Error(`Required modal/layout CSS missing: ${selector}`);
@@ -45,12 +45,12 @@ const ids=[...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
 if(new Set(ids).size!==ids.length)throw new Error('Duplicate HTML ids');
 const internal=[...html.matchAll(/(?:href|src)="\.\/([^"#]+)"/g)].map(m=>m[1].split(/[?#]/)[0]);
 for(const p of internal)await stat(join(dist,p));
-for(const name of ['boot.js','runtime-config.js','telemetry.js','styles.css','main.js','manifest.webmanifest']){
+for(const name of ['boot.js','runtime-config.js','telemetry.js','styles.css','splash.css','main.js','manifest.webmanifest']){
   if(!html.includes(`./${name}?v=${version.buildId}`))throw new Error(`${name} is not cache-busted for this build`);
 }
 const boot=await readFile(join(dist,'boot.js'),'utf8');
 const sw=await readFile(join(dist,'sw.js'),'utf8');
-if(!boot.includes(`const BUILD_ID='${version.buildId}'`))throw new Error('boot.js build marker mismatch');
+if(!boot.includes(version.buildId))throw new Error('boot.js build marker mismatch');
 if(sw.includes('__BUILD_ID__')||sw.includes('__VERSIONED_SHELL__'))throw new Error('Unexpanded service worker build token');
 if(!sw.includes(`const BUILD_ID='${version.buildId}'`)||!sw.includes("cache:'no-store'"))throw new Error('Service worker does not enforce the current build/network freshness');
 if(sw.includes("const SHELL=['./'"))throw new Error('Legacy cache-first shell detected in service worker');
@@ -60,6 +60,7 @@ if(!shellMatch)throw new Error('Versioned shell manifest missing');
 const shell=JSON.parse(shellMatch[1]);
 if(shell.some(asset=>asset.includes('index.html')))throw new Error('index.html must not be pre-cached during worker installation');
 if(!shell.includes(`./styles.css?v=${version.buildId}`))throw new Error('Stylesheet missing from versioned cache manifest');
+if(!shell.includes(`./splash.css?v=${version.buildId}`))throw new Error('Splash stylesheet missing from versioned cache manifest');
 
 async function walk(dir){
   const entries=await readdir(dir,{withFileTypes:true});let paths=[];

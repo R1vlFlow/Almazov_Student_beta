@@ -117,4 +117,17 @@
     var target = event.target instanceof Element ? event.target.closest('[data-download-apk]') : null;
     if (target && window.zalmaTrack) window.zalmaTrack('apk_download_clicked');
   });
+  function initStartupNotice(){
+    const splash=document.getElementById('appSplash'),app=document.querySelector('.app');if(splash&&app)app.inert=true;
+    const notice=document.getElementById('releaseNotice'),dismiss=document.getElementById('dismissReleaseNotice');
+    try{if(notice&&localStorage.getItem('almazov.notice.build')!==BUILD_ID)notice.hidden=false;}catch{}
+    dismiss?.addEventListener('click',()=>{if(notice)notice.hidden=true;try{localStorage.setItem('almazov.notice.build',BUILD_ID);}catch{}});
+    if(!splash)return;const started=performance.now(),fill=document.getElementById('splashFill'),track=document.getElementById('splashTrack'),status=document.getElementById('splashStatus'),note=document.getElementById('splashNote');let progress=8,ready=false;
+    const paint=(value)=>{progress=Math.max(progress,Math.min(100,value));if(fill)fill.style.width=progress+'%';if(track)track.setAttribute('aria-valuenow',String(Math.round(progress)));if(status)status.textContent=progress>74?'Проверяем, всё ли на месте…':progress>42?'Повторяем анатомию…':progress>16?'Раскладываем учебники…':'Собираем расписание…';};
+    const timer=setInterval(()=>{if(!ready)paint(progress<86?progress+Math.max(.3,(86-progress)*.035):86);},180);
+    const finish=()=>{if(ready)return;ready=true;clearInterval(timer);const wait=Math.max(0,750-(performance.now()-started));setTimeout(()=>{paint(100);if(note)note.textContent='Команда готова. И ты тоже.';setTimeout(()=>{splash.classList.add('is-hidden');if(app)app.inert=false;setTimeout(()=>splash.remove(),420);},180);},wait);};
+    window.addEventListener('app:ready',finish,{once:true});window.addEventListener('app:error',finish,{once:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initStartupNotice,{once:true});else initStartupNotice();
+
 })();
