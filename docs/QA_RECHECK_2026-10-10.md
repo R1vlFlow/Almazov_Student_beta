@@ -1,11 +1,11 @@
 # Independent QA recheck — 2026-10-10
 
-Release reviewed: `2.8.0-rc.2` (UI), schedule engine `4.9.0-rc.1`.
+Release reviewed: `2.8.0-rc.3` (UI), schedule engine `4.9.0-rc.1`.
 
 ## Defects found and corrected
 
 1. **The canonical regression suite was stale and was not called by the main QA command.** Its old entries asserted retired monolithic HTML and a pre-release version from the previous architecture. Replaced it with 10 regressions for the current TypeScript SPA, parser fixtures, source mismatch handling, matrix schedules, and specialist source discovery. The five retired contracts remain under `tests/legacy-contracts/` for reference and are not part of current acceptance.
-2. **The RC contract hardcoded the previous RC number.** Version, APK/release link and validators now follow the current semantic RC version. `2.8.0-rc.2` is synchronized through `package.json`, `version.json`, `UI_VERSION.txt`, docs and workflow defaults.
+2. **The RC contract hardcoded the previous RC number.** Version, APK/release link and validators now follow the current semantic RC version. `2.8.0-rc.3` is synchronized through `package.json`, `version.json`, `UI_VERSION.txt`, docs and workflow defaults.
 3. **Official schedule sync could hide a failed `git push`.** Removed `|| true`; sync will now fail before deploying when generated data cannot be persisted. The workflow contract explicitly checks this.
 4. **The aggregate release checker duplicated several gates inside the long shell chain.** The main QA command now runs the workflow, release, schedule-data and generated-index validations as separate gates after the other regression checks.
 5. **Server smoke-test teardown was racy and could keep the runner alive.** The exit handler is registered before SIGTERM, termination is bounded, SIGKILL is used as a last resort, and a successful test exits only after teardown.

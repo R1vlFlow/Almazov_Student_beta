@@ -2,7 +2,7 @@
 
 ## Release identity
 
-- App version: `2.8.0-rc.2`
+- App version: `2.8.0-rc.4`
 - Schedule engine: `4.9.0-rc.1`
 - Release channel: RC; not a final store release.
 
@@ -40,3 +40,8 @@ The browser app uses relative `/api/...` requests for same-origin API deployment
 - Trigger Android workflow manually; install APK on a test Android device and confirm the APK checksum matches `SHA256SUMS.txt`.
 - Test iOS PWA Add to Home Screen in Safari.
 - Verify production API URL, remote monitoring IDs, privacy policy and release signing before removing the RC label.
+
+
+## RC4 offline-recovery gate
+
+The candidate now generates 1,544 recovery schedule placements for Pediatrics/Clinical Psychology course 1–2 rules and maps 692 cached weekly rotation assignments (LD 4A, 4B, 5B) to the official 2026/2027 week ranges without inventing weekdays. Matrix week numbers map directly to same-numbered academic-calendar weeks; column 1's single date label 03.09.2025 falls inside official week 1 (2026-09-01–2026-09-05), and column 2's week range aligns with official week 2. The embedded 2025 labels are quarantined. These are not live-source attestation: PDF raw bytes/SHA-256 remain unverified in the current execution environment. 2B practice remains partial, 5A practice is unparsed, and 6-course practice stays quarantined. Production remains blocked until a networked sync succeeds, all source hashes/coverage audits pass, and the release gate returns zero errors.
