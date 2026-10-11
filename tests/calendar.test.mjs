@@ -5,12 +5,25 @@ import {readFile} from 'node:fs/promises';
 const time=await import('../dist/core/time.js');
 const {localDate,localTime,localDateTimeToUtc}=time;
 const {normalizeLiveEvents}=await import('../dist/core/validate.js');
+const {displayScheduleParts}=await import('../dist/core/calendar.js');
 
 test('timezone conversion preserves Zurich summer time',()=>{
   const utc=localDateTimeToUtc('2026-07-01T10:00','Europe/Zurich');
   assert.equal(utc,'2026-07-01T08:00:00.000Z');
   assert.equal(localDate(utc,'Europe/Zurich'),'2026-07-01');
   assert.equal(localTime(utc,'Europe/Zurich'),'10:00');
+});
+
+test('merged consecutive pair displays as two separate timed parts',()=>{
+  const event={id:'merged-pair',program:'31.05.01',course:1,group:'123',stream:'A',date:'2026-10-06',start:'09:00',end:'12:25',subject:'Химия',location:'ауд. 1',teacher:'Иванов И.И.',type:'practice',double:true,mergedConsecutive:true};
+  const parts=displayScheduleParts(event);
+  assert.deepEqual(parts.map(e=>[e.start,e.end,e.doublePart]),[['09:00','10:35',1],['10:50','12:25',2]]);
+  assert.ok(parts.every(e=>e.double===true));
+});
+
+test('official uninterrupted ORG double remains one event',()=>{
+  const event={id:'org-merged',program:'31.05.01',course:1,group:'123',stream:'A',date:'2026-10-06',start:'09:00',end:'12:25',subject:'Основы Российской государственности',location:'ауд. 1',teacher:'Иванов И.И.',type:'lecture',double:true,orgMerged:true,mergedConsecutive:true};
+  assert.deepEqual(displayScheduleParts(event),[event]);
 });
 
 test('timezone conversion handles Zurich winter DST offset',()=>{

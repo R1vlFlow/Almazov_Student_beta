@@ -8,6 +8,21 @@ export interface CalendarEvent{
   program?:ScheduleEvent['program'];course?:ScheduleEvent['course'];group?:string;stream?:ScheduleEvent['stream'];type?:LessonType;teacher?:string;half?:ScheduleEvent['half'];doublePart?:ScheduleEvent['doublePart'];weeks?:string;
 }
 export interface RecurrenceRule{frequency:'daily'|'weekly'|'monthly'|'yearly';interval:number;weekdays?:number[];until?:string|null;}
+export function displayScheduleParts(e:ScheduleEvent):ScheduleEvent[]{
+  if(e.orgMerged||!e.mergedConsecutive||e.doublePart)return [e];
+  const start=Number(e.start.slice(0,2))*60+Number(e.start.slice(3));
+  const end=Number(e.end.slice(0,2))*60+Number(e.end.slice(3));
+  const duration=end-start;
+  if(![185,205].includes(duration))return [e];
+  const partMinutes=(duration-15)/2;
+  const format=(value:number)=>`${String(Math.floor(value/60)).padStart(2,'0')}:${String(value%60).padStart(2,'0')}`;
+  const firstEnd=start+partMinutes;
+  const secondStart=firstEnd+15;
+  return [
+    {...e,id:`${e.id}-1`,end:format(firstEnd),double:true,doublePart:1,mergedConsecutive:undefined,durationMinutes:partMinutes},
+    {...e,id:`${e.id}-2`,start:format(secondStart),double:true,doublePart:2,mergedConsecutive:undefined,durationMinutes:partMinutes}
+  ];
+}
 function localToUtc(localValue:string,zone:string):string{
   const m=localValue.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
   if(!m)throw new Error('Некорректная локальная дата и время');

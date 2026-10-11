@@ -1,20 +1,20 @@
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=d1d44af686a9e490';
-import { groupsFor, streamForGroup } from './data/roster.js?v=d1d44af686a9e490';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO } from './core/date.js?v=d1d44af686a9e490';
-import { eventAppliesToGroup } from './core/filter.js?v=d1d44af686a9e490';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=d1d44af686a9e490';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=d1d44af686a9e490';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=d1d44af686a9e490';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=d1d44af686a9e490';
-import { FAQ } from './ui/faq.js?v=d1d44af686a9e490';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=d1d44af686a9e490';
-import { fileToAttachment } from './services/supportService.js?v=d1d44af686a9e490';
-import { createTicket, listTickets, getTicket, addTicketMessage } from './services/supportService.js?v=d1d44af686a9e490';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=d1d44af686a9e490';
-import { scheduleToCalendarEvent } from './core/calendar.js?v=d1d44af686a9e490';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=d1d44af686a9e490';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=d1d44af686a9e490';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=d1d44af686a9e490';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=76d98fa553e85cb5';
+import { groupsFor, streamForGroup } from './data/roster.js?v=76d98fa553e85cb5';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO } from './core/date.js?v=76d98fa553e85cb5';
+import { eventAppliesToGroup } from './core/filter.js?v=76d98fa553e85cb5';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=76d98fa553e85cb5';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=76d98fa553e85cb5';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=76d98fa553e85cb5';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=76d98fa553e85cb5';
+import { FAQ } from './ui/faq.js?v=76d98fa553e85cb5';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=76d98fa553e85cb5';
+import { fileToAttachment } from './services/supportService.js?v=76d98fa553e85cb5';
+import { createTicket, listTickets, getTicket, addTicketMessage } from './services/supportService.js?v=76d98fa553e85cb5';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=76d98fa553e85cb5';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=76d98fa553e85cb5';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=76d98fa553e85cb5';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=76d98fa553e85cb5';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=76d98fa553e85cb5';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -89,7 +89,7 @@ function localMidnightUtc(date) { return localDateTimeToUtc(`${date}T00:00`, sta
 function getDisplayEvents() {
     if (state.scheduleMode === 'kug')
         return [];
-    const selected = state.official.filter(e => eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).map(e => scheduleToCalendarEvent(e, state.timezone));
+    const selected = state.official.filter(e => eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent(e, state.timezone));
     const personal = state.personal.map(e => ({ id: e.id, kind: 'personal', title: e.title, description: e.description ?? '', category: e.category, status: e.status, startAt: e.startAt, endAt: e.endAt, timeZone: e.timeZone, allDay: e.allDay, location: e.location ?? '', meetingUrl: e.meetingUrl, attendees: e.attendees, recurrence: e.recurrence, seriesId: e.seriesId, readOnly: false }));
     const combined = [...selected, ...personal];
     return combined.filter(e => {
@@ -150,7 +150,7 @@ async function reloadEvents() {
 }
 export async function boot() { await ensureScheduleCacheVersion(document.documentElement.dataset.buildId ?? 'dev'); initTheme(); loadAppearance(); applyAppearance(); ensureProfile(); enhanceControls(); renderShell(); bind(); render(); void loadKugData(); await reloadEvents(); await refreshHomePersonal(); await refreshUploadedMaterials(); render(); window.setInterval(() => { if (state.page === 'home')
     renderHome(); }, 30000); }
-function render() { renderShell(); renderProfileOptions(); renderSchedule(); renderTasks(); renderFaculties(); renderResources(); renderKug(); renderFaq(state.faqQuery); renderHome(); renderSupport(); renderSettings(); renderProfilePage(); refreshControls(); }
+function render() { renderShell(); renderProfileOptions(); renderSchedule(); renderTasks(); renderFaculties(); renderResources(); renderKug(); renderFaq(state.faqQuery); renderHome(); renderSettings(); renderProfilePage(); refreshControls(); }
 function nav(page) {
     const destination = document.getElementById(`page-${page}`);
     if (!destination?.classList.contains('page')) {
@@ -161,7 +161,7 @@ function nav(page) {
     state.page = page;
     document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p === destination));
     document.querySelectorAll('[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === page));
-    $('pageTitle').textContent = { home: 'Главная', schedule: 'Расписание', homework: 'Задачи', kug: 'КУГ', resources: 'Материалы', faculties: 'Факультеты', faq: 'FAQ', support: 'Поддержка', settings: 'Настройки', profilePage: 'Профиль' }[page] ?? 'Almazov';
+    $('pageTitle').textContent = { home: 'Главная', schedule: 'Расписание', homework: 'Задачи', kug: 'КУГ', resources: 'Материалы', faculties: 'Факультеты', faq: 'FAQ', settings: 'Настройки', profilePage: 'Профиль' }[page] ?? 'Almazov';
     document.body.classList.remove('menu-open');
     if (page === 'schedule')
         renderSchedule();
@@ -177,8 +177,7 @@ function nav(page) {
         renderResources();
         void refreshUploadedMaterials();
     }
-    if (page === 'support')
-        loadSupport();
+
     if (page === 'settings')
         renderSettings();
     if (page === 'profilePage')
@@ -200,7 +199,7 @@ function countdownLabel(milliseconds) { const minutes = Math.max(0, Math.floor(M
     return `${hours} ч ${mins} мин`; return `${mins} мин`; }
 function renderHome() {
     const today = todayISO(state.timezone), now = Date.now();
-    const official = state.official.filter(e => eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).map(e => scheduleToCalendarEvent(e, state.timezone));
+    const official = state.official.filter(e => eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent(e, state.timezone));
     const events = [...official, ...state.homePersonal.map(calendarPersonal)].sort((a, b) => a.startAt.localeCompare(b.startAt));
     const weekEvents = events.filter(e => { const d = localDate(e.startAt, state.timezone); return d >= startOfWeek(today) && d <= addDays(startOfWeek(today), 6); });
     const todayEvents = events.filter(e => localDate(e.startAt, state.timezone) === today || localDate(e.endAt, state.timezone) === today);
@@ -399,7 +398,7 @@ function resourceTypeFromName(name, url = '') { const n = (name || url).toLowerC
     return 'pptx'; if (/\.zip$/.test(n))
     return 'zip'; if (/\.(?:jpg|jpeg|png)$/.test(n))
     return 'image'; return 'link'; }
-function resourceTypeLabel(type) { return { pdf: 'PDF', docx: 'DOCX', xlsx: 'XLSX', pptx: 'PPTX', zip: 'ZIP', image: 'JPG / PNG', link: 'Ссылка' }[type] ?? type.toUpperCase(); }
+function resourceTypeLabel(type) { return { pdf: 'PDF', docx: 'DOCX', xlsx: 'XLSX', pptx: 'PPTX', zip: 'ZIP', image: 'JPG / PNG', link: 'Веб-ссылка' }[type] ?? type.toUpperCase(); }
 async function refreshUploadedMaterials() { try {
     state.fileMaterials = await listFileMaterials(materialScope(state.profile.program, state.profile.course, state.profile.group));
     if (navigator.storage?.persist)
@@ -432,7 +431,7 @@ function renderResources() {
         group.push(item);
         groups.set(item.subject, group);
     }
-    $('resourceList').innerHTML = filtered.length ? Array.from(groups.entries()).map(([subject, rows]) => `<section class="resource-subject-group"><header><div><p class="eyebrow">Предмет / курс</p><h2>${esc(subject)}</h2></div><span class="chip">${rows.length} материалов</span></header><div class="resource-card-grid">${rows.map(item => `<article class="resource-card card ${item.fileMaterial ? 'uploaded-resource' : ''}" style="--resource-subject-color:${state.personalization.subjectColors[subjectColorKey(item.subject)] || 'var(--accent)'}"><div class="resource-icon ${item.type === 'pdf' ? 'pdf' : item.fileMaterial ? 'file' : 'link'}">${esc(resourceTypeLabel(item.type))}</div><div class="resource-main"><div class="resource-card-tags"><span class="resource-category">${resourceCategoryLabel(item.category)}</span><span class="resource-type">${esc(resourceTypeLabel(item.type))}</span>${item.official ? '<span class="resource-origin">Официальный источник</span>' : item.fileMaterial ? '<span class="resource-origin personal-resource">Файл на устройстве</span>' : '<span class="resource-origin personal-resource">Моя ссылка</span>'}${(item.tags ?? []).map(tag => `<span class="resource-tag">${esc(tag)}</span>`).join('')}${item.helpfulness ? `<span class="resource-rating" aria-label="Полезность ${item.helpfulness} из 5">★ ${item.helpfulness}/5</span>` : ''}</div><h3>${esc(item.title)}</h3><p>${esc(item.description || 'Описание не добавлено.')}</p><small>${esc(item.fileName ? `${item.fileName} · ${formatBytes(item.size ?? 0)}` : item.subject)}</small></div><div class="resource-card-actions">${item.fileMaterial ? `<button class="btn small primary" data-material-download="${esc(item.id)}">Скачать ↓</button><button class="btn small" data-material-open="${esc(item.id)}">Открыть ↗</button><button class="btn small danger" data-material-delete="${esc(item.id)}">Удалить</button>` : `<a class="btn small primary" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${item.type === 'pdf' ? 'Открыть PDF ↗' : 'Открыть ↗'}</a>${item.type === 'pdf' ? `<a class="btn small" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer" download>Скачать</a>` : ''}${!item.official ? `<button class="btn small danger" data-material-delete="${esc(item.id)}">Удалить</button>` : ''}`}</div></article>`).join('')}</div></section>`).join('') : `<div class="empty-state card"><div class="empty-icon">▤</div><h3>Материалы не найдены</h3><p>Поменяйте фильтры, добавьте ссылку или загрузите файл в локальную базу знаний.</p><div class="empty-actions"><button class="btn" data-action="new-material">＋ Добавить ссылку</button><button class="btn primary" data-action="upload-material">⇧ Загрузить материал</button></div></div>`;
+    $('resourceList').innerHTML = filtered.length ? Array.from(groups.entries()).map(([subject, rows]) => `<section class="resource-subject-group"><header><div><p class="eyebrow">Предмет / курс</p><h2>${esc(subject)}</h2></div><span class="chip">${rows.length} материалов</span></header><div class="resource-card-grid">${rows.map(item => `<article class="resource-card card ${item.fileMaterial ? 'uploaded-resource' : ''}" style="--resource-subject-color:${state.personalization.subjectColors[subjectColorKey(item.subject)] || 'var(--accent)'}"><div class="resource-icon ${item.type === 'pdf' ? 'pdf' : item.fileMaterial ? 'file' : 'link'}" role="img" aria-label="${esc(resourceTypeLabel(item.type))}">${item.type === 'link' ? '↗' : esc(resourceTypeLabel(item.type))}</div><div class="resource-main"><div class="resource-card-tags"><span class="resource-category">${resourceCategoryLabel(item.category)}</span><span class="resource-type">${esc(resourceTypeLabel(item.type))}</span>${item.official ? '<span class="resource-origin">Официальный источник</span>' : item.fileMaterial ? '<span class="resource-origin personal-resource">Файл на устройстве</span>' : '<span class="resource-origin personal-resource">Моя ссылка</span>'}${(item.tags ?? []).map(tag => `<span class="resource-tag">${esc(tag)}</span>`).join('')}${item.helpfulness ? `<span class="resource-rating" aria-label="Полезность ${item.helpfulness} из 5">★ ${item.helpfulness}/5</span>` : ''}</div><h3>${esc(item.title)}</h3><p>${esc(item.description || 'Описание не добавлено.')}</p><small>${esc(item.fileName ? `${item.fileName} · ${formatBytes(item.size ?? 0)}` : item.subject)}</small></div><div class="resource-card-actions">${item.fileMaterial ? `<button class="btn small primary" data-material-download="${esc(item.id)}">Скачать ↓</button><button class="btn small" data-material-open="${esc(item.id)}">Открыть ↗</button><button class="btn small danger" data-material-delete="${esc(item.id)}">Удалить</button>` : `<a class="btn small primary" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${item.type === 'pdf' ? 'Открыть PDF ↗' : 'Открыть ↗'}</a>${item.type === 'pdf' ? `<a class="btn small" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer" download>Скачать</a>` : ''}${!item.official ? `<button class="btn small danger" data-material-delete="${esc(item.id)}">Удалить</button>` : ''}`}</div></article>`).join('')}</div></section>`).join('') : `<div class="empty-state card"><div class="empty-icon">▤</div><h3>Материалы не найдены</h3><p>Поменяйте фильтры, добавьте ссылку или загрузите файл в локальную базу знаний.</p><div class="empty-actions"><button class="btn" data-action="new-material">＋ Добавить ссылку</button><button class="btn primary" data-action="upload-material">⇧ Загрузить материал</button></div></div>`;
     refreshControls();
 }
 function formatBytes(bytes) { if (bytes < 1024)
@@ -483,7 +482,7 @@ async function loadKugData() {
     }
     renderKug();
 }
-function renderFaq(filter = '') { const q = filter.trim().toLowerCase(); const items = FAQ.filter(x => (state.faqCategory === 'Все' || x.category === state.faqCategory) && (`${x.question} ${x.answer}`).toLowerCase().includes(q)); $('faqCategories').innerHTML = ['Все', ...Array.from(new Set(FAQ.map(x => x.category)))].map(c => `<button class="chip-button ${c === state.faqCategory ? 'active' : ''}" data-faq-category="${esc(c)}">${esc(c)}</button>`).join(''); $('faqPopular').innerHTML = FAQ.filter(x => x.popular).slice(0, 4).map(x => `<button class="faq-popular" data-faq-open="${esc(x.id)}"><b>${esc(x.question)}</b><small>${esc(x.category)}</small></button>`).join(''); $('faqList').innerHTML = items.length ? items.map(x => `<details id="faq-${esc(x.id)}"><summary>${esc(x.question)}<span>+</span></summary><p>${esc(x.answer)}</p></details>`).join('') : `<div class="empty-state compact card"><h3>Ничего не найдено</h3><p>Попробуйте изменить запрос или категорию.</p><button class="btn" data-page="support">Обратиться в поддержку</button></div>`; }
+function renderFaq(filter = '') { const q = filter.trim().toLowerCase(); const items = FAQ.filter(x => (state.faqCategory === 'Все' || x.category === state.faqCategory) && (`${x.question} ${x.answer}`).toLowerCase().includes(q)); $('faqCategories').innerHTML = ['Все', ...Array.from(new Set(FAQ.map(x => x.category)))].map(c => `<button class="chip-button ${c === state.faqCategory ? 'active' : ''}" data-faq-category="${esc(c)}">${esc(c)}</button>`).join(''); $('faqPopular').innerHTML = FAQ.filter(x => x.popular).slice(0, 4).map(x => `<button class="faq-popular" data-faq-open="${esc(x.id)}"><b>${esc(x.question)}</b><small>${esc(x.category)}</small></button>`).join(''); $('faqList').innerHTML = items.length ? items.map(x => `<details id="faq-${esc(x.id)}"><summary>${esc(x.question)}<span>+</span></summary><p>${esc(x.answer)}</p></details>`).join('') : `<div class="empty-state compact card"><h3>Ничего не найдено</h3><p>Попробуйте изменить запрос или категорию.</p><a class="btn" href="https://t.me/R1vlFlow_GY" target="_blank" rel="noopener noreferrer">Написать в Telegram ↗</a></div>`; }
 function renderSettings() {
     const tz = $('settingsTimezone');
     if (tz) {
@@ -491,9 +490,16 @@ function renderSettings() {
         tz.innerHTML = Array.from(new Set([...common, state.timezone])).map(z => `<option value="${esc(z)}">${esc(z)}</option>`).join('');
         tz.value = state.timezone;
     }
-    const theme = $('settingsTheme');
-    if (theme)
-        theme.value = themeMode();
+    const theme = themeMode();
+    document.querySelectorAll('[data-theme-choice]').forEach(button => {
+        const selected = button.dataset.themeChoice === theme;
+        button.classList.toggle('active', selected);
+        button.setAttribute('aria-checked', String(selected));
+    });
+    const firstColor = $('double1');
+    const secondColor = $('double2');
+    firstColor.value = state.personalization.double1 || state.double1;
+    secondColor.value = state.personalization.double2 || state.double2;
     const colors = $('subjectColorSettings');
     if (colors) {
         const subjects = Array.from(new Set(state.official.filter(e => eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).map(e => e.subject))).sort((a, b) => a.localeCompare(b, 'ru'));
@@ -910,10 +916,17 @@ function bind() {
                 closeModal(backdrop.id);
             return;
         }
-        const target = origin?.closest('[data-action],[data-page],[data-view],[data-schedule-mode],[data-pick-program],[data-task-delete],[data-task-toggle],[data-task-status],[data-task-attachment],[data-jump-date],[data-open-event],[data-homework-from-event],[data-ticket],[data-faq-category],[data-faq-open],[data-subject-color-trigger],[data-duration-adjust],[data-avatar-preset],[data-material-delete],[data-material-open],[data-material-download]');
+        const target = origin?.closest('[data-action],[data-page],[data-view],[data-schedule-mode],[data-theme-choice],[data-pick-program],[data-task-delete],[data-task-toggle],[data-task-status],[data-task-attachment],[data-jump-date],[data-open-event],[data-homework-from-event],[data-ticket],[data-faq-category],[data-faq-open],[data-subject-color-trigger],[data-duration-adjust],[data-avatar-preset],[data-material-delete],[data-material-open],[data-material-download]');
         if (!target)
             return;
         const action = target.dataset.action;
+        if (target.dataset.themeChoice) {
+            const mode = target.dataset.themeChoice;
+            applyTheme(mode);
+            state.theme = mode;
+            renderSettings();
+            return;
+        }
         if (target.dataset.page) {
             nav(target.dataset.page);
             return;
@@ -1181,7 +1194,6 @@ function bind() {
         if (action === 'save-settings') {
             try {
                 setTimezone($('settingsTimezone').value);
-                applyTheme($('settingsTheme').value);
                 toast('Настройки сохранены');
                 await reloadEvents();
                 render();

@@ -38,15 +38,15 @@ test('production validation protects the modal CSS contract',()=>{
  assert.match(validator,/Required modal\/layout CSS missing/);
 });
 
-for(const page of ['home','schedule','homework','kug','resources','faculties','faq','support','settings','profilePage']){
+for(const page of ['home','schedule','homework','kug','resources','faculties','faq','settings','profilePage']){
  test(`page ${page} has a real section`,()=>assert.match(html,new RegExp(`id="page-${page}"`)));
 }
 
-test('navigation exposes FAQ and support without placeholder pages',()=>{
+test('navigation keeps FAQ and direct Telegram contact without a support tab',()=>{
  assert.match(html,/data-page="faq"/); assert.match(html,/FAQ/);
- assert.match(html,/data-page="support"/);
+ assert.doesNotMatch(html,/data-page="support"|id="page-support"|id="ticketList"/);
+ assert.match(html,/href="https:\/\/t\.me\/R1vlFlow_GY"/);
  assert.match(html,/id="faqList"/);
- assert.match(html,/id="ticketList"/);
 });
 
 test('calendar exposes all required views',()=>{
@@ -59,6 +59,13 @@ test('theme contract has semantic tokens and system bootstrap',()=>{
  assert.match(css,/html\[data-theme=dark\]/);
  assert.match(boot,/prefers-color-scheme/);
  assert.match(boot,/dataset\.themePreference/);
+});
+
+test('settings use theme choice cards and compact paired-color controls',()=>{
+ assert.match(html,/data-theme-choice="light"/); assert.match(html,/data-theme-choice="dark"/); assert.match(html,/data-theme-choice="system"/);
+ assert.match(css,/\.settings-card\{align-content:start/);
+ assert.match(css,/\.theme-choice\.active/);
+ assert.match(css,/\.settings-card input\[type=color\]/);
 });
 
 test('responsive and accessibility contract is present',()=>{
