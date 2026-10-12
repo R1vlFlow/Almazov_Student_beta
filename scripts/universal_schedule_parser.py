@@ -28,7 +28,7 @@ DAY_WORDS = {
     'понедельник','вторник','среда','четверг','пятница','суббота','воскресенье'
 }
 CLOCK_RE = re.compile(r'(?<!\d)\d{1,2}\s*[:.]\s*\d{2}\s*[-–—]\s*\d{1,2}\s*[:.]\s*\d{2}(?!\d)')
-GROUP_RE = re.compile(r'(?<!\d)(\d{3})(?!\d)')
+GROUP_RE = re.compile(r'(?<!\d)(\d{3}(?:КП|П|KP|P)?)(?![\w])', re.I)
 WEEK_RE = re.compile(r'(?<!\d)(?:[1-9]|[1-4]\d|5[0-2])(?!\d)')
 
 
@@ -163,12 +163,12 @@ class UniversalScheduleParser:
             if len(w)<5: continue
             t=str(w[4]).strip()
             if not GROUP_RE.fullmatch(t): continue
-            n=int(t)
+            n=int(t[:3])
             # If course is known, use it only as semantic disambiguation, not as
             # a layout selector. This prevents room numbers from becoming groups.
             if course is not None and n//100 != int(course): continue
             vals.append((t,float(w[0]),float(w[1]),float(w[2]),float(w[3])))
-        return sorted(set(x[0] for x in vals), key=int)
+        return sorted(set(x[0] for x in vals), key=lambda value: (int(value[:3]), value[3:].casefold()))
 
     @staticmethod
     def _numeric_week_bands(words):
@@ -243,7 +243,7 @@ class UniversalScheduleParser:
         issues = []
         if not events:
             return ['no_events']
-        groups = {str(e.get('group')) for e in events if re.fullmatch(r'\d{3}', str(e.get('group', '')))}
+        groups = {str(e.get('group')) for e in events if re.fullmatch(r'\d{3}(?:КП|П|KP|P)?', str(e.get('group', '')), re.I)}
         expected = set(profile.groups)
         missing = sorted(expected - groups)
         if missing:
