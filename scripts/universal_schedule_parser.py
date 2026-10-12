@@ -30,6 +30,7 @@ DAY_WORDS = {
 CLOCK_RE = re.compile(r'(?<!\d)\d{1,2}\s*[:.]\s*\d{2}\s*[-–—]\s*\d{1,2}\s*[:.]\s*\d{2}(?!\d)')
 GROUP_RE = re.compile(r'(?<!\d)(\d{3}(?:КП|П|KP|P)?)(?![\w])', re.I)
 WEEK_RE = re.compile(r'(?<!\d)(?:[1-9]|[1-4]\d|5[0-2])(?!\d)')
+DATE_RE = re.compile(r'(?<!\d)\d{1,2}\.\d{1,2}\.\d{4}(?!\d)')
 
 
 
@@ -149,10 +150,11 @@ class UniversalScheduleParser:
     @staticmethod
     def _infer_kind(text, url=''):
         url = url or ''
-        low=(text+' '+url).lower()
-        if 'занятий семинарского типа' in low or 'лечебное дело' in low and '_ld' in url.lower():
+        head=(text or '')[:1800].lower()
+        source=(url or '').lower()
+        if 'занятий семинарского типа' in head or 'практическ' in head[:600] or 'семинар' in source or 'prakt' in source:
             return 'practice'
-        if 'занятий лекционного типа' in low or 'лекц' in low or 'raspisanielekczij' in url.lower():
+        if 'занятий лекционного типа' in head or 'лекц' in head[:600] or 'raspisanielekczij' in source or 'lecture' in source:
             return 'lecture'
         return None
 
@@ -202,12 +204,16 @@ class UniversalScheduleParser:
         text,words,drawings=self._text_words(source)
         course=self._infer_course(text,url) or hinted_course
         stream=self._infer_stream(text,url) or hinted_stream
-        kind=self._infer_kind(text,url) or hinted_kind
+        # An explicit caller hint comes from the official source registry and
+        # outranks words inside lesson cells (where "лекция" may be one cell).
+        kind=hinted_kind or self._infer_kind(text,url)
         groups=self._group_candidates(words,course)
         week_map=self._numeric_week_bands(words)
         text_low=text.lower()
         weekday_count=sum(1 for token in re.findall(r'(?<![а-яёa-z])[а-яёa-z]+',text_low) if token in DAY_WORDS)
-        clock_count=len(CLOCK_RE.findall(text))
+        clock_text=re.sub(r'(?<=\d)[ʼ′\u02bc\'](?=\d)',':',text)
+        clock_count=len(CLOCK_RE.findall(clock_text))
+        date_count=len(DATE_RE.findall(text))
         vector=self._vector_score(drawings)
         week_score=min(1.0,len(week_map)/15.0)
         day_score=min(1.0,weekday_count/5.0)
@@ -219,7 +225,12 @@ class UniversalScheduleParser:
         if weekday_count: reasons.append(f'{weekday_count} weekday labels detected')
         if clock_count: reasons.append(f'{clock_count} clock ranges detected')
         if vector>=0.35: reasons.append('vector grid/merged-cell geometry detected')
-        if grid_score>=0.58 and len(week_map)>=8:
+        if date_count>=4 and clock_count>=2 and vector>=0.25:
+            layout='dated-grid'
+            confidence=min(0.97,0.72+min(date_count/40,0.15)+min(vector*0.1,0.1))
+            reasons.append(f'{date_count} dated rows and {clock_count} lesson times detected')
+            reasons.append('date-row timetable selected from positioned text and grid geometry')
+        elif grid_score>=0.58 and len(week_map)>=8:
             layout='weekly-matrix'
             confidence=min(0.99,0.55+0.35*week_score+0.10*group_score)
             reasons.append('matrix layout selected without course-specific rule')
@@ -267,6 +278,20 @@ class UniversalScheduleParser:
                 issues.append('matrix_contains_invented_weekday')
             if any(e.get('scheduleMode') != 'weekly-block' for e in events):
                 issues.append('matrix_rows_not_marked_weekly_block')
+        if profile.layout == 'dated-grid':
+            for index, event in enumerate(events):
+                date_value=str(event.get('date') or '')
+                try:
+                    parsed_date=datetime.strptime(date_value,'%Y-%m-%d').date()
+                except ValueError:
+                    issues.append(f'missing_or_invalid_date:event_{index}')
+                    break
+                if event.get('weekday') != parsed_date.weekday():
+                    issues.append(f'date_weekday_mismatch:event_{index}')
+                    break
+                if event.get('scheduleMode') != 'dated':
+                    issues.append(f'dated_row_without_date_mode:event_{index}')
+                    break
         for index, event in enumerate(events):
             subject = str(event.get('subject') or '').strip()
             if not subject or not event.get('start') or not event.get('end'):
@@ -333,6 +358,9 @@ class UniversalScheduleParser:
                 events = extract('week-matrix-text-fallback', lambda: self.m.parse_week_matrix_text_fallback(raw, course, url, stream))
             if not events:
                 events = extract('week-matrix-table-fallback', lambda: self.m.parse_week_matrix_tables(raw, course, url, stream))
+
+        if not events and profile.layout == 'dated-grid' and raw is not None:
+            events = extract('pdf-dated-grid-geometry', lambda: self.m.parse_dated_grid_pdf(raw, course, url, stream))
 
         # Daily grid PDFs can use a separate table engine. The whole candidate is
         # still validated against the detected roster before it can be imported.
@@ -403,3 +431,5 @@ class UniversalScheduleParser:
             e['layoutProfile']=profile.layout
             e['parseConfidence']=round(profile.confidence,3)
         return events,profile
+
+

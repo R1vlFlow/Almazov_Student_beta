@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json,re,sys,datetime
+from collections import Counter
 from pathlib import Path
 from urllib.parse import urljoin
 import requests
@@ -1336,6 +1337,151 @@ def parse_practice_with_pdfplumber(doc_bytes, course, url, stream):
     return list(by_key.values())
 
 
+def parse_dated_grid_pdf(doc_bytes, course, url, stream):
+    """Parse date-row timetable PDFs from cell geometry and positioned text.
+
+    Unlike the classic group-by-week matrix, these sheets put calendar dates
+    down the left side and lesson periods across the top.  Merged cells carry
+    one subject across multiple days or periods.  The parser follows those
+    physical cell bounds, so it does not assume fixed row counts or one
+    particular course/group layout.
+    """
+    import io
+    import fitz
+    import pdfplumber
+
+    date_re = re.compile(r'(?<!\d)(\d{1,2})\.(\d{1,2})\.(\d{4})(?!\d)')
+    clock_re = re.compile(r'(?<!\d)(\d{1,2})\s*[:.ʼ′\u02bc\']\s*(\d{2})\s*[-–—]\s*(\d{1,2})\s*[:.ʼ′\u02bc\']\s*(\d{2})(?!\d)')
+    def inside_text(words, box):
+        x0, top, x1, bottom = box
+        selected = [w for w in words if x0 - 0.6 <= (w[0]+w[2])/2 <= x1 + 0.6
+                    and top - 0.6 <= (w[1]+w[3])/2 <= bottom + 0.6]
+        selected.sort(key=lambda w:(round(((w[1]+w[3])/2)/2)*2, w[0]))
+        lines=[]
+        for w in selected:
+            y=(w[1]+w[3])/2
+            if not lines or abs(lines[-1][0]-y)>4:
+                lines.append([y, [str(w[4])]])
+            else:
+                lines[-1][1].append(str(w[4]))
+        return norm(' '.join(' '.join(line[1]) for line in lines))
+
+    def box_date(text):
+        match=date_re.search(text or '')
+        if not match: return None
+        try: return datetime.date(int(match.group(3)),int(match.group(2)),int(match.group(1)))
+        except ValueError: return None
+
+    def week_in(text):
+        match=re.search(r'(?<!\d)(\d{1,2})\s*недел',text or '',re.I)
+        return int(match.group(1)) if match else None
+
+    def clock_ranges(text):
+        return [(f'{int(m.group(1)):02d}:{m.group(2)}',f'{int(m.group(3)):02d}:{m.group(4)}')
+                for m in clock_re.finditer(text or '')]
+
+    result=[]
+    carried_slots=[]
+    with pdfplumber.open(io.BytesIO(doc_bytes)) as pdf, fitz.open(stream=doc_bytes,filetype='pdf') as fitz_doc:
+        for page_index, pdf_page in enumerate(pdf.pages):
+            if page_index >= len(fitz_doc): break
+            page=fitz_doc[page_index]
+            words=page.get_text('words') or []
+            try: tables=pdf_page.find_tables(table_settings=PRACTICE_TABLE_SETTINGS)
+            except Exception: tables=[]
+            for table in tables or []:
+                row_cells=[list(row.cells or []) for row in (table.rows or [])]
+                if not row_cells: continue
+
+                # Read visible time ranges from header cells. They can wrap
+                # across two visual lines and use a typographic apostrophe.
+                page_slots=[]
+                for cells in row_cells[:8]:
+                    for box in cells:
+                        if not box: continue
+                        clocks=clock_ranges(inside_text(words,box))
+                        if len(clocks)==1:
+                            x0,top,x1,bottom=box
+                            page_slots.append((float(x0),float(x1),clocks[0][0],clocks[0][1]))
+                unique_slots={ (round(s[0],1),round(s[1],1)):s for s in page_slots }
+                page_slots=sorted(unique_slots.values(),key=lambda s:s[0])
+                if len(page_slots)>=2:
+                    carried_slots=page_slots
+                slots=page_slots if len(page_slots)>=2 else carried_slots
+                if len(slots)<2: continue
+
+                # Date rows are found from text inside table cells; the date
+                # column may move when the publisher inserts a week-number or
+                # weekday column.
+                date_rows=[]
+                for ri,cells in enumerate(row_cells):
+                    for ci,box in enumerate(cells):
+                        if not box: continue
+                        d=box_date(inside_text(words,box))
+                        if d:
+                            date_rows.append((ri,ci,box,d))
+                            break
+                if len(date_rows)<2: continue
+                date_col=Counter(ci for _,ci,_,_ in date_rows).most_common(1)[0][0]
+
+                # Candidate cells are physical table cells, including cells
+                # merged vertically across dates and horizontally across pairs.
+                all_cells=[]
+                for cells in row_cells:
+                    for box in cells:
+                        if box and box not in all_cells: all_cells.append(box)
+
+                for ri,ci,date_box,lesson_date in date_rows:
+                    center_y=(date_box[1]+date_box[3])/2
+                    week=None
+                    week_boxes=[]
+                    for cells in row_cells:
+                        for c,box in enumerate(cells):
+                            if not box or c>=date_col: continue
+                            if box[1]-1 <= center_y <= box[3]+1:
+                                week_boxes.append((box[0],box))
+                    for _,box in sorted(week_boxes,key=lambda item:item[0],reverse=True):
+                        week=week_in(inside_text(words,box))
+                        if week is not None: break
+
+                    day=lesson_date.weekday()
+                    emitted=set()
+                    for box in all_cells:
+                        x0,top,x1,bottom=box
+                        if not (top-1 <= center_y <= bottom+1): continue
+                        covered=[s for s in slots if x0-1 <= (s[0]+s[1])/2 <= x1+1]
+                        if not covered: continue
+                        subject_text=inside_text(words,box)
+                        if not subject_text or box_date(subject_text) or week_in(subject_text): continue
+                        subject,location=split_matrix_cell(subject_text)
+                        subject=repair_pdf_subject(norm(subject)).strip(' /,;.:()-')
+                        dangling_location=re.search(r'\((?:пер\.?|ул\.?|просп?\.?)\s*$',subject,re.I)
+                        if dangling_location:
+                            location=norm(f"{dangling_location.group(0).lstrip('(')} {location}")
+                            subject=subject[:dangling_location.start()].strip(' /,;.:()-')
+                        if not subject or len(subject)<2 or subject.casefold() in {'дата','день недели','неделя'}: continue
+                        first,last=covered[0],covered[-1]
+                        start,end=first[2],last[3]
+                        key=(round(x0,1),round(top,1),round(x1,1),round(bottom,1),start,end,subject,location)
+                        if key in emitted: continue
+                        emitted.add(key)
+                        event_type='lecture' if re.search(r'\bлекци[яи]\b',subject_text,re.I) else 'practice'
+                        event={'weekday':day,'start':start,'end':end,'subject':subject,'location':location,
+                               'group':'ALL','stream':stream or '','type':event_type,'date':lesson_date.isoformat(),
+                               'sourceUrl':url,'scheduleMode':'dated','parser':'pdf-dated-grid-v1'}
+                        if week is not None:
+                            event['weekNumber']=week
+                            expected_start=datetime.date.fromisoformat(week_start(week))
+                            if (lesson_date-expected_start).days in range(7): event['weekStart']=expected_start.isoformat()
+                        result.append(event)
+
+    seen=set(); out=[]
+    for event in result:
+        key=(event['date'],event['start'],event['end'],event['subject'],event['location'])
+        if key not in seen: seen.add(key); out.append(event)
+    return out
+
+
 def parse_practice(doc_bytes, course, url, stream):
     """Universal layout-adaptive practice parser.
 
@@ -2019,3 +2165,5 @@ def main():
         for w in documented_coverage_gaps: print('  - '+w)
 
 if __name__=='__main__': main()
+
+
