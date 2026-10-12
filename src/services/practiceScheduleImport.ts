@@ -151,8 +151,10 @@ function headerField(value: unknown): string {
 }
 
 function timeRange(value: unknown): [string, string] | null {
-  const match = clean(value).match(/(?:^|\D)([01]?\d|2[0-3])[:.]([0-5]\d)\s*[-–—]\s*([01]?\d|2[0-3])[:.]([0-5]\d)(?:\D|$)/);
-  return match ? [`${String(Number(match[1])).padStart(2, '0')}:${match[2]}`, `${String(Number(match[3])).padStart(2, '0')}:${match[4]}`] : null;
+  const matches = [...clean(value).matchAll(/([01]?\d|2[0-3])[:.]([0-5]\d)/g)];
+  if (matches.length < 2) return null;
+  const first = matches[0]!, second = matches[1]!;
+  return [`${String(Number(first[1])).padStart(2, '0')}:${first[2]}`, `${String(Number(second[1])).padStart(2, '0')}:${second[2]}`];
 }
 
 function parseRows(matrix: unknown[][], fileName: string, target: ImportTarget): ImportedPractice[] {
