@@ -25,7 +25,7 @@ DAY_RE=re.compile(r'^(?:ПН|ВТ|СР|ЧТ|ПТ|СБ|ВС|ПОНЕДЕЛЬНИ�
 TIME_RE=re.compile(r'(?<!\d)(\d{1,2})\s*[:.]\s*(\d{2})\s*[-–—]\s*(\d{1,2})\s*[:.]\s*(\d{2})(?!\d)')
 WEEK_RE=re.compile(r'\(([^()]*(?:\d)[^()]*)\)')
 DATE_RE=re.compile(r'^(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?$')
-GROUP_RE=re.compile(r'(?<!\d)(\d{3})(?:\s*[-–—]\s*(\d{3}))?(?!\d)')
+GROUP_RE=re.compile(r'(?<!\d)(\d{3}(?:КП|П|KP|P)?)(?:\s*[-–—]\s*(\d{3}(?:КП|П|KP|P)?))?(?![\w])',re.I)
 ROSTER_CONTRACT_PATH=Path('data/official-roster-contract.json')
 def load_roster_contract():
     if not ROSTER_CONTRACT_PATH.exists(): return {}
@@ -329,11 +329,11 @@ def group_header(page_text):
     nums=[]
     m=re.search(r'День\s+недели\s+Время(.{0,500})', text, re.I|re.S)
     if m:
-        nums=re.findall(r'(?<!\d)(\d{3})(?!\d)',m.group(1))
+        nums=re.findall(r'(?<!\d)(\d{3}(?:КП|П|KP|P)?)(?![\w])',m.group(1),re.I)
     if not nums:
         # Restrict fallback to the beginning of the document; room numbers later
         # in the PDF must never become student groups.
-        nums=re.findall(r'(?<!\d)(\d{3})(?!\d)',text[:3500])
+        nums=re.findall(r'(?<!\d)(\d{3}(?:КП|П|KP|P)?)(?![\w])',text[:3500],re.I)
     # Filter obvious room/academic-year numbers. Official student groups are
     # course-prefixed 1xx..5xx numbers; course is validated later.
     return stream, list(dict.fromkeys(nums))
@@ -734,7 +734,7 @@ def parse_practice_tables(doc, course, url, stream):
         for row in table:
             for ci, value in enumerate(row or []):
                 value = norm(value)
-                if re.fullmatch(rf'{re.escape(course_prefix)}\d{{2}}', value):
+                if re.fullmatch(rf'{re.escape(course_prefix)}\d{{2}}(?:КП|П|KP|P)?', value, re.I):
                     page_group_columns[value] = ci
         if page_group_columns:
             group_columns = page_group_columns
