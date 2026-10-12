@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.json && node scripts/copy-public.mjs && node scripts/validate-dist.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --test tests/calendar.test.mjs tests/core.test.mjs tests/local-runtime.test.mjs tests/local-support.test.mjs tests/org-normalization.test.mjs tests/personalization-features.test.mjs tests/phase2.test.mjs tests/static-server.test.mjs tests/ui-contract.test.mjs",
+    "test": "npm run build && node --test tests/calendar.test.mjs tests/core.test.mjs tests/local-runtime.test.mjs tests/local-support.test.mjs tests/org-normalization.test.mjs tests/personalization-features.test.mjs tests/phase2.test.mjs tests/practice-import.test.mjs tests/static-server.test.mjs tests/ui-contract.test.mjs",
     "test:backend": "node --test tests/api.test.mjs",
     "test:local": "npm test",
     "qa:local": "npm run lint && npm run test:local && node scripts/validate-dist.mjs",
