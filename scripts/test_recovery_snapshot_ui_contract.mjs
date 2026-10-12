@@ -14,7 +14,7 @@ if (specialist.dataState === 'local-recovery-snapshot') {
   assert.ok(peds1.issues.includes('NOT_FOR_PRODUCTION'));
   assert.ok(psych2.issues.includes('NOT_FOR_PRODUCTION'));
   assert.equal(ld2.status, 'partial');
-  assert.match(ld2.message, /требуют синхронизации с официальным источником/i);
+  assert.match(ld2.message, /частичное официальное расписание/i);
   for (const program of Object.values(specialist.programs)) {
     for (const course of Object.values(program.courses ?? {})) {
       for (const source of course.sources ?? []) {
