@@ -7,6 +7,9 @@ from datetime import datetime, timezone
 
 DATE_LABEL_RE = re.compile(r'(?<!\d)(\d{1,2})[./](\d{1,2})[./](\d{2,4})(?!\d)')
 YEAR_PAIR_RE = re.compile(r'(?<!\d)(20\d{2})\s*[/–-]\s*(20\d{2})(?!\d)')
+LOCATION_NUMBER_MARKER_RE = re.compile(
+    r'\\b(?:ауд(?:итория)?|каб(?:инет)?|корп(?:ус)?|лит(?:ера)?|зал)\\.?', re.I
+)
 SPECIALTY_CODE_RE = re.compile(
     r'(?:специальность|код\s+(?:направления|специальности))[^\d]{0,40}'
     r'\d{2}\.\d{2}\.\d{2}', re.I
@@ -36,6 +39,12 @@ def date_label_audit(text: str, academic_year_start: int = 2026) -> dict:
     labels: list[str] = []
     for m in DATE_LABEL_RE.finditer(text):
         if any(start <= m.start() and m.end() <= end for start, end in specialty_spans):
+            continue
+        # Room/address codes such as "ауд. 4.2.10" and "ауд. 3.30/3.31"
+        # resemble dates to a numeric pattern but are not schedule dates.
+        prefix = text[max(0, m.start() - 24):m.start()]
+        markers = list(LOCATION_NUMBER_MARKER_RE.finditer(prefix))
+        if markers and len(prefix) - markers[-1].end() <= 12:
             continue
         d, month, raw_year = int(m.group(1)), int(m.group(2)), m.group(3)
         year = int(raw_year)
