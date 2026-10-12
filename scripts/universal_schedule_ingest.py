@@ -32,7 +32,7 @@ from typing import Iterable
 
 TIME_RE = re.compile(r"(?<!\d)(\d{1,2})\s*[:.]\s*(\d{2})\s*[-–—]\s*(\d{1,2})\s*[:.]\s*(\d{2})(?!\d)")
 DAY_RE = re.compile(r"^(?:пн|вт|ср|чт|пт|сб|вс|понедельник|вторник|среда|четверг|пятница|суббота|воскресенье)\b", re.I)
-GROUP_RE = re.compile(r"(?<!\d)(\d{3})(?!\d)")
+GROUP_RE = re.compile(r"(?<!\d)(\d{3}(?:КП|П|KP|P)?)(?![\w])", re.I)
 WEEK_SPEC_RE = re.compile(r"\(([^()]*(?:\d)[^()]*)\)")
 DAY_MAP = {
     "пн": 0, "понедельник": 0, "вт": 1, "вторник": 1,
