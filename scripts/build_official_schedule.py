@@ -702,46 +702,25 @@ def parse_dual_location_time(text, location):
     return clocks[1] if len(clocks) > 1 else clocks[0]
 
 
-def extract_practice_table(page):
-    """Extract spreadsheet grids with ruled-line and text-aligned strategies.
-
-    Official exports are inconsistent: some PDFs retain cell borders, while
-    others preserve only aligned text and merged columns. Try both strategies,
-    then keep all plausible grids so the caller can select the one containing
-    the group/day/time structure instead of accidentally choosing a decorative
-    or partial table.
-    """
-    settings = [
-        PRACTICE_TABLE_SETTINGS,
-        {
-            **PRACTICE_TABLE_SETTINGS,
-            'vertical_strategy': 'text',
-            'horizontal_strategy': 'text',
-            'min_words_vertical': 2,
-            'min_words_horizontal': 1,
-            'text_x_tolerance': 3,
-            'text_y_tolerance': 3,
-        },
-    ]
-    found = []
-    signatures = set()
-    for strategy in settings:
-        try:
-            tables = page.extract_tables(strategy) or []
-        except Exception:
-            continue
-        for table in tables:
-            if not table or max((len(row or []) for row in table), default=0) < 4:
-                continue
-            signature = tuple(tuple(norm(cell) for cell in (row or [])) for row in table)
-            if signature in signatures:
-                continue
-            signatures.add(signature)
-            found.append(table)
-    return found
+def extract_practice_table(page, strategy='lines'):
+    """Extract plausible spreadsheet grids using one independent strategy."""
+    settings = PRACTICE_TABLE_SETTINGS if strategy == 'lines' else {
+        **PRACTICE_TABLE_SETTINGS,
+        'vertical_strategy': 'text',
+        'horizontal_strategy': 'text',
+        'min_words_vertical': 2,
+        'min_words_horizontal': 1,
+        'text_x_tolerance': 3,
+        'text_y_tolerance': 3,
+    }
+    try:
+        tables = page.extract_tables(settings) or []
+    except Exception:
+        return []
+    return [table for table in tables if table and max((len(row or []) for row in table), default=0) >= 4]
 
 
-def parse_practice_tables(doc, course, url, stream):
+def parse_practice_tables(doc, course, url, stream, table_strategy='lines'):
     """Primary parser for official spreadsheet-style practice PDFs."""
     events = []
     group_columns = None
@@ -752,28 +731,10 @@ def parse_practice_tables(doc, course, url, stream):
         # pdfplumber expects a page object, not a PyMuPDF page. The caller passes
         # a small adapter created below; this function is intentionally isolated
         # from the rest of the parser.
-        tables = extract_practice_table(page)
+        tables = extract_practice_table(page, table_strategy)
         if not tables:
             continue
-        def table_score(candidate):
-            flat = [norm(value) for row in candidate for value in (row or [])]
-            group_hits = sum(
-                1 for value in flat
-                if re.fullmatch(rf'{re.escape(course_prefix)}\d{{2}}(?:КП|П|KP|P)?', value, re.I)
-            )
-            day_hits = sum(
-                1 for row in candidate
-                if row and norm(row[0]).lower().rstrip('.,:') in DAY_ALIASES
-            )
-            clock_hits = sum(
-                1 for row in candidate
-                if TIME_RE.search(' '.join(norm(value) for value in (row or [])[:3]))
-            )
-            header_hits = int(any('день недели' in value.lower() and 'время' in value.lower() for value in flat))
-            width = max((len(row or []) for row in candidate), default=0)
-            return (int(group_hits > 0), group_hits, header_hits, day_hits, clock_hits, len(candidate), width)
-
-        table = max(tables, key=table_score)
+        table = max(tables, key=lambda t: (len(t), max((len(r) for r in t), default=0)))
 
         # Re-detect group columns on every page that carries a header. Excel/PDF
         # exports can change the extracted cell indexes between pages because of
@@ -1361,11 +1322,23 @@ def parse_week_matrix_tables(doc_bytes, course, url, stream):
     return out
 
 def parse_practice_with_pdfplumber(doc_bytes, course, url, stream):
-    """Open bytes with pdfplumber and run the grid parser."""
-    events = []
+    """Run ruled and text-aligned table extraction, then combine group coverage."""
+    by_key = {}
     with pdfplumber.open(__import__('io').BytesIO(doc_bytes)) as pdf:
-        events = parse_practice_tables(pdf.pages, course, url, stream)
-    return events
+        for strategy in ('lines', 'text'):
+            try:
+                candidate = parse_practice_tables(pdf.pages, course, url, stream, strategy)
+            except Exception:
+                candidate = []
+            for event in candidate:
+                key = (
+                    str(event.get('group', '')), str(event.get('weekNumber', '')),
+                    str(event.get('weekday', '')), str(event.get('start', '')),
+                    str(event.get('end', '')), norm(event.get('subject')),
+                    norm(event.get('location')),
+                )
+                by_key.setdefault(key, event)
+    return list(by_key.values())
 
 
 def parse_practice(doc_bytes, course, url, stream):
