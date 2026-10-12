@@ -25,6 +25,20 @@ for needle in required_workflow:
     if needle not in text:
         raise SystemExit(f'WORKFLOW CONTRACT FAILED: missing {needle!r}')
 
+
+required_cadence = [
+    "cron: '*/20 * * * *'",
+    "minute_of_day % 40",
+    "phase < 20",
+    "outputs:",
+    "refresh_due:",
+    "needs: cadence",
+    "if: needs.cadence.outputs.refresh_due == 'true'",
+]
+for needle in required_cadence:
+    if needle not in text:
+        raise SystemExit(f"WORKFLOW CONTRACT FAILED: 40-minute sync gate missing {needle!r}")
+
 required_sync = [
     'scripts/sync_kug_and_calendar.py',
     'scripts/build_official_schedule.py',
