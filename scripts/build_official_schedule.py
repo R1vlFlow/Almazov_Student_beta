@@ -1910,6 +1910,14 @@ def main():
                     source_row['matrixWeekAlignment']='matrixWeekNumber = official calendarWeekNumber'
                 else:
                     source_row['dateResolution']='week-number-only; not calendar-dated'
+            date_audit = provenance.get('dateLabelAudit', {})
+            if date_audit.get('conflictingDateYears'):
+                source_row['dateLabelWarning'] = {
+                    'message': 'Embedded date labels conflict with the academic-year heading; verify against the official week calendar.',
+                    'years': date_audit.get('conflictingDateYears', []),
+                    'samples': date_audit.get('sampleDateLabels', [])[:8],
+                    'resolution': source_row.get('dateResolution', 'manual-review-required'),
+                }
             cc['sources'].append(source_row)
             if k=='practice':
                 groups=sorted({str(e['group']) for e in events if re.fullmatch(r'\d{3}',str(e.get('group','')))},key=int)
