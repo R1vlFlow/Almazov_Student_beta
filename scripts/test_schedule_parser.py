@@ -53,6 +53,15 @@ def main():
     words = [(0, 0, 20, 10, group, 0, 0, 0) for group in ('101П', '102П', '101КП', '102КП')]
     assert_eq(UniversalScheduleParser._group_candidates(words, 1), ['101КП', '101П', '102КП', '102П'], 'layout detector preserves suffixed groups')
 
+    from types import SimpleNamespace
+    candidate = [
+        {'group': '101П', 'subject': 'Предмет 1', 'start': '09:00', 'end': '10:35'},
+        {'group': '102', 'subject': 'Предмет 2', 'start': '09:00', 'end': '10:35'},
+    ]
+    profile = SimpleNamespace(groups=['101П', '102П'], layout='daily-grid')
+    assert_eq(UniversalScheduleParser._practice_event_issues(candidate, profile), [],
+              'numeric-only extracted group maps to one unambiguous expected suffix')
+
     records = split_subjects(
         'Основы Российской государственности (2-9) Солнечное, лит. С, ауд. 3.20 '
         'Основы проектной деятельности (11-16) Солнечное, лит. С, ауд. 3.53'
