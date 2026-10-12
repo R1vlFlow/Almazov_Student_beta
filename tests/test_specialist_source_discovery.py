@@ -81,8 +81,13 @@ def test_academic_year_window_tracks_current_and_next_cycle():
 
 
 def test_weekly_block_dates_and_group_suffixes():
+    # The parser's weekday numbers are Monday=0 ... Sunday=6.
+    # Week 6 starts on Monday 2026-10-05, so 5 must stay Saturday.
     base = {'weekStart': '2026-10-05', 'weekday': 5}
     assert specialist.materialize_dates(base) == ['2026-10-10']
+    assert specialist.materialize_dates({'weekNumber': 6, 'weekday': 5}) == ['2026-10-10']
+    # Week 6 ends on Saturday; do not shift Sunday back into the week.
+    assert specialist.materialize_dates({'weekNumber': 6, 'weekday': 6}) == []
     assert specialist.materialize_dates({'weekStart': '2026-10-05', 'matrixSlots': [0, 2, 5]}) == ['2026-10-05', '2026-10-07', '2026-10-10']
     meta = {'program': '31.05.02', 'course': 2, 'kind': 'practice', 'stream': 'B',
             'url': 'https://example.invalid/pediatria-practice.pdf', 'title': 'Pediatria practice', 'format': 'pdf'}
