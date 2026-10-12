@@ -759,7 +759,7 @@ def parse_practice_tables(doc, course, url, stream):
             flat = [norm(value) for row in candidate for value in (row or [])]
             group_hits = sum(
                 1 for value in flat
-                if re.fullmatch(rf'{re.escape(course_prefix)}\\d{{2}}(?:КП|П|KP|P)?', value, re.I)
+                if re.fullmatch(rf'{re.escape(course_prefix)}\d{{2}}(?:КП|П|KP|P)?', value, re.I)
             )
             day_hits = sum(
                 1 for row in candidate
