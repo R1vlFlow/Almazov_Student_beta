@@ -13,7 +13,7 @@ const csvRow=(course,group,subject='ОРГ',type='Практика',program='31.
 
 for (const course of [4,5,6]) {
   test(`CSV import reads course ${course} practice and scopes it to the selected group`,async()=>{
-    const csv=[baseHeaders,csvRow(course,'${course}24'),csvRow(course,'${course}25','Лекция','Лекция'),csvRow(course===6?5:6,'${course}24','Чужой курс')].join('\\n');
+    const csv=[baseHeaders,csvRow(course,`${course}24`),csvRow(course,`${course}25`,'Лекция','Лекция'),csvRow(course===6?5:6,`${course}24`,'Чужой курс')].join('\n');
     const rows=await parsePracticeScheduleFile(file('practice.csv',csv),{program:'31.05.01',course,group:`${course}24`});
     assert.equal(rows.length,1);
     assert.deepEqual([rows[0].course,rows[0].group,rows[0].date,rows[0].start,rows[0].end,rows[0].subject,rows[0].teacher],[course,`${course}24`,'2026-10-17','09:00','12:25','ОРГ','Петров П.П.']);
@@ -21,7 +21,7 @@ for (const course of [4,5,6]) {
 }
 
 test('TSV import accepts one time-range column and keeps the selected group',async()=>{
-  const text=['Дата\\tВремя\\tПредмет\\tГруппа\\tТип','17.10.2026\\t09:00–12:25\\tАнатомия\\t424\\tПЗ'].join('\\n');
+  const text=['Дата\tВремя\tПредмет\tГруппа\tТип','17.10.2026\t09:00–12:25\tАнатомия\t424\tПЗ'].join('\n');
   const rows=await parsePracticeScheduleFile(file('practice.tsv',text),{program:'31.05.01',course:4,group:'424'});
   assert.equal(rows.length,1);
   assert.deepEqual([rows[0].start,rows[0].end,rows[0].group],['09:00','12:25','424']);
@@ -41,7 +41,7 @@ test('Excel import converts numeric time cells and preserves teacher',async()=>{
 });
 
 test('ICS import reads Moscow local time, group and teacher',async()=>{
-  const ics=['BEGIN:VCALENDAR','BEGIN:VEVENT','DTSTART;TZID=Europe/Moscow:20261017T090000','DTEND;TZID=Europe/Moscow:20261017T102500','SUMMARY:Клиническая практика','LOCATION:ауд. 3.6','ATTENDEE:Иванов И.И.','GROUP:624','END:VEVENT','END:VCALENDAR'].join('\\r\\n');
+  const ics=['BEGIN:VCALENDAR','BEGIN:VEVENT','DTSTART;TZID=Europe/Moscow:20261017T090000','DTEND;TZID=Europe/Moscow:20261017T102500','SUMMARY:Клиническая практика','LOCATION:ауд. 3.6','ATTENDEE:Иванов И.И.','GROUP:624','END:VEVENT','END:VCALENDAR'].join('\r\n');
   const rows=await parsePracticeScheduleFile(file('practice.ics',ics,'text/calendar'),{program:'31.05.01',course:6,group:'624'});
   assert.equal(rows.length,1);
   assert.deepEqual([rows[0].date,rows[0].start,rows[0].end,rows[0].group,rows[0].teacher],['2026-10-17','09:00','10:25','624','Иванов И.И.']);
