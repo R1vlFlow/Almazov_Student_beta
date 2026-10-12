@@ -231,15 +231,22 @@ function parseRows(matrix: unknown[][], fileName: string, target: ImportTarget):
     if (providedGroup && selectedGroup && norm(providedGroup) !== norm(selectedGroup)) continue;
     const type = norm(value(cells, 'type'));
     if (type && /(лекц|lecture)/.test(type)) continue;
-    const date = dateValue(value(cells, 'date'));
-    const subject = clean(value(cells, 'subject'));
+    const rowDate = cells.map(dateValue).find(Boolean) ?? '';
+    const date = dateValue(value(cells, 'date')) || rowDate;
+    const subjectCell = clean(value(cells, 'subject'));
+    const subject = subjectCell || clean(cells.find(cell => {
+      const text = clean(cell);
+      return text.length >= 3 && !dateValue(cell) && !timeValue(cell) && !timeRange(cell)
+        && !/^\d+(?:[.,]\d+)?$/.test(text) && !/^\d{3}(?:КП|П)?$/i.test(text);
+    }) ?? '');
     let start = timeValue(value(cells, 'start'));
     let end = timeValue(value(cells, 'end'));
-    const range = timeRange(value(cells, 'start')) ?? timeRange(cells.join(' '));
-    if (range) { if (!start) start = range[0]; if (!end) end = range[1]; }
-    if ((!start || !end) && columns.start !== undefined && columns.end === undefined) {
-      const match = clean(value(cells, 'start')).match(/([01]?\d|2[0-3])[:.]([0-5]\d)\s*[-–—]\s*([01]?\d|2[0-3])[:.]([0-5]\d)/);
-      if (match) { start = `${String(Number(match[1])).padStart(2, '0')}:${match[2]}`; end = `${String(Number(match[3])).padStart(2, '0')}:${match[4]}`; }
+    const range = cells.map(timeRange).find((candidate): candidate is [string, string] => !!candidate) ?? null;
+    if (range) { if (!start || columns.end === undefined) start = range[0]; if (!end) end = range[1]; }
+    if (!start || !end) {
+      const clocks = cells.map(timeValue).filter(Boolean);
+      if (!start && clocks[0]) start = clocks[0];
+      if (!end && clocks[1]) end = clocks[1];
     }
     if (!date || !subject || !start || !end || end <= start) continue;
     const group = providedGroup || selectedGroup;
