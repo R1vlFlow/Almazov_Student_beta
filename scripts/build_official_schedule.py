@@ -703,12 +703,42 @@ def parse_dual_location_time(text, location):
 
 
 def extract_practice_table(page):
-    """Extract the spreadsheet grid from an official practice PDF page."""
-    try:
-        tables = page.extract_tables(PRACTICE_TABLE_SETTINGS)
-    except Exception:
-        return []
-    return [t for t in tables if t and max((len(r) for r in t), default=0) >= 4]
+    """Extract spreadsheet grids with ruled-line and text-aligned strategies.
+
+    Official exports are inconsistent: some PDFs retain cell borders, while
+    others preserve only aligned text and merged columns. Try both strategies,
+    then keep all plausible grids so the caller can select the one containing
+    the group/day/time structure instead of accidentally choosing a decorative
+    or partial table.
+    """
+    settings = [
+        PRACTICE_TABLE_SETTINGS,
+        {
+            **PRACTICE_TABLE_SETTINGS,
+            'vertical_strategy': 'text',
+            'horizontal_strategy': 'text',
+            'min_words_vertical': 2,
+            'min_words_horizontal': 1,
+            'text_x_tolerance': 3,
+            'text_y_tolerance': 3,
+        },
+    ]
+    found = []
+    signatures = set()
+    for strategy in settings:
+        try:
+            tables = page.extract_tables(strategy) or []
+        except Exception:
+            continue
+        for table in tables:
+            if not table or max((len(row or []) for row in table), default=0) < 4:
+                continue
+            signature = tuple(tuple(norm(cell) for cell in (row or [])) for row in table)
+            if signature in signatures:
+                continue
+            signatures.add(signature)
+            found.append(table)
+    return found
 
 
 def parse_practice_tables(doc, course, url, stream):
