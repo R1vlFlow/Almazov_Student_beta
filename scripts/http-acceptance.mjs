@@ -33,7 +33,8 @@ try{
   assert.ok(schedule6.body.events.length>=50,'verified 6K lecture rows must survive a missing stream field');
   assert.ok(schedule6.body.events.some(e=>/^6\d{2}$/.test(String(e.group))));
   const groups6=new Set(schedule6.body.events.filter(e=>['617','618'].includes(e.group)).map(e=>e.group));
-  assert.deepEqual([...groups6].sort(),[],'fixture-derived group-specific practice must not leak into 6K');
+  assert.deepEqual([...groups6].sort(),['617','618'],'official 6K groups 617/618 must be present');
+  assert.ok(schedule6.body.events.filter(e=>['617','618'].includes(e.group)).every(e=>String(e.sourceUrl??'').includes('education.almazovcentre.ru')),'6K group-specific rows must come from the official portal');
   assert.ok(schedule6.body.events.some(e=>e.type==='lecture'));
   assert.ok(schedule6.body.events.every(e=>!String(e.sourceUrl??'').startsWith('fixture://')));
 
