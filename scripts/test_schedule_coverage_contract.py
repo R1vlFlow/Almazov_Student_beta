@@ -28,7 +28,7 @@ check('builder preserves double metadata', 'doubleIndex' in BUILD and 'doubleOf'
 check('client renders double parts in all views', 'function eventHalfLabel(e:CalendarEvent)' in APP and all(f'function {name}(' in APP and APP[APP.index(f'function {name}('):APP.find('\nfunction ', APP.index(f'function {name}(')+10) if APP.find('\nfunction ', APP.index(f'function {name}(')+10)>=0 else len(APP)].find('eventHalfMarkup(')>=0 for name in ('renderCardSchedule','renderMobile','renderMonth','renderAgenda','renderList')))
 if WF is not None:
     check('scheduled workflow runs npm production QA', 'npm run qa' in WF)
-    check('production QA runs JS validation', 'scripts/validate_js.py' in QA_SCRIPT)
+    check('production QA typechecks and validates the canonical project', 'npm run lint' in QA_SCRIPT and 'scripts/validate-project.mjs' in QA_SCRIPT)
     check('production QA runs generated-index validation', 'scripts/validate_generated_index.py' in QA_SCRIPT)
     check('production QA runs schedule-data validation', 'scripts/validate_schedule_data.py' in QA_SCRIPT)
 
