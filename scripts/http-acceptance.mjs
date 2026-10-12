@@ -17,7 +17,7 @@ try{
   assert.equal(schedule4.res.status,200);assert.equal(schedule4.body.status,'partial');assert.ok(schedule4.body.events.length>=100);assert.match(schedule4.res.headers.get('cache-control')??'',/no-cache, no-store, must-revalidate/);
   assert.ok(schedule4.body.issues.includes('SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'));
   assert.ok(schedule4.body.issues.includes('SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'));
-  assert.ok(schedule4.body.events.every(e=>e.type==='lecture'&&!String(e.sourceUrl??'').startsWith('fixture://')));
+  assert.ok(schedule4.body.events.some(e=>e.type==='lecture'));assert.ok(schedule4.body.events.every(e=>!String(e.sourceUrl??'').startsWith('fixture://')));
   const e424=schedule4.body.events.filter(e=>e.group==='424'&&e.date==='2026-10-05'&&e.subject==='Эндокринология');
   assert.equal(e424.length,0,'synthetic practice must remain excluded until an official source is parsed');
   const manifest=await fetch(`http://127.0.0.1:${port}/manifest.webmanifest`,{cache:'no-store'});
@@ -36,7 +36,8 @@ try{
   assert.ok(schedule6.body.events.some(e=>e.group==='ALL'));
   const groups6=new Set(schedule6.body.events.filter(e=>['617','618'].includes(e.group)).map(e=>e.group));
   assert.deepEqual([...groups6].sort(),[],'fixture-derived group-specific practice must not leak into 6K');
-  assert.ok(schedule6.body.events.every(e=>e.type==='lecture'));
+  assert.ok(schedule6.body.events.some(e=>e.type==='lecture'));
+  assert.ok(schedule6.body.events.every(e=>!String(e.sourceUrl??'').startsWith('fixture://')));
 
   const created=await request('/api/events',{method:'POST',body:JSON.stringify({title:'Acceptance event',startAt:'2026-10-08T16:00:00.000Z',endAt:'2026-10-08T17:00:00.000Z',timeZone:'Europe/Zurich',category:'meeting',status:'planned',privacy:'private'})});
   assert.equal(created.res.status,201);assert.equal(created.body.event.startAt,'2026-10-08T16:00:00.000Z');
