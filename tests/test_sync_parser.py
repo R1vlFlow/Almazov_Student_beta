@@ -5,7 +5,16 @@ This test deliberately avoids importing a remote sync entry point or relying on
 public network access. Parsing and publishing are tested separately.
 """
 from pathlib import Path
-import json, re
+import json, re, sys
+ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT/'scripts'))
+from source_integrity import date_label_audit
+
+# Room and address numbers in official tables are not schedule dates.
+room_audit=date_label_audit('Специальность 31.05.01, ауд. 4.2.10, ауд. 3.30/3.31, каб. 3.3.25')
+assert room_audit['dateLabelCount']==0 and not room_audit['conflictingDateYears'], f'room numbers misclassified as dates: {room_audit}'
+real_date_audit=date_label_audit('Занятие 03.11.2026')
+assert real_date_audit['embeddedDateYears']==[2026] and real_date_audit['dateLabelCount']==1, f'real timetable dates must remain visible: {real_date_audit}'
 ROOT=Path(__file__).resolve().parents[1]
 payload=json.loads((ROOT/'data/official-schedules.json').read_text(encoding='utf-8'))
 assert payload.get('schemaVersion') == 7, 'unexpected official source schema'
