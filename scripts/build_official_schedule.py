@@ -2026,6 +2026,11 @@ def main():
                     source_row['dateResolution']='week-number-only; not calendar-dated'
             date_audit = provenance.get('dateLabelAudit', {})
             if date_audit.get('conflictingDateYears'):
+                print('OFFICIAL_SOURCE_DATE_AUDIT '+json.dumps({
+                    'course':str(c),'stream':st or '','kind':k,'url':url,
+                    'academicYearInDocument':provenance.get('academicYearInDocument'),
+                    'audit':date_audit,'dateResolution':source_row.get('dateResolution')
+                },ensure_ascii=False,sort_keys=True),file=sys.stderr)
                 source_row['dateLabelWarning'] = {
                     'message': 'Embedded date labels conflict with the academic-year heading; verify against the official week calendar.',
                     'years': date_audit.get('conflictingDateYears', []),
@@ -2065,6 +2070,8 @@ def main():
     if applied_overrides:
         print(f'APPLIED VERIFIED SCHEDULE OVERRIDES: {applied_overrides}')
     mapped_weekday_events,unresolved_weekday_events,week_calendar_source=materialize_official_weekday_dates(courses)
+    for unresolved in unresolved_weekday_events:
+        print('OFFICIAL_WEEKDAY_DATE_UNRESOLVED '+json.dumps(unresolved,ensure_ascii=False,sort_keys=True),file=sys.stderr)
     week_calendar_rows={int(row['weekNumber']):row for row in json.loads(Path('data/academic-weeks-2026-2027.json').read_text(encoding='utf-8')).get('weeks',[])}
     for course in courses.values():
         for source in course.get('sources',[]):
