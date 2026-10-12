@@ -243,8 +243,22 @@ class UniversalScheduleParser:
         issues = []
         if not events:
             return ['no_events']
-        groups = {str(e.get('group')) for e in events if re.fullmatch(r'\d{3}(?:КП|П|KP|P)?', str(e.get('group', '')), re.I)}
         expected = set(profile.groups)
+        groups = set()
+        for event in events:
+            candidate_group = str(event.get('group', '')).strip()
+            if not re.fullmatch(r'\d{3}(?:КП|П|KP|P)?', candidate_group, re.I):
+                continue
+            if candidate_group in expected:
+                groups.add(candidate_group)
+                continue
+            # Some PDF table extractors split a Cyrillic suffix into a
+            # separate cell and emit a numeric-only group. Treat it as the
+            # expected suffixed group only when that mapping is unambiguous;
+            # the downstream specialist normalizer writes the canonical ID.
+            aliases = [group for group in expected if group.startswith(candidate_group)
+                       and group[len(candidate_group):].casefold() in {'п', 'кп', 'p', 'kp'}]
+            groups.add(aliases[0] if len(aliases) == 1 else candidate_group)
         missing = sorted(expected - groups)
         if missing:
             issues.append('missing_groups:' + ','.join(missing[:30]))
