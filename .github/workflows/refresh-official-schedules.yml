@@ -1,3 +1,4 @@
+# Re-run official 2026–2027 schedule validation after importer and double-lesson fixes.
 name: Refresh official schedules for release candidate
 
 on:
