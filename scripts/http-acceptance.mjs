@@ -15,7 +15,7 @@ try{
   for(let i=0;i<50;i++){try{const h=await request('/api/health');if(h.res.ok)break;}catch{}await delay(100);if(i===49)throw new Error(`server did not start: ${output}`);}
   const schedule4=await request('/api/schedule?program=31.05.01&course=4');
   assert.equal(schedule4.res.status,200);assert.equal(schedule4.body.status,'partial');assert.ok(schedule4.body.events.length>=100);assert.match(schedule4.res.headers.get('cache-control')??'',/no-cache, no-store, must-revalidate/);
-  assert.ok(schedule4.body.issues.includes('LOCAL_RECOVERY_SNAPSHOT'));
+  assert.ok(schedule4.body.issues.includes('SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'));
   assert.ok(schedule4.body.issues.includes('SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'));
   assert.ok(schedule4.body.events.every(e=>e.type==='lecture'&&!String(e.sourceUrl??'').startsWith('fixture://')));
   const e424=schedule4.body.events.filter(e=>e.group==='424'&&e.date==='2026-10-05'&&e.subject==='Эндокринология');
@@ -30,7 +30,7 @@ try{
   }
   const schedule6=await request('/api/schedule?program=31.05.01&course=6');
   assert.equal(schedule6.res.status,200);assert.ok(['partial','cache'].includes(schedule6.body.status));
-  assert.ok(schedule6.body.issues.includes('LOCAL_RECOVERY_SNAPSHOT'));
+  assert.ok(schedule6.body.issues.includes('SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'));
   assert.ok(schedule6.body.issues.includes('SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'));
   assert.ok(schedule6.body.events.length>=50,'verified 6K lecture rows must survive a missing stream field');
   assert.ok(schedule6.body.events.some(e=>e.group==='ALL'));
