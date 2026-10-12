@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 DATE_LABEL_RE = re.compile(r'(?<!\d)(\d{1,2})[./](\d{1,2})[./](\d{2,4})(?!\d)')
 YEAR_PAIR_RE = re.compile(r'(?<!\d)(20\d{2})\s*[/–-]\s*(20\d{2})(?!\d)')
 LOCATION_NUMBER_MARKER_RE = re.compile(
-    r'\\b(?:ауд(?:итория)?|каб(?:инет)?|корп(?:ус)?|лит(?:ера)?|зал)\\.?', re.I
+    r'\b(?:ауд(?:итория)?|каб(?:инет)?|корп(?:ус)?|лит(?:ера)?|зал)\.?', re.I
 )
 SPECIALTY_CODE_RE = re.compile(
     r'(?:специальность|код\s+(?:направления|специальности))[^\d]{0,40}'
