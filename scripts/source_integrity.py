@@ -50,6 +50,12 @@ def date_label_audit(text: str, academic_year_start: int = 2026) -> dict:
         year = int(raw_year)
         if len(raw_year) == 2:
             year += 2000
+        # A compact d.m.yy token with one-digit day/month and a year far
+        # outside this academic cycle is characteristic of room codes.
+        # Keep plausible current-cycle dates such as 4.1.26 in the audit.
+        room_code = DOTTED_ROOM_CODE_RE.fullmatch(m.group(0))
+        if room_code and year < academic_year_start - 10:
+            continue
         if not (1 <= d <= 31 and 1 <= month <= 12):
             continue
         years.append(year)
