@@ -233,10 +233,9 @@ def materialize_dates(event: dict) -> list[str]:
         return []
     if not 0 <= wd <= 6:
         return []
-    # Source weekday is JavaScript-style (0=Sunday, 1=Monday...). Align it to
-    # the actual weekday of the official week start rather than adding wd to Monday.
-    target_python_weekday = (wd + 6) % 7
-    offset = (target_python_weekday - start_date.weekday()) % 7
+    # The shared ingestion parser uses Python-style weekdays: Monday=0 ... Sunday=6.
+    # Preserve that numbering and align it to the official week start (which may not be Monday).
+    offset = (wd - start_date.weekday()) % 7
     target = start_date + dt.timedelta(days=offset)
     if target > end_date or target in _HOLIDAY_DATES:
         return []
