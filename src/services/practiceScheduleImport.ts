@@ -151,7 +151,7 @@ function headerField(value: unknown): string {
 }
 
 function timeRange(value: unknown): [string, string] | null {
-  const match = clean(value).match(/(?:^|\\D)([01]?\\d|2[0-3])[:.]([0-5]\\d)\\s*[-–—]\\s*([01]?\\d|2[0-3])[:.]([0-5]\\d)(?:\\D|$)/);
+  const match = clean(value).match(/(?:^|\D)([01]?\d|2[0-3])[:.]([0-5]\d)\s*[-–—]\s*([01]?\d|2[0-3])[:.]([0-5]\d)(?:\D|$)/);
   return match ? [`${String(Number(match[1])).padStart(2, '0')}:${match[2]}`, `${String(Number(match[3])).padStart(2, '0')}:${match[4]}`] : null;
 }
 
@@ -170,10 +170,11 @@ function parseRows(matrix: unknown[][], fileName: string, target: ImportTarget):
     const width = Math.max(0, ...sample.map(row => row.length));
     const hasDate = columns.date !== undefined || Array.from({ length: width }, (_, col) => col).some(col => sample.filter(row => !!dateValue(row[col])).length >= 2);
     const hasSubject = columns.subject !== undefined || Array.from({ length: width }, (_, col) => col).some(col =>
-      sample.filter(row => { const v = clean(row[col]); return v.length >= 3 && !dateValue(row[col]) && !timeValue(row[col]) && !timeRange(row[col]) && !/^\\d{3}(?:КП|П)?$/i.test(v); }).length >= 2);
+      sample.filter(row => { const v = clean(row[col]); return v.length >= 3 && !dateValue(row[col]) && !timeValue(row[col]) && !timeRange(row[col]) && !/^\d{3}(?:КП|П)?$/i.test(v); }).length >= 2);
     const timeColumns = Array.from({ length: width }, (_, col) => col);
     const hasRange = timeColumns.some(col => sample.filter(row => !!timeRange(row[col])).length >= 1);
-    const hasSplitTime = timeColumns.some(col => sample.filter(row => !!timeValue(row[col])).length >= 2) && timeColumns.some(col => sample.filter(row => !!timeValue(row[col])).length >= 2);
+    const splitTimeColumns = timeColumns.filter(col => sample.filter(row => !!timeValue(row[col])).length >= 2);
+    const hasSplitTime = splitTimeColumns.length >= 2;
     const hasTime = columns.start !== undefined || hasRange || hasSplitTime;
     const signalCount = Object.keys(columns).length;
     const score = (hasDate ? 5 : 0) + (hasSubject ? 4 : 0) + (hasTime ? 5 : 0) + Math.min(signalCount, 6) + Math.min(sample.filter(row => row.some(v => clean(v))).length, 8) / 10;
@@ -201,7 +202,7 @@ function parseRows(matrix: unknown[][], fileName: string, target: ImportTarget):
   };
   if (columns.date === undefined) { const col = findDataColumn(v => !!dateValue(v), 2); if (col >= 0) columns.date = col; }
   if (columns.subject === undefined) {
-    const col = findDataColumn(v => { const x = clean(v); return x.length >= 3 && !dateValue(v) && !timeValue(v) && !timeRange(v) && !/^\\d{3}(?:КП|П)?$/i.test(x); }, 2);
+    const col = findDataColumn(v => { const x = clean(v); return x.length >= 3 && !dateValue(v) && !timeValue(v) && !timeRange(v) && !/^\d{3}(?:КП|П)?$/i.test(x); }, 2);
     if (col >= 0) columns.subject = col;
   }
   if (columns.start === undefined) {
@@ -220,7 +221,7 @@ function parseRows(matrix: unknown[][], fileName: string, target: ImportTarget):
   for (const cells of rows.slice(best.dataStart)) {
     if (!cells?.some(cell => clean(cell))) continue;
     const providedProgram = norm(value(cells, 'program'));
-    const providedCourse = clean(value(cells, 'course')).match(/\\d+/)?.[0];
+    const providedCourse = clean(value(cells, 'course')).match(/\d+/)?.[0];
     const providedGroup = clean(value(cells, 'group'));
     const programHint = providedProgram.includes('31 05 01') || providedProgram.includes('лечебное дело') ? '31.05.01' : providedProgram.includes('31 05 02') || providedProgram.includes('педиатр') ? '31.05.02' : providedProgram.includes('37 05 01') || providedProgram.includes('клиническая психология') ? '37.05.01' : '';
     if (programHint && programHint !== target.program) continue;
@@ -235,7 +236,7 @@ function parseRows(matrix: unknown[][], fileName: string, target: ImportTarget):
     const range = timeRange(value(cells, 'start')) ?? timeRange(cells.join(' '));
     if (range) { if (!start) start = range[0]; if (!end) end = range[1]; }
     if ((!start || !end) && columns.start !== undefined && columns.end === undefined) {
-      const match = clean(value(cells, 'start')).match(/([01]?\\d|2[0-3])[:.]([0-5]\\d)\\s*[-–—]\\s*([01]?\\d|2[0-3])[:.]([0-5]\\d)/);
+      const match = clean(value(cells, 'start')).match(/([01]?\d|2[0-3])[:.]([0-5]\d)\s*[-–—]\s*([01]?\d|2[0-3])[:.]([0-5]\d)/);
       if (match) { start = `${String(Number(match[1])).padStart(2, '0')}:${match[2]}`; end = `${String(Number(match[3])).padStart(2, '0')}:${match[4]}`; }
     }
     if (!date || !subject || !start || !end || end <= start) continue;
