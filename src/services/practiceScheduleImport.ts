@@ -220,8 +220,10 @@ function parseRows(matrix: unknown[][], fileName: string, target: ImportTarget):
   const rowsOut: ImportedPractice[] = [];
   const selectedGroup = clean(target.group);
   const seen = new Set<string>();
+  const diagnostics = { rows: 0, dates: 0, subjects: 0, starts: 0, ends: 0, valid: 0 };
   for (const cells of rows.slice(best.dataStart)) {
     if (!cells?.some(cell => clean(cell))) continue;
+    diagnostics.rows++;
     const providedProgram = norm(value(cells, 'program'));
     const providedCourse = clean(value(cells, 'course')).match(/\d+/)?.[0];
     const providedGroup = clean(value(cells, 'group'));
@@ -248,6 +250,11 @@ function parseRows(matrix: unknown[][], fileName: string, target: ImportTarget):
       if (!start && clocks[0]) start = clocks[0];
       if (!end && clocks[1]) end = clocks[1];
     }
+    if (date) diagnostics.dates++;
+    if (subject) diagnostics.subjects++;
+    if (start) diagnostics.starts++;
+    if (end) diagnostics.ends++;
+    if (date && subject && start && end && end > start) diagnostics.valid++;
     if (!date || !subject || !start || !end || end <= start) continue;
     const group = providedGroup || selectedGroup;
     if (!group) continue;
@@ -259,7 +266,7 @@ function parseRows(matrix: unknown[][], fileName: string, target: ImportTarget):
     seen.add(id);
     rowsOut.push({ id, program: target.program, course: target.course, group, date, start, end, subject: subject.slice(0, 180), location: location.slice(0, 180), teacher: teacher.slice(0, 120), sourceFile: fileName.slice(0, 180), createdAt: new Date().toISOString() });
   }
-  if (!rowsOut.length) throw new Error('Таблица распознана, но подходящих ПЗ для выбранных курса и группы не нашлось. Проверьте даты, группу и тип занятий.');
+  if (!rowsOut.length) throw new Error(`Таблица распознана, но подходящих ПЗ для выбранных курса и группы не нашлось. Проверено строк: ${diagnostics.rows}; с датой: ${diagnostics.dates}; предметом: ${diagnostics.subjects}; началом: ${diagnostics.starts}; окончанием: ${diagnostics.ends}. Проверьте даты, группу и тип занятий.`);
   return rowsOut;
 }
 function simpleHash(text: string): string { let hash = 2166136261; for (const char of text) { hash ^= char.charCodeAt(0); hash = Math.imul(hash, 16777619); } return (hash >>> 0).toString(16); }
