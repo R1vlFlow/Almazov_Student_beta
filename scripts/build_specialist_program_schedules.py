@@ -276,7 +276,8 @@ def normalize_events(raw_events: list[dict], meta: dict) -> list[dict]:
             group += suffix
         dates = materialize_dates(raw)
         if not dates:
-            print(f"PARSER_ANOMALY missing_schedule_date source={meta['url']} group={group} subject={subject!r}", file=sys.stderr)
+            date_fields = {key: raw.get(key) for key in ('date', 'dateText', 'weekNumber', 'weekStart', 'weekday', 'matrixSlots', 'parser') if raw.get(key) not in (None, '', [])}
+            print(f"PARSER_ANOMALY missing_schedule_date source={meta['url']} group={group} subject={subject!r} time={start}-{end} dateFields={date_fields!r}", file=sys.stderr)
             continue
         location = legacy.clean_location(raw.get('location', ''))
         teacher = clean_teacher(raw.get('teacher', ''))
