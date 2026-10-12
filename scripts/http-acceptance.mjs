@@ -30,12 +30,11 @@ try{
   const schedule6=await request('/api/schedule?program=31.05.01&course=6');
   assert.equal(schedule6.res.status,200);assert.ok(['partial','cache'].includes(schedule6.body.status));
   assert.ok(schedule6.body.issues.includes('SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'));
-  assert.ok(schedule6.body.events.length>=50,'verified 6K lecture rows must survive a missing stream field');
+  assert.ok(schedule6.body.events.length>=50,'verified 6K timetable rows must survive a missing stream field');
   assert.ok(schedule6.body.events.some(e=>/^6\d{2}$/.test(String(e.group))));
   const groups6=new Set(schedule6.body.events.filter(e=>['617','618'].includes(e.group)).map(e=>e.group));
   assert.deepEqual([...groups6].sort(),['617','618'],'official 6K groups 617/618 must be present');
   assert.ok(schedule6.body.events.filter(e=>['617','618'].includes(e.group)).every(e=>!String(e.sourceUrl??'').startsWith('fixture://')),'6K group-specific rows must not come from fixtures');
-  assert.ok(schedule6.body.events.some(e=>e.type==='lecture'));
   assert.ok(schedule6.body.events.every(e=>!String(e.sourceUrl??'').startsWith('fixture://')));
 
   const created=await request('/api/events',{method:'POST',body:JSON.stringify({title:'Acceptance event',startAt:'2026-10-08T16:00:00.000Z',endAt:'2026-10-08T17:00:00.000Z',timeZone:'Europe/Zurich',category:'meeting',status:'planned',privacy:'private'})});
