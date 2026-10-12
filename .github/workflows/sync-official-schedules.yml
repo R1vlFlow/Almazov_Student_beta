@@ -2,8 +2,10 @@ name: Sync official schedules and deploy
 
 on:
   workflow_dispatch:
+  # GitHub cron is hourly-based. Trigger every 20 minutes and gate to a
+  # UTC-anchored 40-minute cadence (00:00, 00:40, 01:20, ...).
   schedule:
-    - cron: '17 */6 * * *'
+    - cron: '*/20 * * * *'
 
 permissions:
   contents: write
@@ -15,7 +17,36 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  cadence:
+    runs-on: ubuntu-latest
+    outputs:
+      refresh_due: ${{ steps.cadence.outputs.refresh_due }}
+    steps:
+      - name: Gate scheduled runs to every 40 minutes
+        id: cadence
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [[ "$EVENT_NAME" != "schedule" ]]; then
+            echo "refresh_due=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          hour=$(date -u +%H)
+          minute=$(date -u +%M)
+          minute_of_day=$((10#$hour * 60 + 10#$minute))
+          phase=$((minute_of_day % 40))
+          if (( phase < 20 )); then
+            echo "refresh_due=true" >> "$GITHUB_OUTPUT"
+            echo "Scheduled synchronization is due (UTC 40-minute cadence, phase $phase)."
+          else
+            echo "refresh_due=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping this 20-minute check; the next 40-minute slot is not due."
+          fi
+
   sync-build:
+    needs: cadence
+    if: needs.cadence.outputs.refresh_due == 'true'
     runs-on: ubuntu-latest
     env:
       SCHEDULE_ENGINE_VERSION: '4.9.0-rc.1'
@@ -73,6 +104,7 @@ jobs:
 
   deploy:
     needs: sync-build
+    if: needs.cadence.outputs.refresh_due == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
