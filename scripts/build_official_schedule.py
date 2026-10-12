@@ -755,7 +755,25 @@ def parse_practice_tables(doc, course, url, stream):
         tables = extract_practice_table(page)
         if not tables:
             continue
-        table = max(tables, key=lambda t: (len(t), max((len(r) for r in t), default=0)))
+        def table_score(candidate):
+            flat = [norm(value) for row in candidate for value in (row or [])]
+            group_hits = sum(
+                1 for value in flat
+                if re.fullmatch(rf'{re.escape(course_prefix)}\\d{{2}}(?:КП|П|KP|P)?', value, re.I)
+            )
+            day_hits = sum(
+                1 for row in candidate
+                if row and norm(row[0]).lower().rstrip('.,:') in DAY_ALIASES
+            )
+            clock_hits = sum(
+                1 for row in candidate
+                if TIME_RE.search(' '.join(norm(value) for value in (row or [])[:3]))
+            )
+            header_hits = int(any('день недели' in value.lower() and 'время' in value.lower() for value in flat))
+            width = max((len(row or []) for row in candidate), default=0)
+            return (int(group_hits > 0), group_hits, header_hits, day_hits, clock_hits, len(candidate), width)
+
+        table = max(tables, key=table_score)
 
         # Re-detect group columns on every page that carries a header. Excel/PDF
         # exports can change the extracted cell indexes between pages because of
