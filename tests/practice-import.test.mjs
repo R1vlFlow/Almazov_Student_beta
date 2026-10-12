@@ -46,3 +46,27 @@ test('ICS import reads Moscow local time, group and teacher',async()=>{
   assert.equal(rows.length,1);
   assert.deepEqual([rows[0].date,rows[0].start,rows[0].end,rows[0].group,rows[0].teacher],['2026-10-17','09:00','10:25','624','Иванов И.И.']);
 });
+
+test('import tolerates title rows, reordered columns and renamed semantic headers',async()=>{
+  const csv=[
+    'Расписание практических занятий · осенний семестр',
+    'Учебная группа;Дисциплина занятия;Дата проведения;Временной интервал;Место проведения;ФИО преподавателя;Форма занятия',
+    '424;Оперативная хирургия;17.10.2026;09:00–12:25;ауд. 3.6;Петров П.П.;ПЗ'
+  ].join('\\n');
+  const rows=await parsePracticeScheduleFile(file('changed-layout.csv',csv),{program:'31.05.01',course:4,group:'424'});
+  assert.equal(rows.length,1);
+  assert.deepEqual([rows[0].date,rows[0].start,rows[0].end,rows[0].subject,rows[0].teacher],['2026-10-17','09:00','12:25','Оперативная хирургия','Петров П.П.']);
+});
+
+test('Excel import searches later worksheets when the first sheet is a cover page',async()=>{
+  const workbook=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook,XLSX.utils.aoa_to_sheet([['Расписание ПЗ'],['Осенний семестр']]),'Титульный лист');
+  XLSX.utils.book_append_sheet(workbook,XLSX.utils.aoa_to_sheet([
+    ['Дата занятия','Группа','Предмет','Время проведения'],
+    ['17.10.2026','524','Фармакология','09:00–10:35']
+  ]),'Расписание');
+  const bytes=XLSX.write(workbook,{type:'array',bookType:'xlsx'});
+  const rows=await parsePracticeScheduleFile(file('multi-sheet.xlsx',bytes),{program:'31.05.01',course:5,group:'524'});
+  assert.equal(rows.length,1);
+  assert.deepEqual([rows[0].date,rows[0].start,rows[0].end],['2026-10-17','09:00','10:35']);
+});
