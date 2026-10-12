@@ -18,6 +18,13 @@ assert len(events)>=3, len(events)
 assert {e['group'] for e in events}=={'401','402'}
 assert any(e['weekNumber']==2 for e in events)
 
+specialist_rows=[
+    ['День недели','Время','101П','102КП'],
+    ['ПН','09:20-10:45','Анатомия (2-4) ауд. 1','Психология (2-4) ауд. 2'],
+]
+specialist_events=u.parse_rows(specialist_rows,1,'','practice','fixture')
+assert {e['group'] for e in specialist_events}=={'101П','102КП'}, specialist_events
+
 # A long block is intentionally expanded by the main builder; the generic
 # table parser itself preserves the source time range.
 assert events[0]['start']=='09:20' and events[0]['end']=='10:45'
