@@ -274,10 +274,10 @@ function csvMatrix(text: string): string[][] {
 function decodeScheduleText(data: ArrayBuffer): string {
   const bytes = new Uint8Array(data);
   const utf8 = new TextDecoder('utf-8').decode(bytes);
-  if (!utf8.includes('\\uFFFD')) return utf8;
+  if (!utf8.includes('\uFFFD')) return utf8;
   try {
     const windows = new TextDecoder('windows-1251').decode(bytes);
-    return (windows.match(/\\uFFFD/g)?.length ?? 0) < (utf8.match(/\\uFFFD/g)?.length ?? 0) ? windows : utf8;
+    return (windows.match(/\uFFFD/g)?.length ?? 0) < (utf8.match(/\uFFFD/g)?.length ?? 0) ? windows : utf8;
   } catch { return utf8; }
 }
 
@@ -286,7 +286,7 @@ function htmlScheduleTables(text: string): string[][][] {
   const document = new DOMParser().parseFromString(text, 'text/html');
   return Array.from(document.querySelectorAll('table')).map(table =>
     Array.from(table.querySelectorAll('tr')).map(row =>
-      Array.from(row.querySelectorAll('th,td')).map(cell => (cell.textContent ?? '').replace(/\\s+/g, ' ').trim())
+      Array.from(row.querySelectorAll('th,td')).map(cell => (cell.textContent ?? '').replace(/\s+/g, ' ').trim())
     )
   ).filter(rows => rows.some(row => row.some(cell => cell)));
 }
