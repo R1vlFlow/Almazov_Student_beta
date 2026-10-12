@@ -1,5 +1,5 @@
 export const STUDENT_PAGE='https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/';
-export const LIVE_LD_JSON='https://raw.githubusercontent.com/R1vlFlow/Zalma/main/data/official-schedules.json';
+export const LIVE_LD_JSON='https://raw.githubusercontent.com/R1vlFlow/Almazov_Student_beta/main/data/official-schedules.json';
 export const SOURCES=[
   {id:'ld-live',program:'31.05.01',course:1,kind:'live-json',url:LIVE_LD_JSON,title:'LD live snapshot',status:'verified'},
   {id:'ld1-a-practice',program:'31.05.01',course:1,kind:'official-pdf',url:'https://education.almazovcentre.ru/wp-content/uploads/2026/09/1k_ld_a-26-27-na-sajt.pdf',title:'ЛД 1 курс ПЗ A',status:'published',stream:'A'},
