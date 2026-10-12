@@ -1,4 +1,4 @@
-# Re-run official 2026–2027 schedule validation after suffix-aware specialist group parsing.
+# Validate official schedule parsing whenever its code, tests, or workflow changes.
 name: Refresh official schedules for release candidate
 
 on:
@@ -6,6 +6,9 @@ on:
     branches: [feature/zalma-integration-beta]
     paths:
       - '.github/workflows/refresh-official-schedules.yml'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'requirements-official-sync.txt'
   workflow_dispatch:
 
 permissions:
