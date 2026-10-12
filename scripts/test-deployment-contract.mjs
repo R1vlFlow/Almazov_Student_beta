@@ -21,7 +21,7 @@ check('source and schedule workflows serialize without cancellation',pages.inclu
 check('scheduled sync does not compete on every code push',!/^\s*push:\s*$/m.test(sync));
 check('both workflows publish dist artifacts',pages.includes('path: dist')&&sync.includes('path: dist'));
 check('both workflows use official Pages deployment',pages.includes('actions/deploy-pages@v4')&&sync.includes('actions/deploy-pages@v4'));
-check('docs explain the root Pages URL without a /dist/ suffix',guide.includes('GitHub Pages URL')&&guide.includes('без `/dist/`')&&readme.includes('without `/dist/`'));
+check('docs explain the root Pages URL without a /dist/ suffix',guide.includes('URL Pages')&&guide.includes('без `/dist/`')&&readme.includes('without `/dist/`'));
 check('official data refresh remains scheduled and manually available',/^\s*workflow_dispatch:\s*$/m.test(sync)&&/^\s*schedule:\s*$/m.test(sync));
 check('both deploy paths run the full official snapshot builder without stale fallback',pages.includes('run: npm run sync:official')&&sync.includes('run: npm run sync:official')&&packageJson.includes('scripts/build_official_schedule.py')&&packageJson.includes('scripts/build_specialist_program_schedules.py')&&!pages.includes('--use-last-good')&&!sync.includes('--use-last-good'));
 check('official Pages build requires live specialist snapshots and the strict release audit',/REQUIRE_SPECIALIST_SNAPSHOT:\s*["']?1/.test(pages)&&/REQUIRE_SPECIALIST_SNAPSHOT:\s*["']?1/.test(sync)&&packageJson.includes('scripts/validate_production_release.py'));
