@@ -10,6 +10,11 @@ YEAR_PAIR_RE = re.compile(r'(?<!\d)(20\d{2})\s*[/–-]\s*(20\d{2})(?!\d)')
 LOCATION_NUMBER_MARKER_RE = re.compile(
     r'\b(?:ауд(?:итория)?|каб(?:инет)?|корп(?:ус)?|лит(?:ера)?|зал)\.?', re.I
 )
+# PDF extraction often emits building/floor/room identifiers such as 4.1.13
+# without a nearby "ауд." label. These old-year-shaped tokens cannot be dates
+# in the current academic cycle.
+DOTTED_ROOM_CODE_RE = re.compile(r'(?<!\d)([1-9])\.([1-9])\.(\d{2})(?!\d)')
+
 SPECIALTY_CODE_RE = re.compile(
     r'(?:специальность|код\s+(?:направления|специальности))[^\d]{0,40}'
     r'\d{2}\.\d{2}\.\d{2}', re.I
