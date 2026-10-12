@@ -721,76 +721,71 @@ def extract_practice_table(page, strategy='lines'):
 
 
 def parse_practice_tables(doc, course, url, stream, table_strategy='lines'):
-    """Primary parser for official spreadsheet-style practice PDFs."""
+    """Parse all plausible table fragments and combine their group coverage."""
     events = []
     group_columns = None
     current_day = None
     course_prefix = str(course)
 
     for page in doc:
-        # pdfplumber expects a page object, not a PyMuPDF page. The caller passes
-        # a small adapter created below; this function is intentionally isolated
-        # from the rest of the parser.
         tables = extract_practice_table(page, table_strategy)
         if not tables:
             continue
-        table = max(tables, key=lambda t: (len(t), max((len(r) for r in t), default=0)))
 
-        # Re-detect group columns on every page that carries a header. Excel/PDF
-        # exports can change the extracted cell indexes between pages because of
-        # merged cells. Reusing the first page's indexes silently loses groups.
-        page_group_columns = {}
-        for row in table:
-            for ci, value in enumerate(row or []):
-                value = norm(value)
-                if re.fullmatch(rf'{re.escape(course_prefix)}\d{{2}}(?:КП|П|KP|P)?', value, re.I):
-                    page_group_columns[value] = ci
-        if page_group_columns:
-            group_columns = page_group_columns
-        if not group_columns:
-            continue
-
-        for row in table:
-            row = list(row or [])
-            if len(row) <= 1:
-                continue
-            day_text = norm(row[0] if len(row) > 0 else '')
-            day_key = day_text.lower().rstrip('.,:')
-            if day_key in DAY_ALIASES:
-                current_day = DAY_ALIASES[day_key]
-
-            time_text = norm(row[1] if len(row) > 1 else '')
-            if current_day is None or not TIME_RE.search(time_text):
+        for table in tables:
+            page_group_columns = {}
+            for row in table:
+                for ci, value in enumerate(row or []):
+                    value = norm(value)
+                    if re.fullmatch(rf'{re.escape(course_prefix)}\d{{2}}(?:КП|П|KP|P)?', value, re.I):
+                        page_group_columns[value] = ci
+            if page_group_columns:
+                group_columns = page_group_columns
+            if not group_columns:
                 continue
 
-            for group, ci in group_columns.items():
-                if ci >= len(row):
+            table_day = current_day
+            for row in table:
+                row = list(row or [])
+                if len(row) <= 1:
                     continue
-                cell = norm(row[ci])
-                if not cell:
+                day_text = norm(row[0] if len(row) > 0 else '')
+                day_key = day_text.lower().rstrip('.,:')
+                if day_key in DAY_ALIASES:
+                    table_day = DAY_ALIASES[day_key]
+                    current_day = table_day
+
+                time_text = norm(row[1] if len(row) > 1 else '')
+                if table_day is None or not TIME_RE.search(time_text):
                     continue
-                for subject, weeks, location in split_practice_cell(cell):
-                    selected_time = parse_dual_location_time(time_text, location)
-                    if not selected_time:
+
+                for group, ci in group_columns.items():
+                    if ci >= len(row):
                         continue
-                    start, end = selected_time
-                    for week in weeks:
-                        events.append({
-                            'weekday': current_day,
-                            'start': start,
-                            'end': end,
-                            'subject': subject,
-                            'location': location,
-                            'group': group,
-                            'stream': stream,
-                            'type': 'practice',
-                            'weekNumber': week,
-                            'weekStart': week_start(week),
-                            'sourceUrl': url,
-                            'parser': 'pdfplumber-grid-v2',
-                        })
+                    cell = norm(row[ci])
+                    if not cell:
+                        continue
+                    for subject, weeks, location in split_practice_cell(cell):
+                        selected_time = parse_dual_location_time(time_text, location)
+                        if not selected_time:
+                            continue
+                        start, end = selected_time
+                        for week in weeks:
+                            events.append({
+                                'weekday': table_day,
+                                'start': start,
+                                'end': end,
+                                'subject': subject,
+                                'location': location,
+                                'group': group,
+                                'stream': stream,
+                                'type': 'practice',
+                                'weekNumber': week,
+                                'weekStart': week_start(week),
+                                'sourceUrl': url,
+                                'parser': f'pdfplumber-{table_strategy}-grid-v3',
+                            })
     return events
-
 
 WEEK_HEADER_RE = re.compile(r'(?<!\d)([1-9]|[1-4]\d|5[0-2])(?!\d)')
 MATRIX_LOCATION_MARKERS = re.compile(
