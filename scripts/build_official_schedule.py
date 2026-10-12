@@ -449,7 +449,7 @@ def _add_practice_events_from_table(events, page, course, url, stream):
         for ri,row in enumerate(rows[:8]):
             vals=[norm(x) for x in (row or [])]
             for ci,v in enumerate(vals):
-                m=re.fullmatch(rf'{re.escape(prefix)}\d{{2}}',v)
+                m=re.fullmatch(rf'{re.escape(prefix)}\d{{2}}(?:КП|П|KP|P)?',v,re.I)
                 if m: group_cols[v]=ci
             if len(group_cols)>=2:
                 header_i=ri; break
@@ -491,10 +491,10 @@ def _add_practice_events_from_words_fallback(events, page, course, url, stream):
     words=page.get_text('words')
     toks=[(float(w[0]),float(w[1]),float(w[2]),float(w[3]),norm(w[4])) for w in words if norm(w[4])]
     prefix=str(course)
-    headers=[w for w in toks if re.fullmatch(rf'{re.escape(prefix)}\d{{2}}',w[4])]
+    headers=[w for w in toks if re.fullmatch(rf'{re.escape(prefix)}\d{{2}}(?:КП|П|KP|P)?',w[4],re.I)]
     if len(headers)<2: return 0
     unique=[]
-    for g in sorted({w[4] for w in headers}, key=int):
+    for g in sorted({w[4] for w in headers}, key=lambda value:(int(value[:3]),value[3:].casefold())):
         cand=[w for w in headers if w[4]==g]
         unique.append((g,min(cand,key=lambda x:x[1])))
     unique.sort(key=lambda x:x[1][0])
