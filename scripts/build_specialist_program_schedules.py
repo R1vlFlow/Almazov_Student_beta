@@ -201,6 +201,24 @@ def official_week_map() -> dict[int, dict]:
     return result
 
 
+def holiday_occurrence_date(event: dict) -> dt.date | None:
+    """Return the official calendar date when a dated row lands on a known holiday."""
+    if isinstance(event.get('matrixSlots'), list) and event.get('matrixSlots'):
+        return None
+    try:
+        week = event.get('weekNumber')
+        weekday = int(event.get('weekday'))
+        row = official_week_map().get(int(week))
+        if not row or not 0 <= weekday <= 6:
+            return None
+        first = dt.date.fromisoformat(row['from'])
+        last = dt.date.fromisoformat(row['to'])
+        target = first + dt.timedelta(days=(weekday - first.weekday()) % 7)
+        return target if target <= last and target in _HOLIDAY_DATES else None
+    except (TypeError, ValueError, KeyError):
+        return None
+
+
 def materialize_dates(event: dict) -> list[str]:
     direct = legacy.norm(event.get('date'))
     if re.fullmatch(r'\d{4}-\d{2}-\d{2}', direct):
@@ -276,6 +294,10 @@ def normalize_events(raw_events: list[dict], meta: dict) -> list[dict]:
             group += suffix
         dates = materialize_dates(raw)
         if not dates:
+            holiday_date = holiday_occurrence_date(raw)
+            if holiday_date:
+                print(f"PARSER_HOLIDAY_OCCURRENCE_SKIPPED source={meta['url']} group={group} subject={subject!r} date={holiday_date.isoformat()} week={raw.get('weekNumber')}", file=sys.stderr)
+                continue
             date_fields = {key: raw.get(key) for key in ('date', 'dateText', 'weekNumber', 'weekStart', 'weekday', 'matrixSlots', 'parser') if raw.get(key) not in (None, '', [])}
             print(f"PARSER_ANOMALY missing_schedule_date source={meta['url']} group={group} subject={subject!r} time={start}-{end} dateFields={date_fields!r}", file=sys.stderr)
             continue
