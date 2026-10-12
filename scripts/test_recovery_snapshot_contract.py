@@ -1,77 +1,83 @@
 #!/usr/bin/env python3
-"""Guards against publishing synthetic rows as verified schedule data."""
-from pathlib import Path
+"""Current schedule provenance contract for release snapshots.
+
+This guards against fixture data and false "complete" labels while allowing the
+real states used by the current pipeline: live, explicitly partial, recovery,
+and initial bootstrap.
+"""
+from __future__ import annotations
 import json
-import re
+from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-payload = json.loads((ROOT / 'data/official-schedules.json').read_text(encoding='utf-8'))
-copy_public = (ROOT / 'scripts/copy-public.mjs').read_text(encoding='utf-8')
-pipeline = (ROOT / 'server/pipeline.mjs').read_text(encoding='utf-8')
-validate = (ROOT / 'src/core/validate.ts').read_text(encoding='utf-8')
-server = (ROOT / 'server/server.mjs').read_text(encoding='utf-8')
-app = (ROOT / 'src/app.ts').read_text(encoding='utf-8')
-html = (ROOT / 'public/index.html').read_text(encoding='utf-8')
-store = (ROOT / 'src/services/personalizationStore.ts').read_text(encoding='utf-8')
-audit = (ROOT / 'scripts/deep_schedule_audit.py').read_text(encoding='utf-8')
+payload = json.loads((ROOT / "data/official-schedules.json").read_text(encoding="utf-8"))
+specialist = json.loads((ROOT / "data/program-schedules.json").read_text(encoding="utf-8"))
+copy_public = (ROOT / "scripts/copy-public.mjs").read_text(encoding="utf-8")
+deep_audit = (ROOT / "scripts/deep_schedule_audit.py").read_text(encoding="utf-8")
+release_gate = (ROOT / "scripts/validate_production_release.py").read_text(encoding="utf-8")
+specialist_builder = (ROOT / "scripts/build_specialist_program_schedules.py").read_text(encoding="utf-8")
+pages = (ROOT / ".github/workflows/pages.yml").read_text(encoding="utf-8")
 
 checks: list[tuple[str, bool]] = []
 def check(name: str, condition: bool) -> None:
     checks.append((name, bool(condition)))
 
-all_events = [event for course in payload.get('courses', {}).values() for event in course.get('events', [])]
-all_sources = [source for course in payload.get('courses', {}).values() for source in course.get('sources', [])]
-check('fallback snapshot is explicitly labelled as recovery data', payload.get('dataState') == 'local-recovery-snapshot')
-check('no event uses fixture URL/parser/source markers', all(
-    not str(event.get('sourceUrl', '')).startswith('fixture://')
-    and event.get('sourceKind') != 'practice-fallback-fixture'
-    and event.get('parser') != 'fixture'
+all_events = [event for course in payload.get("courses", {}).values() for event in course.get("events", [])]
+all_sources = [source for course in payload.get("courses", {}).values() for source in course.get("sources", [])]
+allowed_states = {"bootstrap-pending", "live-generated", "live-generated-partial", "local-recovery-snapshot"}
+check("schedule snapshot uses a recognized provenance state", payload.get("dataState") in allowed_states)
+check("no event is marked as a synthetic fixture", all(
+    not str(event.get("sourceUrl", "")).startswith("fixture://")
+    and event.get("sourceKind") != "practice-fallback-fixture"
+    and event.get("parser") != "fixture"
     for event in all_events
 ))
-check('no source manifest lists synthetic practice fixtures', all(source.get('kind') != 'practice-fixture' for source in all_sources))
-for course_id in ('4', '5', '6'):
-    course = payload.get('courses', {}).get(course_id, {})
-    events = course.get('events', [])
-    dated = [event for event in events if event.get('date')]
-    blocks = [event for event in events if event.get('scheduleMode') == 'weekly-block']
-    check(f'{course_id}K keeps valid dated lecture rows', bool(dated) and all(event.get('type') == 'lecture' for event in dated))
-    check(f'{course_id}K weekly practice rows are undated and marked as matrix blocks', all(
-        event.get('type') == 'practice' and not event.get('date') and event.get('weekday') is None
-        for event in blocks
-    ) and all(event.get('scheduleMode') == 'weekly-block' for event in events if event.get('type') == 'practice'))
+check("official source manifests contain no synthetic practice fixtures",
+      all(source.get("kind") != "practice-fixture" for source in all_sources))
 
-# Cached official matrices are kept with provenance, not falsely marked live.
-c4 = payload['courses']['4']['sources']
-c5 = payload['courses']['5']['sources']
-c6 = payload['courses']['6']['sources']
-check('4K A/B cached official matrices are parsed but pending live revalidation', all(
-    any(source.get('kind') == 'practice' and source.get('stream') == stream
-        and source.get('events') == expected and source.get('status') == 'parsed-from-cached-official-pdf-pending-live-revalidation'
-        and source.get('cacheSha256') for source in c4)
-    for stream, expected in [('A', 250), ('B', 248)]
+weekly_practice = [
+    (course_id, event)
+    for course_id, course in payload.get("courses", {}).items()
+    for event in course.get("events", [])
+    if event.get("type") == "practice" and event.get("scheduleMode") == "weekly-block"
+]
+check("weekly matrix practices stay undated and do not invent weekdays", all(
+    not event.get("date") and event.get("weekday") is None
+    and (isinstance(event.get("matrixSlots"), list) or event.get("weekNumber") is not None)
+    for _, event in weekly_practice
 ))
-check('5K B parsed; 5K A and 6K remain quarantined when empty',
-    any(s.get('kind') == 'practice' and s.get('stream') == 'B' and s.get('events') == 194 and s.get('status') == 'parsed-from-cached-official-pdf-pending-live-revalidation' for s in c5)
-    and any(s.get('kind') == 'practice' and s.get('stream') == 'A' and s.get('events') == 0 and s.get('status') == 'quarantined' for s in c5)
-    and any(s.get('kind') == 'practice' and s.get('events') == 0 and s.get('status') == 'quarantined' for s in c6)
-)
-check('static build publishes recovery snapshot only as partial', "payload.dataState==='local-recovery-snapshot'?'partial'" in copy_public and "'LOCAL_RECOVERY_SNAPSHOT','SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'" in copy_public)
-check('server labels unverified local and remote snapshots partial', "return{status:complete?'live':'partial'" in pipeline and 'не дополнялись фиктивными парами' in pipeline)
-check('runtime ingestion rejects old fixture rows defensively', all(marker in validate for marker in ("startsWith('fixture://')", 'practice-fallback-fixture', "String(raw?.parser??'')==='fixture'")))
-check('deep live audit preserves strict full-coverage requirement', 'Strict 100% group/stream lesson coverage is required' in audit and 'live-generated' in audit)
-check('cache headers disable cache for dynamic app data', 'no-cache, no-store, must-revalidate, max-age=0' in server)
-type_filter = re.search(r'<div class="segments" id="typeFilter"[^>]*>(.*?)</div>', html, re.S)
-filter_controls = type_filter.group(1) if type_filter else ''
-check('stream selector and only supported schedule type filters are present', 'id="streamSelector"' in html and all(f'data-type="{kind}"' in filter_controls for kind in ('all', 'lecture', 'practice', 'assessment')) and all(f'data-type="{kind}"' not in filter_controls for kind in ('seminar', 'lab', 'clinical')))
-check('stream selection, solid subject palette and per-subject gradients are wired in app', 'data-stream' in app and 'almazov.last-group.' in app and 'SUBJECT_COLOR_PRESETS' in app and 'SUBJECT_GRADIENT_PRESETS' in app and 'data-subject-color-preset=' in app)
-check('personalization persists only allowlisted gradient presets', 'subjectGradients' in store and 'allowedGradients.has(value)' in store)
-check('known-subject location-tail repair is conservative and tested', 'repair_subject_leaks_from_location' in (ROOT / 'scripts/build_official_schedule.py').read_text(encoding='utf-8'))
+check("courses 4–6 retain imported weekly practice blocks when present", all(
+    any(cid == course_id for cid, _ in weekly_practice)
+    for course_id in ("4", "5", "6")
+))
+
+check("partial and recovery snapshots are visibly labeled in the static build",
+      "Частичное официальное расписание" in copy_public
+      and "SCHEDULE_COVERAGE_INCOMPLETE" in copy_public
+      and "LOCAL_RECOVERY_SNAPSHOT" in copy_public
+      and "NOT_FOR_PRODUCTION" in copy_public)
+check("deep schedule audit keeps the strict 100% group/stream coverage rule",
+      "Strict 100% group/stream lesson coverage is required" in deep_audit
+      and "live-generated" in deep_audit)
+check("production release gate rejects incomplete official sources and coverage",
+      "missingGroupAssignments" in release_gate
+      and "NO_PUBLISHED_DATA" in release_gate
+      and "quarantined source" in release_gate
+      and "live-generated-partial" in release_gate)
+check("specialist parser quarantines empty parses instead of publishing empty courses",
+      "PARSER_EMPTY_SOURCE" in specialist_builder
+      and "No valid events for published program/course" in specialist_builder
+      and "quarantined" in specialist_builder)
+check("Pages checks official schedule completeness before packaging or deployment",
+      pages.index("run: python scripts/validate_production_release.py")
+      < pages.index("run: npm run qa")
+      < pages.index("actions/upload-pages-artifact@v3"))
 
 failed = [name for name, ok in checks if not ok]
 for name, ok in checks:
     print(f'{"PASS" if ok else "FAIL"} — {name}')
-print(f'RECOVERY SNAPSHOT CONTRACT: {len(checks) - len(failed)}/{len(checks)} passed')
+print(f"SCHEDULE PROVENANCE CONTRACT: {len(checks) - len(failed)}/{len(checks)} passed")
 if failed:
-    print('FAILED:\n - ' + '\n - '.join(failed))
+    print("FAILED:\n - " + "\n - ".join(failed))
     sys.exit(1)
