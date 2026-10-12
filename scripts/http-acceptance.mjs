@@ -31,7 +31,7 @@ try{
   assert.equal(schedule6.res.status,200);assert.ok(['partial','cache'].includes(schedule6.body.status));
   assert.ok(schedule6.body.issues.includes('SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'));
   assert.ok(schedule6.body.events.length>=50,'verified 6K lecture rows must survive a missing stream field');
-  assert.ok(schedule6.body.events.some(e=>/^6\\d{2}$/.test(String(e.group))));
+  assert.ok(schedule6.body.events.some(e=>/^6\d{2}$/.test(String(e.group))));
   const groups6=new Set(schedule6.body.events.filter(e=>['617','618'].includes(e.group)).map(e=>e.group));
   assert.deepEqual([...groups6].sort(),[],'fixture-derived group-specific practice must not leak into 6K');
   assert.ok(schedule6.body.events.some(e=>e.type==='lecture'));
