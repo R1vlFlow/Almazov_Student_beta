@@ -34,8 +34,12 @@ check('current SPA exposes schedule cards and next-class homework linking',
 check('official schedule pipeline validates and merges double blocks',
       'merge_consecutive_identical_events' in (ROOT / 'scripts/build_official_schedule.py').read_text(encoding='utf-8') and
       'mergeAutoSplitDoubleSlots' in (ROOT / 'server/pipeline.mjs').read_text(encoding='utf-8'))
-check('Pediatrics/Clinical Psychology live sync and strict release gate run before Pages build',
-      pages.index('run: python scripts/build_specialist_program_schedules.py') < pages.index('run: python scripts/validate_production_release.py') < pages.index('run: npm run qa') and
+check('full official schedule sync and strict release gate run before Pages build',
+      pages.index('run: npm run sync:official') < pages.index('run: npm run qa') and
+      sync.index('run: npm run sync:official') < sync.index('run: npm run qa') and
+      'scripts/build_official_schedule.py' in pkg.get('scripts', {}).get('sync:official', '') and
+      'scripts/build_specialist_program_schedules.py' in pkg.get('scripts', {}).get('sync:official', '') and
+      'scripts/validate_production_release.py' in pkg.get('scripts', {}).get('sync:official', '') and
       '--use-last-good' not in pages and '--use-last-good' not in sync)
 check('specialist release scope follows official publication for courses 1–2',
       "for course in (1, 2):" in (ROOT / 'scripts/validate_production_release.py').read_text(encoding='utf-8') and
