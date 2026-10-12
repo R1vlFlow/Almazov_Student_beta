@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { parseHtmlTable } from '../core/htmlTableParser.js';
 import type { Course, ProgramCode } from '../core/types.js';
 
 export interface ImportedPractice {
@@ -300,11 +301,9 @@ function decodeScheduleText(data: ArrayBuffer): string {
 function htmlScheduleTables(text: string): string[][][] {
   if (typeof DOMParser === 'undefined') return [];
   const document = new DOMParser().parseFromString(text, 'text/html');
-  return Array.from(document.querySelectorAll('table')).map(table =>
-    Array.from(table.querySelectorAll('tr')).map(row =>
-      Array.from(row.querySelectorAll('th,td')).map(cell => (cell.textContent ?? '').replace(/\s+/g, ' ').trim())
-    )
-  ).filter(rows => rows.some(row => row.some(cell => cell)));
+  return Array.from(document.querySelectorAll('table'))
+    .map(table => parseHtmlTable(table.outerHTML))
+    .filter(rows => rows.some(row => row.some(cell => cell)));
 }
 
 function icsMatrix(text: string): string[][] {
