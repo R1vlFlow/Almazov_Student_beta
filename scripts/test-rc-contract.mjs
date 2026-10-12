@@ -10,9 +10,9 @@ async function check(name, fn) {
   try { await fn(); checks.push([name, true]); }
   catch (error) { checks.push([name, false]); console.error(`FAIL — ${name}: ${error.message}`); }
 }
-const [pkg, manifest, runtime, html, boot, telemetry, capacitor, androidWorkflow, pagesWorkflow, qaWorkflow, syncWorkflow, engineVersionFile, parserDoc, installDoc, rcDoc, faq] = await Promise.all([
+const [pkg, manifest, runtime, html, boot, telemetry, capacitor, previewWorkflow, signedReleaseWorkflow, pagesWorkflow, qaWorkflow, syncWorkflow, engineVersionFile, parserDoc, installDoc, rcDoc, faq] = await Promise.all([
   json('package.json'), json('public/manifest.webmanifest'), read('public/runtime-config.js'), read('public/index.html'),
-  read('public/boot.js'), read('public/telemetry.js'), json('capacitor.config.json'), read('.github/workflows/android-apk.yml'),
+  read('public/boot.js'), read('public/telemetry.js'), json('capacitor.config.json'), read('.github/workflows/build-apk.yml'), read('.github/workflows/release-android.yml'),
   read('.github/workflows/pages.yml'), read('.github/workflows/qa.yml'), read('.github/workflows/sync-official-schedules.yml'), read('SCHEDULE_ENGINE_VERSION.txt'), read('docs/PRODUCTION_READINESS_RC.md'),
   read('docs/ANDROID_INSTALL.md'), read('docs/PRODUCTION_READINESS_RC.md'), read('src/ui/faq.ts')
 ]);
@@ -36,12 +36,12 @@ await check('PWA install UI and platform instructions are present', () => {
   assert.match(html, /data-install-pwa/); assert.match(html, /id="installHelpDialog"/);
   assert.match(html, /На экран/); assert.match(html, /Safari/); assert.match(boot, /beforeinstallprompt/);
 });
-await check('APK link uses the configured project release', () => {
-  const releaseTag = `v${pkg.version}`;
-  const escapedTag = releaseTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  assert.match(html, new RegExp(`github\\.com/r1vlflow/Zalma/releases/download/${escapedTag}/Zalma\\.apk`));
-  assert.match(installDoc, new RegExp(`Releases.*${escapedTag}`));
-  assert.match(androidWorkflow, new RegExp(`default: '${escapedTag}'`));
+await check('Android install UI points to the current project and discloses release availability', () => {
+  assert.match(html, /data-android-releases/);
+  assert.match(html, /github\\.com\\/R1vlFlow\\/Almazov_Student_beta\\/releases/);
+  assert.doesNotMatch(html, /r1vlflow\\/Zalma\\/releases\\/download/);
+  assert.match(installDoc, /Совместимый APK пока не опубликован/);
+  assert.match(installDoc, /Preview APK из GitHub Actions предназначен только для QA/);
 });
 await check('Capacitor packages and config match the web build', () => {
   assert.equal(pkg.dependencies['@capacitor/core'], '8.5.3');
@@ -49,17 +49,20 @@ await check('Capacitor packages and config match the web build', () => {
   assert.equal(pkg.devDependencies['@capacitor/cli'], '8.5.3');
   assert.equal(capacitor.webDir, 'dist'); assert.equal(capacitor.server.cleartext, false);
 });
-await check('Android workflow builds an APK and uploads it automatically after app changes', () => {
-  assert.match(androidWorkflow, /on:\s*\n\s*push:/);
-  assert.match(androidWorkflow, /'public\/\*\*'/);
-  assert.match(androidWorkflow, /sdkmanager/); assert.match(androidWorkflow, /assembleDebug/);
-  assert.match(androidWorkflow, /release\/Zalma\.apk/); assert.match(androidWorkflow, /upload-artifact@v4/);
-  assert.match(androidWorkflow, /gh release upload/); assert.match(androidWorkflow, /cancel-in-progress: false/);
+await check('Android preview is QA-only and signed release is separate', () => {
+  assert.match(previewWorkflow, /Assemble QA-only APK/);
+  assert.match(previewWorkflow, /Almazov-Student-PREVIEW\\.apk/);
+  assert.match(previewWorkflow, /not-for-upgrade/);
+  assert.match(previewWorkflow, /upload-artifact@v4/);
+  assert.doesNotMatch(previewWorkflow, /gh release upload/);
+  assert.match(signedReleaseWorkflow, /Load permanent signing key/);
+  assert.match(signedReleaseWorkflow, /ANDROID_KEYSTORE_BASE64/);
+  assert.match(signedReleaseWorkflow, /assembleRelease bundleRelease/);
 });
 await check('Release workflows require minification', () => {
   assert.match(pagesWorkflow, /REQUIRE_MINIFICATION:\s*["']?1/);
   assert.match(qaWorkflow, /REQUIRE_MINIFICATION:\s*["']?1/);
-  assert.match(syncWorkflow, /REQUIRE_MINIFICATION:\s*["']?1/);
+  assert.match(syncWorkflow, /REQUIRE_MINIFICATION:\s*["']?1/);\n  assert.match(signedReleaseWorkflow, /REQUIRE_MINIFICATION:\s*["']?1/);
   assert.match(pkg.scripts['build:rc'], /REQUIRE_MINIFICATION=1/);
 });
 await check('Client error capture is privacy-preserving and remote IDs are not fabricated', () => {
@@ -83,7 +86,7 @@ await check('Production documentation discloses APK signing and API requirements
   assert.match(parserDoc, /synthetic Stream A matrix regression fixture/i);
 });
 await check('Page and QA workflows install Python parser dependencies', () => {
-  for (const [name, body] of [['pages',pagesWorkflow],['qa',qaWorkflow],['android',androidWorkflow],['sync',syncWorkflow]]) {
+  for (const [name, body] of [['pages',pagesWorkflow],['qa',qaWorkflow],['Android preview',previewWorkflow],['Android signed release',signedReleaseWorkflow],['sync',syncWorkflow]]) {
     assert.match(body, /setup-python@v5/, `${name}: setup-python missing`);
     assert.match(body, /requirements-official-sync\.txt/, `${name}: parser requirements missing`);
   }
@@ -97,8 +100,10 @@ await check('Official ingestion workflows install Russian OCR for scanned/image 
   }
 });
 await check('Workflow caches do not require lockfiles/wrappers absent before dependency scaffolding', () => {
-  assert.doesNotMatch(androidWorkflow, /cache:\s*npm/);
-  assert.doesNotMatch(androidWorkflow, /cache:\s*gradle/);
+  for (const body of [previewWorkflow,signedReleaseWorkflow]) {
+    assert.doesNotMatch(body, /cache:\s*npm/);
+    assert.doesNotMatch(body, /cache:\s*gradle/);
+  }
 });
 await check('PWA assets exist and match manifest dimensions', async () => {
   for (const [path,size] of [['public/assets/pwa-192.png',192],['public/assets/pwa-512.png',512],['public/assets/pwa-maskable-512.png',512]]) {
