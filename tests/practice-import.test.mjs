@@ -52,7 +52,7 @@ test('import tolerates title rows, reordered columns and renamed semantic header
     'Расписание практических занятий · осенний семестр',
     'Учебная группа;Дисциплина занятия;Дата проведения;Временной интервал;Место проведения;ФИО преподавателя;Форма занятия',
     '424;Оперативная хирургия;17.10.2026;09:00–12:25;ауд. 3.6;Петров П.П.;ПЗ'
-  ].join('\\n');
+  ].join('\n');
   const rows=await parsePracticeScheduleFile(file('changed-layout.csv',csv),{program:'31.05.01',course:4,group:'424'});
   assert.equal(rows.length,1);
   assert.deepEqual([rows[0].date,rows[0].start,rows[0].end,rows[0].subject,rows[0].teacher],['2026-10-17','09:00','12:25','Оперативная хирургия','Петров П.П.']);
