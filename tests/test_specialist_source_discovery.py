@@ -88,7 +88,9 @@ def test_weekly_block_dates_and_group_suffixes():
     assert specialist.materialize_dates({'weekNumber': 6, 'weekday': 5}) == ['2026-10-10']
     # Week 6 ends on Saturday; do not shift Sunday back into the week.
     assert specialist.materialize_dates({'weekNumber': 6, 'weekday': 6}) == []
-    assert specialist.materialize_dates({'weekStart': '2026-10-05', 'matrixSlots': [0, 2, 5]}) == ['2026-10-05', '2026-10-07', '2026-10-10']
+    # Matrix columns are schedule-week positions, not calendar weekdays;
+    # keep them as weekly blocks in the upstream parser.
+    assert specialist.materialize_dates({'weekStart': '2026-10-05', 'matrixSlots': [0, 2, 5]}) == []
     meta = {'program': '31.05.02', 'course': 2, 'kind': 'practice', 'stream': 'B',
             'url': 'https://example.invalid/pediatria-practice.pdf', 'title': 'Pediatria practice', 'format': 'pdf'}
     ev = specialist.normalize_events([{'date': '2026-10-10', 'start': '09:00', 'end': '10:35',
