@@ -21,9 +21,19 @@ test('merged consecutive pair displays as two separate timed parts',()=>{
   assert.ok(parts.every(e=>e.double===true));
 });
 
-test('official uninterrupted ORG double remains one event',()=>{
-  const event={id:'org-merged',program:'31.05.01',course:1,group:'123',stream:'A',date:'2026-10-06',start:'09:00',end:'12:25',subject:'Основы Российской государственности',location:'ауд. 1',teacher:'Иванов И.И.',type:'lecture',double:true,orgMerged:true,mergedConsecutive:true};
-  assert.deepEqual(displayScheduleParts(event),[event]);
+test('Saturday ORG double for group 124 renders as two consecutive parts',()=>{
+  const event={id:'org-merged',program:'31.05.01',course:1,group:'124',stream:'A',date:'2026-10-10',start:'09:00',end:'12:25',subject:'Основы Российской государственности',location:'ауд. 1',teacher:'Иванов И.И.',type:'lecture',double:true,orgMerged:true,mergedConsecutive:true};
+  const parts=displayScheduleParts(event);
+  assert.deepEqual(parts.map(e=>[e.group,e.date,e.start,e.end,e.doublePart]),[['124','2026-10-10','09:00','10:35',1],['124','2026-10-10','10:50','12:25',2]]);
+});
+
+const appSource=await readFile('src/app.ts','utf8');
+
+test('imported long practice blocks use the shared double-part display path',()=>{
+  assert.match(appSource,/function importedPracticeCalendar\(e:ImportedPractice\):CalendarEvent\[\]/);
+  assert.match(appSource,/const isDouble=\[185,205\]\.includes\(duration\)/);
+  assert.match(appSource,/return displayScheduleParts\(schedule\)\.map\(/);
+  assert.equal((appSource.match(/\.flatMap\(importedPracticeCalendar\)/g)??[]).length,2);
 });
 
 test('timezone conversion handles Zurich winter DST offset',()=>{
