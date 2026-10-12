@@ -7,6 +7,10 @@ from datetime import datetime, timezone
 
 DATE_LABEL_RE = re.compile(r'(?<!\d)(\d{1,2})[./](\d{1,2})[./](\d{2,4})(?!\d)')
 YEAR_PAIR_RE = re.compile(r'(?<!\d)(20\d{2})\s*[/–-]\s*(20\d{2})(?!\d)')
+SPECIALTY_CODE_RE = re.compile(
+    r'(?:специальность|код\s+(?:направления|специальности))[^\d]{0,40}'
+    r'\d{2}\.\d{2}\.\d{2}', re.I
+)
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -23,9 +27,16 @@ def academic_year_from_text(text: str) -> str | None:
 
 def date_label_audit(text: str, academic_year_start: int = 2026) -> dict:
     """Detect dates printed inside tables without assuming they are authoritative."""
+    text = text or ''
+    # Educational specialty identifiers such as 31.05.01 are syntactically
+    # indistinguishable from DD.MM.YY dates to DATE_LABEL_RE. Exclude these
+    # only when the document explicitly labels the value as a specialty code.
+    specialty_spans = [m.span() for m in SPECIALTY_CODE_RE.finditer(text)]
     years: list[int] = []
     labels: list[str] = []
-    for m in DATE_LABEL_RE.finditer(text or ''):
+    for m in DATE_LABEL_RE.finditer(text):
+        if any(start <= m.start() and m.end() <= end for start, end in specialty_spans):
+            continue
         d, month, raw_year = int(m.group(1)), int(m.group(2)), m.group(3)
         year = int(raw_year)
         if len(raw_year) == 2:
@@ -55,3 +66,5 @@ def source_provenance(data: bytes, text: str, url: str, *, checked_at: str | Non
         'dateLabelAudit': date_label_audit(text),
         'url': url,
     }
+
+
