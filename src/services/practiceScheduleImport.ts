@@ -271,6 +271,26 @@ function csvMatrix(text: string): string[][] {
   return rows;
 }
 
+function decodeScheduleText(data: ArrayBuffer): string {
+  const bytes = new Uint8Array(data);
+  const utf8 = new TextDecoder('utf-8').decode(bytes);
+  if (!utf8.includes('\\uFFFD')) return utf8;
+  try {
+    const windows = new TextDecoder('windows-1251').decode(bytes);
+    return (windows.match(/\\uFFFD/g)?.length ?? 0) < (utf8.match(/\\uFFFD/g)?.length ?? 0) ? windows : utf8;
+  } catch { return utf8; }
+}
+
+function htmlScheduleTables(text: string): string[][][] {
+  if (typeof DOMParser === 'undefined') return [];
+  const document = new DOMParser().parseFromString(text, 'text/html');
+  return Array.from(document.querySelectorAll('table')).map(table =>
+    Array.from(table.querySelectorAll('tr')).map(row =>
+      Array.from(row.querySelectorAll('th,td')).map(cell => (cell.textContent ?? '').replace(/\\s+/g, ' ').trim())
+    )
+  ).filter(rows => rows.some(row => row.some(cell => cell)));
+}
+
 function icsMatrix(text: string): string[][] {
   const lines = text.replace(/\r?\n[ \t]/g, '').split(/\r?\n/);
   const rows: string[][] = [['Дата', 'Начало', 'Окончание', 'Предмет', 'Аудитория', 'Преподаватель', 'Группа']];
@@ -315,9 +335,16 @@ export async function parsePracticeScheduleFile(file: File, target: ImportTarget
   if (!file.size || file.size > MAX_FILE_SIZE) throw new Error('Файл должен быть не пустым и не больше 20 МБ.');
   const extension = file.name.split('.').pop()?.toLocaleLowerCase('en-US') ?? '';
   let matrix: unknown[][];
-  if (extension === 'csv' || extension === 'tsv' || extension === 'txt') matrix = csvMatrix(new TextDecoder().decode(await file.arrayBuffer()));
-  else if (extension === 'ics') matrix = icsMatrix(new TextDecoder().decode(await file.arrayBuffer()));
-  else if (extension === 'xlsx' || extension === 'xls') {
+  if (extension === 'csv' || extension === 'tsv' || extension === 'txt') matrix = csvMatrix(decodeScheduleText(await file.arrayBuffer()));
+  else if (extension === 'ics') matrix = icsMatrix(decodeScheduleText(await file.arrayBuffer()));
+  else if (extension === 'html' || extension === 'htm') {
+    const tables = htmlScheduleTables(decodeScheduleText(await file.arrayBuffer()));
+    const parsed = tables.flatMap(table => { try { return parseRows(table, file.name, target); } catch { return []; } });
+    const unique = new Map(parsed.map(row => [row.id, row]));
+    if (!unique.size) throw new Error('В HTML не нашёл таблицу расписания с датами, предметами и временем.');
+    return [...unique.values()];
+  }
+  else if (['xlsx', 'xls', 'ods'].includes(extension)) {
     const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
     const sheets = workbook.SheetNames.map(name => {
       const sheet = workbook.Sheets[name];
