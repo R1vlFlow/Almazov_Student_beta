@@ -3,12 +3,12 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root=fileURLToPath(new URL('..',import.meta.url));
 const read=path=>readFile(join(root,path),'utf8');
-const [boot,worker,workerSource,html,rootIndex,rootWorker,version,cacheSource,scheduleSource,serverSource,sourceBoot]=await Promise.all([
-  read('dist/boot.js'),read('dist/sw.js'),read('public/sw.js'),read('dist/index.html'),read('index.html'),read('sw.js'),read('dist/version.json').then(JSON.parse),read('src/services/cache.ts'),read('src/services/scheduleService.ts'),read('server/server.mjs'),read('public/boot.js')
+const [boot,worker,workerSource,html,rootIndex,rootWorker,version,cacheSource,scheduleSource,serverSource,sourceBoot,sourceHTML]=await Promise.all([
+  read('dist/boot.js'),read('dist/sw.js'),read('public/sw.js'),read('dist/index.html'),read('index.html'),read('sw.js'),read('dist/version.json').then(JSON.parse),read('src/services/cache.ts'),read('src/services/scheduleService.ts'),read('server/server.mjs'),read('public/boot.js'),read('public/index.html')
 ]);
 const check=(condition,message)=>{if(!condition)throw new Error(message);};
 check(sourceBoot.includes('registration.update()')&&boot.includes('.update('),'boot must explicitly ask the browser to check for a worker update before and after minification');
-check(boot.includes("window.addEventListener('app:check-update'")&&html.includes('data-action="check-updates"'),'settings must expose a real manual update check');
+check(sourceBoot.includes("window.addEventListener('app:check-update'")&&sourceHTML.includes('data-action="check-updates"'),'settings must expose a real manual update check before minification');
 check(worker.includes("url.pathname.endsWith('/version.json')"),'version metadata must not accumulate stale cache entries');
 check(boot.includes("updateViaCache:'none'"),'service-worker script must bypass the HTTP cache');
 check(boot.includes("fetch(url,{cache:'no-store'"),'boot must verify the current deployed build');
