@@ -38,8 +38,8 @@ await check('PWA install UI and platform instructions are present', () => {
 });
 await check('Android install UI points to the current project and discloses release availability', () => {
   assert.match(html, /data-android-releases/);
-  assert.match(html, /github\\.com\\/R1vlFlow\\/Almazov_Student_beta\\/releases/);
-  assert.doesNotMatch(html, /r1vlflow\\/Zalma\\/releases\\/download/);
+  assert.match(html, /github\.com\/R1vlFlow\/Almazov_Student_beta\/releases/);
+  assert.doesNotMatch(html, /r1vlflow\/Zalma\/releases\/download/);
   assert.match(installDoc, /Совместимый APK пока не опубликован/);
   assert.match(installDoc, /Preview APK из GitHub Actions предназначен только для QA/);
 });
@@ -51,7 +51,7 @@ await check('Capacitor packages and config match the web build', () => {
 });
 await check('Android preview is QA-only and signed release is separate', () => {
   assert.match(previewWorkflow, /Assemble QA-only APK/);
-  assert.match(previewWorkflow, /Almazov-Student-PREVIEW\\.apk/);
+  assert.match(previewWorkflow, /Almazov-Student-PREVIEW\.apk/);
   assert.match(previewWorkflow, /not-for-upgrade/);
   assert.match(previewWorkflow, /upload-artifact@v4/);
   assert.doesNotMatch(previewWorkflow, /gh release upload/);
@@ -62,7 +62,8 @@ await check('Android preview is QA-only and signed release is separate', () => {
 await check('Release workflows require minification', () => {
   assert.match(pagesWorkflow, /REQUIRE_MINIFICATION:\s*["']?1/);
   assert.match(qaWorkflow, /REQUIRE_MINIFICATION:\s*["']?1/);
-  assert.match(syncWorkflow, /REQUIRE_MINIFICATION:\s*["']?1/);\n  assert.match(signedReleaseWorkflow, /REQUIRE_MINIFICATION:\s*["']?1/);
+  assert.match(syncWorkflow, /REQUIRE_MINIFICATION:\s*["']?1/);
+  assert.match(signedReleaseWorkflow, /REQUIRE_MINIFICATION:\s*["']?1/);
   assert.match(pkg.scripts['build:rc'], /REQUIRE_MINIFICATION=1/);
 });
 await check('Client error capture is privacy-preserving and remote IDs are not fabricated', () => {
