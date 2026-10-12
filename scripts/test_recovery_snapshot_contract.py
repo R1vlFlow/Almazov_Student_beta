@@ -17,6 +17,7 @@ copy_public = (ROOT / "scripts/copy-public.mjs").read_text(encoding="utf-8")
 deep_audit = (ROOT / "scripts/deep_schedule_audit.py").read_text(encoding="utf-8")
 release_gate = (ROOT / "scripts/validate_production_release.py").read_text(encoding="utf-8")
 specialist_builder = (ROOT / "scripts/build_specialist_program_schedules.py").read_text(encoding="utf-8")
+package_json = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
 pages = (ROOT / ".github/workflows/pages.yml").read_text(encoding="utf-8")
 
 checks: list[tuple[str, bool]] = []
@@ -69,10 +70,11 @@ check("specialist parser quarantines empty parses instead of publishing empty co
       "PARSER_EMPTY_SOURCE" in specialist_builder
       and "No valid events for published program/course" in specialist_builder
       and "quarantined" in specialist_builder)
-check("Pages checks official schedule completeness before packaging or deployment",
-      pages.index("run: python scripts/validate_production_release.py")
+check("Pages runs the full live sync and strict coverage gate before packaging or deployment",
+      pages.index("run: npm run sync:official")
       < pages.index("run: npm run qa")
-      < pages.index("actions/upload-pages-artifact@v3"))
+      < pages.index("actions/upload-pages-artifact@v3")
+      and "scripts/validate_production_release.py" in package_json.get("scripts", {}).get("sync:official", ""))
 
 failed = [name for name, ok in checks if not ok]
 for name, ok in checks:
