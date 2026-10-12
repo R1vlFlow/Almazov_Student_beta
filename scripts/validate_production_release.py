@@ -238,8 +238,14 @@ def main() -> int:
     specialist = read_json('data/program-schedules.json')
     missing_groups = [f"{course}/{row.get('stream') or 'common'}/{row.get('group')} ({', '.join(row.get('missingKinds', []))})"
         for course, coverage in ld.get('coverage', {}).items() for row in coverage.get('missingGroups', [])]
-    unpublished = [f'{program}/{course}' for program, pdata in specialist.get('programs', {}).items()
-        for course, cdata in pdata.get('courses', {}).items() if cdata.get('status') == 'unpublished' or not cdata.get('events')]
+    # Pediatrics and Clinical Psychology currently publish only years 1–2.
+    # Later-year placeholders remain visible in the app but are outside this
+    # release's source-coverage scope until the official student hub publishes them.
+    published_specialist_scope = {'31.05.02': ('1', '2'), '37.05.01': ('1', '2')}
+    unpublished = [f'{program}/{course}' for program, courses in published_specialist_scope.items()
+        for course in courses
+        for cdata in [specialist.get('programs', {}).get(program, {}).get('courses', {}).get(course, {})]
+        if cdata.get('status') == 'unpublished' or not cdata.get('events')]
     recovery = specialist.get('dataState') == 'local-recovery-snapshot'
     blockers = []
     if missing_groups:
