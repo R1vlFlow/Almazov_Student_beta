@@ -9,7 +9,7 @@ export interface CalendarEvent{
 }
 export interface RecurrenceRule{frequency:'daily'|'weekly'|'monthly'|'yearly';interval:number;weekdays?:number[];until?:string|null;}
 export function displayScheduleParts(e:ScheduleEvent):ScheduleEvent[]{
-  if(e.orgMerged||!e.mergedConsecutive||e.doublePart)return [e];
+  if(!(e.orgMerged||e.mergedConsecutive)||e.doublePart)return [e];
   const start=Number(e.start.slice(0,2))*60+Number(e.start.slice(3));
   const end=Number(e.end.slice(0,2))*60+Number(e.end.slice(3));
   const duration=end-start;
