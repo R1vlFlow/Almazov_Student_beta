@@ -44,6 +44,14 @@ def main():
     assert_eq(stream, 'B', 'stream detection')
     assert_eq(groups[0], '123', 'first group')
     assert_eq(groups[-1], '135', 'last group')
+    _, specialist_groups = group_header('1 курс, Педиатрия\nДень недели Время 101П 102П 103П')
+    assert_eq(specialist_groups, ['101П', '102П', '103П'], 'pediatrics group suffixes')
+    _, psychology_groups = group_header('1 курс, Клиническая психология\nДень недели Время 101КП 102КП')
+    assert_eq(psychology_groups, ['101КП', '102КП'], 'psychology group suffixes')
+
+    from universal_schedule_parser import UniversalScheduleParser
+    words = [(0, 0, 20, 10, group, 0, 0, 0) for group in ('101П', '102П', '101КП', '102КП')]
+    assert_eq(UniversalScheduleParser._group_candidates(words, 1), ['101КП', '101П', '102КП', '102П'], 'layout detector preserves suffixed groups')
 
     records = split_subjects(
         'Основы Российской государственности (2-9) Солнечное, лит. С, ауд. 3.20 '
