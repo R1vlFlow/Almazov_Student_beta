@@ -58,6 +58,8 @@ await check('Android preview is QA-only and signed release is separate', () => {
   assert.match(signedReleaseWorkflow, /Load permanent signing key/);
   assert.match(signedReleaseWorkflow, /ANDROID_KEYSTORE_BASE64/);
   assert.match(signedReleaseWorkflow, /assembleRelease bundleRelease/);
+  assert.ok(signedReleaseWorkflow.indexOf('run: npm run sync:official') < signedReleaseWorkflow.indexOf('run: npm run qa'));
+  assert.match(signedReleaseWorkflow, /REQUIRE_SPECIALIST_SNAPSHOT:\\s*[\"']?1/);
 });
 await check('Release workflows require minification', () => {
   assert.match(pagesWorkflow, /REQUIRE_MINIFICATION:\s*["']?1/);
