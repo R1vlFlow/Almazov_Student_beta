@@ -15,6 +15,8 @@ room_audit=date_label_audit('Специальность 31.05.01, ауд. 4.2.10
 assert room_audit['dateLabelCount']==0 and not room_audit['conflictingDateYears'], f'room numbers misclassified as dates: {room_audit}'
 real_date_audit=date_label_audit('Занятие 03.11.2026')
 assert real_date_audit['embeddedDateYears']==[2026] and real_date_audit['dateLabelCount']==1, f'real timetable dates must remain visible: {real_date_audit}'
+room_code_audit=date_label_audit('Помещение 4.1.13 и помещение 4.1.14; занятие 4.1.26')
+assert room_code_audit['embeddedDateYears']==[2026] and room_code_audit['dateLabelCount']==1, f'dotted room codes must be excluded while plausible dates remain: {room_code_audit}'
 ROOT=Path(__file__).resolve().parents[1]
 payload=json.loads((ROOT/'data/official-schedules.json').read_text(encoding='utf-8'))
 assert payload.get('schemaVersion') == 7, 'unexpected official source schema'
