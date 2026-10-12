@@ -1,4 +1,4 @@
-# Re-run official 2026–2027 schedule validation after importer and double-lesson fixes.
+# Re-run official 2026–2027 schedule validation after suffix-aware specialist group parsing.
 name: Refresh official schedules for release candidate
 
 on:
