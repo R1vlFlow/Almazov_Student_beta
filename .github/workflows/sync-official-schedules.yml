@@ -104,7 +104,6 @@ jobs:
 
   deploy:
     needs: sync-build
-    if: needs.cadence.outputs.refresh_due == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
