@@ -81,3 +81,10 @@ for bad_candidate, bad_text in [
         rejected = True
     check('unapproved peds PDF metadata mismatch is rejected', rejected)
 print('LIVE RELEASE UNIT CONTRACTS: PASS')
+
+
+# A complete roster alone cannot make a course release-ready when source rows were quarantined.
+from validate_production_release import schedule_coverage_errors
+check('full schedule coverage passes the production gate', schedule_coverage_errors('6', {'coverage': {'status': 'full'}}) == [])
+check('partial schedule coverage blocks production release', any('expected full' in error for error in schedule_coverage_errors('6', {'coverage': {'status': 'partial'}})))
+check('quarantined schedule events block production release', any('6 events remain quarantined' in error and '609' in error for error in schedule_coverage_errors('6', {'coverage': {'status': 'partial', 'quarantinedEventCount': 6, 'quarantinedGroups': ['609']}})))

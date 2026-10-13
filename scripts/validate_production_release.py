@@ -55,6 +55,21 @@ def expected_group_ids(roster: dict, course: str, stream: str) -> set[str]:
     return {str(v) for v in roster.get(course, {}).get(stream, [])}
 
 
+def schedule_coverage_errors(course: str, course_data: dict) -> list[str]:
+    """Reject source schedules that omit events into quarantine, even when the roster is complete."""
+    coverage = course_data.get('coverage') if isinstance(course_data.get('coverage'), dict) else {}
+    errors = []
+    status = coverage.get('status')
+    quarantined = coverage.get('quarantinedEventCount', 0)
+    groups = coverage.get('quarantinedGroups', [])
+    if status != 'full':
+        errors.append(f'LD course {course}: schedule coverage is {status or "missing"}, expected full')
+    if isinstance(quarantined, int) and quarantined > 0:
+        suffix = f' for groups {", ".join(map(str, groups))}' if groups else ''
+        errors.append(f'LD course {course}: {quarantined} events remain quarantined{suffix}')
+    return errors
+
+
 def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
     now = now or datetime.now(timezone.utc)
     errors: list[str] = []
@@ -98,6 +113,7 @@ def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
 
     for course in map(str, range(1, 7)):
         cdata = ld.get('courses', {}).get(course, {})
+        errors.extend(schedule_coverage_errors(course, cdata))
         if not cdata.get('events'):
             errors.append(f'LD course {course}: no events')
         source_rows = cdata.get('sources', [])
