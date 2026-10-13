@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "description": "Narrow user-verified correction: Monday double lessons for groups 123 and 124 in weeks 2–16. Used only to restore the missing second half in the combined student schedule; never used to overwrite unrelated days.",
+  "description": "Explicitly verified corrections and double-lesson overlays. Entries are applied only to matching course/group/week/day/time keys; the source URL and verification note are retained.",
   "overrides": [
     {
       "course": "1",
@@ -1441,6 +1441,76 @@
       "subject": "Анатомия человека",
       "location": "школа,ауд.4",
       "type": "practice"
+    },
+    {
+      "course": "1",
+      "group": "135",
+      "stream": "B",
+      "weekNumber": 2,
+      "weekday": 0,
+      "start": "09:20",
+      "end": "10:45",
+      "subject": "Философия",
+      "location": "Солнечное, лит. С",
+      "type": "practice",
+      "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/1k_ld_b-26-27-na-sajt.pdf",
+      "verifiedSource": "Официальное расписание ПЗ 1 курса, поток Б; сверено с PDF"
+    },
+    {
+      "course": "1",
+      "group": "135",
+      "stream": "B",
+      "weekNumber": 3,
+      "weekday": 0,
+      "start": "09:20",
+      "end": "10:45",
+      "subject": "Философия",
+      "location": "Солнечное, лит. С",
+      "type": "practice",
+      "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/1k_ld_b-26-27-na-sajt.pdf",
+      "verifiedSource": "Официальное расписание ПЗ 1 курса, поток Б; сверено с PDF"
+    },
+    {
+      "course": "1",
+      "group": "135",
+      "stream": "B",
+      "weekNumber": 4,
+      "weekday": 0,
+      "start": "09:20",
+      "end": "10:45",
+      "subject": "Философия",
+      "location": "Солнечное, лит. С",
+      "type": "practice",
+      "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/1k_ld_b-26-27-na-sajt.pdf",
+      "verifiedSource": "Официальное расписание ПЗ 1 курса, поток Б; сверено с PDF"
+    },
+    {
+      "course": "1",
+      "group": "135",
+      "stream": "B",
+      "weekNumber": 5,
+      "weekday": 0,
+      "start": "09:20",
+      "end": "10:45",
+      "subject": "Философия",
+      "location": "Солнечное, лит. С",
+      "type": "practice",
+      "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/1k_ld_b-26-27-na-sajt.pdf",
+      "verifiedSource": "Официальное расписание ПЗ 1 курса, поток Б; сверено с PDF"
+    },
+    {
+      "course": "1",
+      "group": "135",
+      "stream": "B",
+      "weekNumber": 6,
+      "weekday": 0,
+      "start": "09:20",
+      "end": "10:45",
+      "subject": "Биофизика, математика",
+      "location": "Солнечное, лит. С",
+      "type": "practice",
+      "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/1k_ld_b-26-27-na-sajt.pdf",
+      "verifiedSource": "Официальное расписание ПЗ 1 курса, поток Б; сверено с PDF"
     }
   ]
 }
