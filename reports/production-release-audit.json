@@ -1,17 +1,22 @@
 {
-  "checkedAt": "2026-10-13T09:49:16.752190+00:00",
+  "checkedAt": "2026-10-13T15:00:23.251337+00:00",
   "status": "release-ready",
   "errors": [],
   "blockers": [],
   "counts": {
-    "ldCourses": 1,
+    "ldCourses": 6,
     "specialistCourseSnapshots": 12,
     "unpublishedSnapshots": 0,
     "missingGroupAssignments": 0
   },
   "checks": {
     "releaseCourseScope": [
-      "1"
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
     ],
     "requiredKugProgramCourses": 10,
     "academicYear": "2026/2027",
