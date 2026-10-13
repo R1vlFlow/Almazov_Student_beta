@@ -2,15 +2,15 @@
   "status": "ok",
   "dataState": "live-generated",
   "engineVersion": "4.9.0-rc.1",
-  "generatedAt": "2026-10-13T15:07:24.068759+00:00",
+  "generatedAt": "2026-10-13T15:12:31.247963+00:00",
   "sourcePage": "https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/",
   "schemaVersion": 7,
   "courses": {
     "1": {
       "groups": 35,
-      "events": 5043,
+      "events": 4487,
       "lecture": 172,
-      "practice": 4871,
+      "practice": 4315,
       "coverage": {
         "status": "full",
         "streams": {
@@ -59,7 +59,7 @@
               "104": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 242
+                "verifiedEventCount": 202
               },
               "105": {
                 "status": "full",
@@ -74,7 +74,7 @@
               "107": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 254
+                "verifiedEventCount": 205
               },
               "108": {
                 "status": "full",
@@ -129,12 +129,12 @@
               "118": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 319
+                "verifiedEventCount": 210
               },
               "119": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 264
+                "verifiedEventCount": 204
               },
               "120": {
                 "status": "full",
@@ -149,7 +149,7 @@
               "122": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 249
+                "verifiedEventCount": 210
               }
             }
           },
@@ -174,7 +174,7 @@
               "123": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 243
+                "verifiedEventCount": 235
               },
               "124": {
                 "status": "full",
@@ -189,7 +189,7 @@
               "126": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 208
+                "verifiedEventCount": 205
               },
               "127": {
                 "status": "full",
@@ -204,37 +204,37 @@
               "129": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 246
+                "verifiedEventCount": 210
               },
               "130": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 277
+                "verifiedEventCount": 210
               },
               "131": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 238
+                "verifiedEventCount": 210
               },
               "132": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 231
+                "verifiedEventCount": 210
               },
               "133": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 235
+                "verifiedEventCount": 210
               },
               "134": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 268
+                "verifiedEventCount": 210
               },
               "135": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 215
+                "verifiedEventCount": 202
               }
             }
           }
@@ -246,9 +246,9 @@
     },
     "2": {
       "groups": 29,
-      "events": 3170,
+      "events": 3135,
       "lecture": 162,
-      "practice": 3008,
+      "practice": 2973,
       "coverage": {
         "status": "full",
         "streams": {
@@ -321,7 +321,7 @@
               "210": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 196
+                "verifiedEventCount": 184
               },
               "211": {
                 "status": "full",
@@ -341,7 +341,7 @@
               "214": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 196
+                "verifiedEventCount": 173
               },
               "215": {
                 "status": "full",
@@ -448,9 +448,9 @@
     },
     "3": {
       "groups": 22,
-      "events": 1889,
+      "events": 1837,
       "lecture": 177,
-      "practice": 1712,
+      "practice": 1660,
       "coverage": {
         "status": "full",
         "streams": {
@@ -474,7 +474,7 @@
               "301": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 228
+                "verifiedEventCount": 204
               },
               "302": {
                 "status": "full",
@@ -494,7 +494,7 @@
               "305": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 232
+                "verifiedEventCount": 204
               },
               "306": {
                 "status": "full",
@@ -934,8 +934,8 @@
     },
     "6": {
       "groups": 18,
-      "events": 465,
-      "lecture": 93,
+      "events": 464,
+      "lecture": 92,
       "practice": 372,
       "coverage": {
         "status": "full",
@@ -966,92 +966,92 @@
               "601": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 114
+                "verifiedEventCount": 113
               },
               "602": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 114
+                "verifiedEventCount": 113
               },
               "603": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 114
+                "verifiedEventCount": 113
               },
               "604": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 114
+                "verifiedEventCount": 113
               },
               "605": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 115
+                "verifiedEventCount": 114
               },
               "606": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 115
+                "verifiedEventCount": 114
               },
               "607": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 113
+                "verifiedEventCount": 112
               },
               "608": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 113
+                "verifiedEventCount": 112
               },
               "609": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 115
+                "verifiedEventCount": 114
               },
               "610": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 115
+                "verifiedEventCount": 114
               },
               "611": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 113
+                "verifiedEventCount": 112
               },
               "612": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 113
+                "verifiedEventCount": 112
               },
               "613": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 111
+                "verifiedEventCount": 110
               },
               "614": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 111
+                "verifiedEventCount": 110
               },
               "615": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 115
+                "verifiedEventCount": 114
               },
               "616": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 115
+                "verifiedEventCount": 114
               },
               "617": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 113
+                "verifiedEventCount": 112
               },
               "618": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 113
+                "verifiedEventCount": 112
               }
             }
           }
