@@ -282,6 +282,7 @@ def parse_date_hint(s):
     except ValueError: return None
 def clean_location(s):
     s=norm(s).strip(' ,/;')
+    s=re.sub(r'"{2,}', '"', s)
     # Official schedule PDFs can place the approving-officer footer directly
     # after the last room on the same extracted text line. It is document
     # metadata, not a location, and must never reach the student UI.
@@ -1362,11 +1363,11 @@ def parse_week_matrix_tables(doc_bytes, course, url, stream):
         if k not in seen: seen.add(k); out.append(e)
     return out
 
-def parse_practice_with_pdfplumber(doc_bytes, course, url, stream):
-    """Run ruled and text-aligned table extraction, then combine group coverage."""
+def parse_practice_with_pdfplumber(doc_bytes, course, url, stream, strategy='lines'):
+    """Parse one table geometry; never union guessed text columns with real cells."""
     by_key = {}
     with pdfplumber.open(__import__('io').BytesIO(doc_bytes)) as pdf:
-        for strategy in ('lines', 'text'):
+        for strategy in (strategy,):
             try:
                 candidate = parse_practice_tables(pdf.pages, course, url, stream, strategy)
             except Exception:
@@ -1796,6 +1797,13 @@ def fetch_source(sess,url):
     fmt=sniff_format(data,r.headers.get('content-type',''),url)
     if fmt in {'binary',''}:
         raise RuntimeError(f'unknown document format (content-type={r.headers.get("content-type")}, bytes={len(data)})')
+    # Retain public input bytes as CI diagnostics, keyed by content hash.
+    import os, hashlib
+    if os.environ.get('OFFICIAL_SOURCE_ARCHIVE'):
+        archive=Path(os.environ['OFFICIAL_SOURCE_ARCHIVE'])
+        archive.mkdir(parents=True,exist_ok=True)
+        digest=hashlib.sha256(data).hexdigest()
+        (archive/f'{digest}.{fmt}').write_bytes(data)
     return data,fmt,r.headers.get('content-type','')
 
 def fetch_pdf(sess,url):

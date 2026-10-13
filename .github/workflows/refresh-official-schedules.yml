@@ -42,6 +42,7 @@ jobs:
         continue-on-error: true
         env:
           RELEASE_COURSE_SCOPE: 'all'
+          OFFICIAL_SOURCE_ARCHIVE: 'storage/official-sources'
         run: npm run sync:official
       - name: Preserve synchronization diagnostics
         if: always()
@@ -53,6 +54,7 @@ jobs:
             reports/production-release-audit.json
             data/official-sync-status.json
             data/kug-source-manifest.json
+            storage/official-sources
           if-no-files-found: warn
           retention-days: 7
       - name: Commit refreshed schedules only after every release check passes

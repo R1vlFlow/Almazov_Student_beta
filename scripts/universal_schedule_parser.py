@@ -359,6 +359,8 @@ class UniversalScheduleParser:
         # still validated against the detected roster before it can be imported.
         if not events and raw is not None:
             events = extract('pdfplumber-daily-grid', lambda: self.m.parse_practice_with_pdfplumber(raw, course, url, stream))
+        if not events and raw is not None:
+            events = extract('pdfplumber-text-grid', lambda: self.m.parse_practice_with_pdfplumber(raw, course, url, stream, 'text'))
 
         # Compatibility fallback for older daily tables and newly encountered layouts.
         if not events:
