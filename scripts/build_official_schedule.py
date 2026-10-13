@@ -60,11 +60,12 @@ def normalize_event_time(event):
     return True
 
 def materialize_official_weekday_dates(courses):
-    """Resolve explicitly printed weekday + academic-week rows to real dates.
+    """Resolve explicit weekday/week rows using the verified 2026/27 calendar.
 
-    Daily schedule PDFs expose both a week number and a weekday. Only those
-    records can be dated this way. Week-matrix columns without a printed weekday
-    remain weekly blocks and are never converted to arbitrary dates.
+    The official first calendar week starts Tuesday 2026-09-01. The first-year
+    LD-A Monday rows parsed for groups 104/107 as week 1 are not instructional
+    occurrences; those groups' Monday schedule resumes from week 2. Drop only
+    those confirmed week-1 rows, preserving all later Monday occurrences.
     """
     path=Path('data/academic-weeks-2026-2027.json')
     if not path.exists():
@@ -76,34 +77,50 @@ def materialize_official_weekday_dates(courses):
            and str(row.get('weekNumber','')).isdigit()}
     unresolved=[]; mapped=0
     for course_id,course in courses.items():
+        retained_events=[]
         for event in course.get('events',[]):
             if event.get('date') or event.get('scheduleMode')=='weekly-block':
+                retained_events.append(event)
                 continue
             try:
-                week=weeks.get(int(event.get('weekNumber')))
+                week_number=int(event.get('weekNumber'))
+                week=weeks.get(week_number)
                 weekday=int(event.get('weekday'))
                 if not week or weekday not in range(7):
                     raise ValueError('missing_official_week_or_weekday')
                 first=datetime.date.fromisoformat(week['from']); last=datetime.date.fromisoformat(week['to'])
+                if (course_id=='1' and event.get('stream')=='A'
+                        and str(event.get('group')) in {'104','107'}
+                        and week_number==1 and weekday==0
+                        and str(event.get('sourceUrl','')).endswith('/1k_ld_a-26-27-na-sajt.pdf')
+                        and first.weekday()!=0):
+                    print('OFFICIAL_NON_INSTRUCTIONAL_WEEKDAY_SKIPPED '+json.dumps({
+                        'course':str(course_id),'group':str(event.get('group','')),
+                        'weekNumber':week_number,'weekday':weekday,
+                        'reason':'confirmed_non_instructional_monday_of_partial_first_week',
+                        'sourceUrl':event.get('sourceUrl')
+                    },ensure_ascii=False,sort_keys=True),file=sys.stderr)
+                    continue
                 target=first+datetime.timedelta(days=(weekday-first.weekday())%7)
                 if target>last:
                     raise ValueError('weekday_outside_official_week')
                 event['date']=target.isoformat()
                 event['scheduleMode']='official-weekday-occurrence'
-                event['calendarWeekNumber']=int(event['weekNumber'])
+                event['calendarWeekNumber']=week_number
                 event['weekRangeStart']=week['from']; event['weekRangeEnd']=week['to']
                 event['weekCalendarSource']=calendar.get('source',{}).get('url')
                 event['weekCalendarSha256']=calendar.get('source',{}).get('sha256')
                 event['weekCalendarStatus']=calendar.get('status')
                 event['dateResolution']='official-week-calendar-2026-2027'
                 mapped+=1
+                retained_events.append(event)
             except (TypeError,ValueError,KeyError) as exc:
                 unresolved.append({'course':str(course_id),'group':str(event.get('group','')),
                                    'weekNumber':event.get('weekNumber'),'weekday':event.get('weekday'),
                                    'reason':str(exc),'sourceUrl':event.get('sourceUrl')})
+                retained_events.append(event)
+        course['events']=retained_events
     return mapped,unresolved,calendar.get('source',{}).get('url')
-
-
 def _clock_minutes(value):
     h,m=map(int,str(value).split(':')); return h*60+m
 
