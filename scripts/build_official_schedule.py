@@ -783,8 +783,6 @@ def parse_practice_tables(doc, course, url, stream, table_strategy='lines'):
                     cell = norm(row[ci])
                     if not cell:
                         continue
-                    if str(course) == '1' and str(group) == '135' and table_day == 0 and str(time_text).startswith('09:20'):
-                        print(json.dumps({'component':'universal_schedule_parser','event':'practice_cell_source_diagnostic','url':url,'group':group,'time':time_text,'cell':cell},ensure_ascii=False),file=sys.stderr)
                     for subject, weeks, location in split_practice_cell(cell):
                         selected_time = parse_dual_location_time(time_text, location)
                         if not selected_time:
@@ -817,8 +815,6 @@ def split_matrix_cell(text):
     # Repair PDF line-wraps before searching for the first location marker.
     # Example from the real 4B sheet: `Эндокрино логия Пархоменк о, 5.12`.
     text = repair_pdf_subject(norm(text))
-    if re.search(r'(?:Звездная|Студенческая,?\s*16|КПК,?\s*ауд\.?\s*2150)', text, re.I):
-        print(json.dumps({'component':'universal_schedule_parser','event':'matrix_cell_source_diagnostic','cell':text},ensure_ascii=False),file=sys.stderr)
     if not text:
         return None, ''
     leading_subject, leading_location = split_leading_location(text)
@@ -1989,7 +1985,7 @@ def apply_verified_schedule_overrides(courses):
             kept.append(e)
         record={k:v for k,v in o.items() if k not in {'course'}}
         normalize_event_time(record)
-        record.update({'group':group,'stream':o.get('stream',''),'type':'practice','parser':'verified-double-overlay-v2','verifiedSource':'Пользовательская проверка Расписание.pdf'})
+        record.update({'group':group,'stream':o.get('stream',''),'type':'practice','parser':'verified-double-overlay-v2','verifiedSource':o.get('verifiedSource','Пользовательская проверка Расписание.pdf')})
         c['events']=kept+[record]
         applied+=1
     return applied
