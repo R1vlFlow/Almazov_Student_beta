@@ -50,11 +50,22 @@ try{
   await mkdir(join(dist,'data'),{recursive:true});
   await writeFile(join(dist,'data','kug.json'),JSON.stringify(kugPayload));
   const events=normalizeLiveEvents(payload);
+  const rawScope=(process.env.RELEASE_COURSE_SCOPE??'all').trim().toLowerCase();
+  const releaseCourses=rawScope===''||rawScope==='all'||rawScope==='*'
+    ? new Set(['1','2','3','4','5','6'])
+    : new Set(rawScope.split(',').map(x=>x.trim()).filter(Boolean));
+  if(!releaseCourses.size||[...releaseCourses].some(x=>!['1','2','3','4','5','6'].includes(x)))
+    throw new Error('RELEASE_COURSE_SCOPE must be "all" or a comma-separated list from 1 to 6');
   for(let course=1;course<=6;course++){
-    const courseEvents=events.filter(e=>e.program==='31.05.01'&&e.course===course);
-    const weeklyBlocks=normalizeWeeklyBlocks(payload,'31.05.01',course);
     const dir=join(dist,'data','schedules','31.05.01');
     await mkdir(dir,{recursive:true});
+    if(!releaseCourses.has(String(course))){
+      const message='В этой версии опубликовано расписание только для 1 курса.';
+      await writeFile(join(dir,`${course}.json`),JSON.stringify({version:1,generatedAt:payload.generatedAt,program:'31.05.01',course,status:'unpublished',coverage:{status:'out-of-scope',releaseCourseScope:[...releaseCourses]},events:[],weeklyBlocks:[],quarantinedEvents:[],issues:['COURSE_OUTSIDE_RELEASE_SCOPE'],message,sourceUrl:payload.sourcePage,sourceName:'official-schedules.json'}));
+      continue;
+    }
+    const courseEvents=events.filter(e=>e.program==='31.05.01'&&e.course===course);
+    const weeklyBlocks=normalizeWeeklyBlocks(payload,'31.05.01',course);
     const liveGenerated=payload.dataState==='live-generated';
     const courseCoverage=payload.coverage?.[String(course)]??{status:'partial',missingGroups:[]};
     const partial=courseCoverage.status!=='full'||!liveGenerated;
