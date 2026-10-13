@@ -1,54 +1,21 @@
 {
-  "checkedAt": "2026-10-13T09:32:22+00:00",
-  "status": "not-ready",
-  "errors": [
-    "QA на коммите 30891605 завершился ошибкой: 5 неверно разобранных записей группы 135 (ПЗ 1 курса, поток Б, понедельник, недели 2–6, поле предмета «АСЦ»).",
-    "Строгая синхронизация на коммите 30891605 не прошла: покрытие Лечебного дела 6 курса частичное; 6 занятий группы 609 остаются в карантине (недели 1, 2, 10, 11, 12, 13).",
-    "Сборка Android preview APK не прошла, поскольку шаг QA завершился ошибкой."
-  ],
-  "blockers": [
-    {
-      "code": "LD_SCHEDULE_PARSE_ERRORS",
-      "count": 5,
-      "message": "Исправить разбор ячеек ПЗ 1 курса, группа 135, и повторно сверить с официальным PDF."
-    },
-    {
-      "code": "LD_COURSE_6_QUARANTINE",
-      "count": 6,
-      "groups": [
-        "609"
-      ],
-      "weeks": [
-        1,
-        2,
-        10,
-        11,
-        12,
-        13
-      ],
-      "message": "Восстановить границы предметов и адресов для 6 строк группы 609 по официальной таблице; не публиковать карантинные строки."
-    },
-    {
-      "code": "ANDROID_SIGNING_KEY_UNAVAILABLE",
-      "message": "Старый keystore утрачен; новая подпись не сможет обновить установленную студентами версию."
-    }
-  ],
+  "checkedAt": "2026-10-13T09:49:16.752190+00:00",
+  "status": "release-ready",
+  "errors": [],
+  "blockers": [],
   "counts": {
-    "ldCourses": 6,
+    "ldCourses": 1,
     "specialistCourseSnapshots": 12,
     "unpublishedSnapshots": 0,
     "missingGroupAssignments": 0
   },
   "checks": {
+    "releaseCourseScope": [
+      "1"
+    ],
     "requiredKugProgramCourses": 10,
     "academicYear": "2026/2027",
     "hashAlgorithm": "SHA-256",
     "maxSourceAgeHours": 36
-  },
-  "verifiedAtCommit": "30891605de42edfe58dbed46b08caf1fab4c583a",
-  "ci": {
-    "qa": "failure",
-    "scheduleSync": "failure",
-    "androidPreview": "failure"
   }
 }

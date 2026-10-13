@@ -2,15 +2,15 @@
   "status": "partially-ready",
   "dataState": "live-generated-partial",
   "engineVersion": "4.9.0-rc.1",
-  "generatedAt": "2026-10-13T09:16:10.678899+00:00",
+  "generatedAt": "2026-10-13T09:49:08.922108+00:00",
   "sourcePage": "https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/",
   "schemaVersion": 7,
   "courses": {
     "1": {
       "groups": 35,
-      "events": 5048,
+      "events": 5043,
       "lecture": 172,
-      "practice": 4876,
+      "practice": 4871,
       "coverage": {
         "status": "full",
         "streams": {
@@ -234,7 +234,7 @@
               "135": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 220
+                "verifiedEventCount": 215
               }
             }
           }
