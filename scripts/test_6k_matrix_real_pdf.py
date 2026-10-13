@@ -25,6 +25,9 @@ assert hashlib.sha256(raw).hexdigest()=='2294790533845318f1016a74f4d22c6394090b4
 events,profile=parser.parse_practice(raw,6,'https://education.almazovcentre.ru/wp-content/uploads/2026/09/6k_ld-26-27-na-sajt-1.pdf','')
 assert {e['group'] for e in events}==set(map(str,range(601,619)))
 assert len(events)==372
+assert {(e['start'],e['end']) for e in events}=={('09:00','12:25')}
+assert legacy.matrix_class_time('08.10–21.10') is None
+assert legacy.matrix_class_time('Время занятий семинарского типа: 9.00–12.25')==('09:00','12:25')
 def subjects(group,week):
     return {e['subject'] for e in events if e['group']==group and e['weekNumber']==week}
 assert subjects('609',1)=={'Фтизиатрия'}

@@ -947,13 +947,7 @@ def parse_week_matrix_text_fallback(doc_bytes, course, url, stream):
             else: wc=carry_wc
             if len(wc)<8: continue
             text=norm(page.get_text('text'))
-            ft=re.search(r'Время\s+занятий\s+семинарского\s+типа\s*:?\s*(\d{1,2}[:.]\d{2})\s*[-–—]\s*(\d{1,2}[:.]\d{2})',text,re.I)
-            if not ft:
-                # Some PDF exports lose Cyrillic glyphs in the text layer while
-                # preserving the clock. Never confuse dotted date ranges with
-                # this fallback: a valid clock must contain a colon/dot pair.
-                ft=re.search(r'(\d{1,2}[:.]\d{2})\s*[-–—]\s*(\d{1,2}[:.]\d{2})',text)
-            if ft: fixed_time=(normalize_clock(ft.group(1)),normalize_clock(ft.group(2)))
+            fixed_time=matrix_class_time(text) or fixed_time
             if not fixed_time or not all(fixed_time): continue
             groups=_group_centers(words,course)
             if not groups: continue
@@ -1076,6 +1070,19 @@ def _matrix_week_bands_from_date_row(table):
     return bands
 
 
+def matrix_class_time(text):
+    """Accept dotted clocks only beside a class-time label, never calendar dates."""
+    labelled = re.search(r'Время\s+занятий(?:\s+семинарского\s+типа)?\s*:?\s*(\d{1,2}[:.]\d{2})\s*[-–—]\s*(\d{1,2}[:.]\d{2})', text, re.I)
+    matches = [labelled] if labelled else list(re.finditer(r'(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})', text))
+    for match in matches:
+        start, end = normalize_clock(match.group(1)), normalize_clock(match.group(2))
+        if start and end:
+            a, b = [int(t[:2])*60+int(t[3:]) for t in (start, end)]
+            if 0 < b-a <= 240:
+                return start, end
+    return None
+
+
 def parse_week_matrix_pdfplumber_cells(doc_bytes, course, url, stream):
     """Parse an intact weekly matrix from actual merged PDF cell geometry."""
     import io
@@ -1096,9 +1103,7 @@ def parse_week_matrix_pdfplumber_cells(doc_bytes, course, url, stream):
                     continue
                 rows=table.extract(); row_objs=table.rows
                 text=norm(page.extract_text() or '')
-                m=re.search(r'(\d{1,2}[:.]\d{2})\s*[-–—]\s*(\d{1,2}[:.]\d{2})',text)
-                if m:
-                    fixed_time=(normalize_clock(m.group(1)),normalize_clock(m.group(2)))
+                fixed_time=matrix_class_time(text) or fixed_time
                 if not fixed_time: continue
                 start,end=fixed_time
                 if not start or not end:

@@ -111,6 +111,10 @@ def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
     if errors:
         return errors
     ld = loaded['ld snapshot']
+    from schedule_validation_common import bootstrap_event_errors, calendar_consistency_errors
+    scoped_ld = {**ld, 'courses': {c: v for c, v in ld.get('courses', {}).items() if c in course_scope}}
+    errors.extend(bootstrap_event_errors(scoped_ld))
+    errors.extend(calendar_consistency_errors(scoped_ld))
     status = loaded['sync status']
     roster = loaded['group roster contract']
     kug = loaded['KUG periods']
