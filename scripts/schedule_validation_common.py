@@ -120,7 +120,7 @@ def bootstrap_event_errors(data: dict) -> list[str]:
             if not sub:
                 errors.append(f'{p}: empty subject')
             if _LEADING_LOCATION_RE.match(sub):
-                errors.append(f'{p}: location leaked into subject {sub!r}')
+                errors.append(f"{p}: location leaked into subject {sub!r} (group={event.get('group')!r}, week={event.get('weekNumber')!r}, date={event.get('date')!r}, weekday={event.get('weekday')!r}, time={event.get('start')!r}-{event.get('end')!r}, location={event.get('location')!r}, source={event.get('sourceUrl')!r})")
             if 'жизнидеятельност и' in sub.lower():
                 errors.append(f'{p}: known PDF wrap typo remains in subject {sub!r}')
             if event.get('double'):

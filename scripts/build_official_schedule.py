@@ -2142,7 +2142,11 @@ def main():
         for e in cleaned:
             key=(e.get('type'),e.get('stream'),e.get('group'),e.get('weekNumber'),e.get('date'),e.get('weekday'),e.get('start'),e.get('end'),e.get('subject'),e.get('location'))
             if key not in seen: seen.add(key); c['events'].append(e)
-        if quarantined:c['quarantinedEvents']=quarantined
+        if quarantined:
+            c['quarantinedEvents']=quarantined
+            for item in quarantined:
+                fields={k:item.get(k) for k in ('group','stream','weekNumber','date','weekday','start','end','subject','location','sourceUrl','quarantineReason')}
+                print('QUARANTINED_EVENT '+json.dumps(fields,ensure_ascii=False,separators=(',',':')))
         c['events'].sort(key=event_sort_key)
         for e in c['events']:
             if not normalize_event_time(e): raise RuntimeError(f'{cid}: invalid time {e.get("start")} - {e.get("end")}')
