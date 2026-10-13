@@ -783,6 +783,8 @@ def parse_practice_tables(doc, course, url, stream, table_strategy='lines'):
                     cell = norm(row[ci])
                     if not cell:
                         continue
+                    if str(course) == '1' and str(group) == '135' and table_day == 0 and str(time_text).startswith('09:20'):
+                        print('PRACTICE_CELL_DIAGNOSTIC '+json.dumps({'url':url,'group':group,'time':time_text,'cell':cell},ensure_ascii=False),file=sys.stderr)
                     for subject, weeks, location in split_practice_cell(cell):
                         selected_time = parse_dual_location_time(time_text, location)
                         if not selected_time:
@@ -815,6 +817,8 @@ def split_matrix_cell(text):
     # Repair PDF line-wraps before searching for the first location marker.
     # Example from the real 4B sheet: `Эндокрино логия Пархоменк о, 5.12`.
     text = repair_pdf_subject(norm(text))
+    if re.search(r'(?:Звездная|Студенческая,?\s*16|КПК,?\s*ауд\.?\s*2150)', text, re.I):
+        print('MATRIX_CELL_DIAGNOSTIC '+json.dumps(text,ensure_ascii=False),file=sys.stderr)
     if not text:
         return None, ''
     leading_subject, leading_location = split_leading_location(text)
