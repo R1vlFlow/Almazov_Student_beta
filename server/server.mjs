@@ -1,6 +1,6 @@
 import {createServer} from 'node:http';
 import {readFile,stat} from 'node:fs/promises';
-import {join,normalize as normalizePath,extname} from 'node:path';
+import {join,normalize as normalizePath,extname,sep} from 'node:path';
 import {loadSchedule} from './pipeline.mjs';
 import {parseSourceBuffer} from './source-parser.mjs';
 import {createEvent,updateEvent,deleteEvent,listEvents} from './events.mjs';
@@ -22,7 +22,7 @@ function allowRate(req,key,limit,windowMs){const now=Date.now(),bucketKey=`${key
 function headerUser(req){return String(req.headers['x-user-id']??'').trim();}
 async function readJson(req){let size=0;const chunks=[];for await(const chunk of req){size+=chunk.length;if(size>MAX_BODY)throw Object.assign(new Error('Тело запроса слишком большое'),{statusCode:413});chunks.push(chunk);}if(!chunks.length)return{};try{return JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw Object.assign(new Error('Некорректный JSON'),{statusCode:400});}}
 setInterval(()=>{const cutoff=Date.now()-10*60*1000;for(const [k,v] of rateBuckets)if(v.startedAt<cutoff)rateBuckets.delete(k);},60*1000).unref();
-function safeFile(urlPath){const rel=urlPath==='/'?'index.html':urlPath.replace(/^\/+/, '');const file=normalizePath(join(ROOT,rel));return file===ROOT||file.startsWith(`${ROOT}/`)?file:null;}
+function safeFile(urlPath){if(/[\\\0:]/.test(urlPath))return null;const rel=urlPath==='/'?'index.html':urlPath.replace(/^\/+/, '');const file=normalizePath(join(ROOT,rel));return file===ROOT||file.startsWith(ROOT+sep)?file:null;}
 const server=createServer(async(req,res)=>{try{
   const u=new URL(req.url??'/',`http://${req.headers.host??'localhost'}`);
   if(u.pathname==='/api/health'){if(req.method!=='GET')return json(res,405,{error:'Method not allowed'});return json(res,200,{ok:true,service:'almazov-schedule-hub',time:new Date().toISOString()});}

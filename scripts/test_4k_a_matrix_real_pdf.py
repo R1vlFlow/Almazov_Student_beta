@@ -25,7 +25,7 @@ with redirect_stderr(diagnostics):
     events = mod.parse_practice(raw, 4, "fixture://4k_ld_a_stream_header_2026_2027.pdf", "A")
 records = [json.loads(line) for line in diagnostics.getvalue().splitlines() if line.strip()]
 complete = [record for record in records if record.get("event") == "practice_parse_complete"]
-assert complete and complete[-1].get("eventCount") == 250
+assert complete and complete[-1].get("eventCount") == 246
 assert complete[-1].get("missingGroups") == []
 assert all(record.get("component") == "universal_schedule_parser" for record in records)
 
@@ -65,5 +65,7 @@ assert any("Гинекология" in subject for e in events for subject in [e
 
 identity = [(str(e.get('group')), int(e.get('weekNumber') or 0), e.get('start'), e.get('end'), e.get('subject'), e.get('location')) for e in events]
 assert len(identity) == len(set(identity)), '4A parser produced duplicate event rows'
-assert len(events) == 250, f'expected 250 assignments from official fixture, got {len(events)}'
+assert len(events) == 246, f'expected 246 assignments from official fixture, got {len(events)}'
 print(f"4A REAL MATRIX REGRESSION: PASS — {len(events)} assignments, {len(got_groups)} groups, JSON diagnostics and deduplication verified.")
+
+assert by_group_week[('405', 1)] == ['Лучевая диагностика'], 'week 2 subject leaked into narrow week 1 column'

@@ -35,7 +35,11 @@ def load_roster_contract():
 ROSTER_CONTRACT=load_roster_contract()
 
 
-def norm(s): return re.sub(r'\s+',' ',str(s or '').replace('\xa0',' ')).strip()
+def norm(s):
+    text=str(s or '').replace('\xa0',' ')
+    # Some embedded fonts map a printed numeric dash to a soft hyphen.
+    text=re.sub(r'(?<=\d)(\s*)\xad(\s*)(?=\d)',r'\1-\2',text).replace('\xad','')
+    return re.sub(r'\s+',' ',text).strip()
 def course_from_text(s):
     m=re.search(r'(?:^|\s)([1-6])\s*курс',s,re.I); return int(m.group(1)) if m else None
 def parse_time(s):
@@ -619,6 +623,8 @@ SUBJECT_PDF_ALIASES = {
     'Пархоменк о': 'Пархоменко',
     'диагностик а': 'диагностика',
     'диагност ика': 'диагностика',
+    'Патологиче ская': 'Патологическая',
+    'Екатеринин ский': 'Екатерининский',
 }
 
 
@@ -807,7 +813,7 @@ def parse_practice_tables(doc, course, url, stream, table_strategy='lines'):
 
 WEEK_HEADER_RE = re.compile(r'(?<!\d)([1-9]|[1-4]\d|5[0-2])(?!\d)')
 MATRIX_LOCATION_MARKERS = re.compile(
-    r'\b(?:КПК|Башня|Пархоменко|ПЦ|МНТК|КВД|ЛРК|ИМО|ДЛРК|РНХИ|СПБ|СПб|НМИЦ|НИИ|ФГБНУ|Обл\.?|ГБ\b|База|ауд\.?|каб\.?|зал\b|Родильный|Менделеевская|ул\.?|просп\.?|Звездная|Ногина|Поленов|Вредена|Больница|Госпиталь|ЦДТИ|ШКОЛА|АСЦ|С использованием ДОТ|Центр\s+Алмазова|Институт\s+мозга|ЛОПТД|ГПТД)\b',
+    r'\b(?:КПК|Башня|Пархоменко|ПЦ|МНТК|КВД|ЛРК|ИМО|ДЛРК|РНХИ|СПБ|СПб|НМИЦ|НИИ|ФГБНУ|Обл\.?|ГБ\b|База|ауд\.?|каб\.?|зал\b|Родильный|Менделеевская|ул\.?|просп\.?|Звездная|Студенческая|пер\.|Ногина|Поленов|Вредена|Больница|Госпиталь|Бюро\s+судебной\s+медицины|ЦДТИ|ШКОЛА|АСЦ|С использованием ДОТ|Центр\s+Алмазова|Институт\s+мозга|ЛОПТД|ГПТД)\b',
     re.I
 )
 
@@ -1074,6 +1080,7 @@ def parse_week_matrix_pdfplumber_cells(doc_bytes, course, url, stream):
     """Parse an intact weekly matrix from actual merged PDF cell geometry."""
     import io
     out=[]
+    carry_bands={}; fixed_time=None; previous_width=None
     try:
         with pdfplumber.open(io.BytesIO(doc_bytes)) as pdf:
             for page in pdf.pages:
@@ -1081,27 +1088,41 @@ def parse_week_matrix_pdfplumber_cells(doc_bytes, course, url, stream):
                 if not table:
                     continue
                 bands=_matrix_week_bands_from_date_row(table)
+                if bands:
+                    carry_bands=bands; previous_width=page.width
+                elif carry_bands and abs(page.width-previous_width)<1:
+                    bands=carry_bands
                 if len(bands)<6:
                     continue
                 rows=table.extract(); row_objs=table.rows
                 text=norm(page.extract_text() or '')
                 m=re.search(r'(\d{1,2}[:.]\d{2})\s*[-–—]\s*(\d{1,2}[:.]\d{2})',text)
-                if not m:
-                    continue
-                start,end=normalize_clock(m.group(1)),normalize_clock(m.group(2))
+                if m:
+                    fixed_time=(normalize_clock(m.group(1)),normalize_clock(m.group(2)))
+                if not fixed_time: continue
+                start,end=fixed_time
                 if not start or not end:
                     continue
+                # Use the actual group cell's vertical extent. Row midpoints
+                # fail on uneven heights and can include neighbouring subjects.
+                group_centers=[]
                 for ri,row in enumerate(rows):
                     group=next((norm(v) for v in (row or [])[:2] if re.fullmatch(r'\d{3}',norm(v))),None)
                     if not group or ri>=len(row_objs):
                         continue
+                    ci=next(i for i,v in enumerate(row[:2]) if norm(v)==group)
+                    cell=row_objs[ri].cells[ci]
+                    if cell: group_centers.append((group,(cell[1]+cell[3])/2))
+                for ri,row in enumerate(rows):
                     for ci,val in enumerate(row or []):
-                        if ci==0 or not norm(val):
+                        if ci==0 or not norm(val) or re.fullmatch(r'\d{3}',norm(val)):
                             continue
                         cell=row_objs[ri].cells[ci] if ci<len(row_objs[ri].cells) else None
                         if not cell:
                             continue
                         x0,y0,x1,y1=map(float,cell)
+                        cell_groups=[g for g,cy in group_centers if y0<=cy<y1]
+                        if not cell_groups: continue
                         subject,location=split_matrix_cell(norm(val))
                         if not subject or subject in {'Практика','Практика и элективы'}:
                             continue
@@ -1114,11 +1135,13 @@ def parse_week_matrix_pdfplumber_cells(doc_bytes, course, url, stream):
                             for w,(a,b) in bands.items():
                                 if a-0.5<=center<=b+0.5:
                                     overlaps=[w]; break
-                        for w in overlaps:
-                            out.append({'weekday':None,'start':start,'end':end,'subject':subject,'location':location,
-                                'group':group,'stream':stream or '','type':'practice','weekNumber':w,'weekStart':week_start(w),
-                                'sourceUrl':url,'scheduleMode':'weekly-block','matrixBBox':[round(x0,3),round(y0,3),round(x1,3),round(y1,3)],
-                                'parser':'pdfplumber-merged-cell-matrix-v6'})
+                        for group in cell_groups:
+                            for w in overlaps:
+                                out.append({'weekday':None,'start':start,'end':end,'subject':subject,'location':location,
+                                    'group':group,'stream':stream or '','type':'practice','weekNumber':w,'weekStart':week_start(w),
+                                    'sourceUrl':url,'scheduleMode':'weekly-block','matrixBBox':[round(x0,3),round(y0,3),round(x1,3),round(y1,3)],
+                                    'sourcePageNumber':page.page_number,
+                                    'parser':'pdfplumber-merged-cell-matrix-v7'})
     except Exception as exc:
         print(f'MERGED CELL MATRIX WARNING: {type(exc).__name__}: {exc}',file=sys.stderr)
     seen=set(); clean=[]
@@ -2119,8 +2142,7 @@ def main():
             seen.add(key); unique.append(e)
         c['events']=unique
         # Roster identity comes from the established official roster contract,
-        # not from the set of groups that happen to appear in the PDF. Keeping
-        # group 424 selectable lets coverage mark its missing assignment.
+        # not from the set of groups that happen to appear in the PDF.
         if cid in ROSTER_CONTRACT:
             for stream,groups in ROSTER_CONTRACT[cid].items(): c['streams'][stream]=[str(g) for g in groups]
         c['groups']=sorted({str(g) for gs in c['streams'].values() for g in gs},key=int)

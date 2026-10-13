@@ -37,11 +37,11 @@ jobs:
         run: python -m pip install --upgrade pip && python -m pip install -r requirements-official-sync.txt
       - name: Install application dependencies
         run: npm install --no-audit --no-fund
-      - name: Fetch official sources for the first-year release scope
+      - name: Fetch official sources for the all-course release scope
         id: sync
         continue-on-error: true
         env:
-          RELEASE_COURSE_SCOPE: '1'
+          RELEASE_COURSE_SCOPE: 'all'
         run: npm run sync:official
       - name: Preserve synchronization diagnostics
         if: always()

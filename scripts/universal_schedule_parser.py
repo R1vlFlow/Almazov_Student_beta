@@ -342,18 +342,11 @@ class UniversalScheduleParser:
             return self._checked_candidate(candidate, profile, parser_name, url, course, stream, attempts)
 
         if profile.layout == 'weekly-matrix' and raw is not None:
-            # Matrix extractors are geometry-driven and course-independent. Keep
-            # partial backend candidates until union/deduplication, then validate
-            # the combined candidate against the complete detected roster.
-            merged = extract_raw('pdfplumber-merged-cell-matrix', lambda: self.m.parse_week_matrix_pdfplumber_cells(raw, course, url, stream))
-            coord = extract_raw('pymupdf-coordinate-matrix', lambda: self.m.parse_week_matrix_coordinate(raw, course, url, stream))
-            if merged and coord:
-                key = lambda e: (str(e.get('group', '')), int(e.get('weekNumber') or 0), str(e.get('subject', '')), str(e.get('location', '')), str(e.get('start', '')), str(e.get('end', '')))
-                seen = {key(e) for e in merged}
-                candidate = merged + [e for e in coord if key(e) not in seen]
-            else:
-                candidate = merged or coord
-            events = self._checked_candidate(candidate, profile, 'merged-pdfplumber-and-coordinate-matrix', url, course, stream, attempts)
+            # Actual cell boundaries are authoritative. Unioning their output
+            # with guessed row bands silently adds neighbouring subjects.
+            events = extract('pdfplumber-merged-cell-matrix', lambda: self.m.parse_week_matrix_pdfplumber_cells(raw, course, url, stream))
+            if not events:
+                events = extract('pymupdf-coordinate-matrix', lambda: self.m.parse_week_matrix_coordinate(raw, course, url, stream))
             if not events:
                 events = extract('week-matrix-text-fallback', lambda: self.m.parse_week_matrix_text_fallback(raw, course, url, stream))
             if not events:

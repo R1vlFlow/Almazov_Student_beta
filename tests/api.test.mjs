@@ -14,13 +14,14 @@ await waitForServer();
 const user='test-user-00000001';
 async function request(path,options={}){const {userId=user,...fetchOptions}=options;const r=await fetch(`http://127.0.0.1:${port}${path}`,{...fetchOptions,headers:{'x-user-id':userId,'content-type':'application/json',...(fetchOptions.headers??{})}});const body=await r.json();return{r,body};}
 
-test('official schedule API keeps a matched long practice block merged end-to-end',async()=>{
+test('official schedule API preserves verified weekly cycles without fabricating dates',async()=>{
  const response=await request('/api/schedule?program=31.05.01&course=4');
  assert.equal(response.r.status,200);
- assert.ok(response.body.events.length>300);
- const rows=response.body.events.filter((e)=>e.group==='424'&&e.date==='2026-10-05'&&e.subject==='Эндокринология');
- assert.equal(rows.length,1);
- assert.deepEqual(rows.map((e)=>[e.start,e.end,e.double,e.doublePart,e.mergedConsecutive]),[['13:30','16:55',true,undefined,true]]);
+ assert.ok(response.body.events.length>100);
+ assert.ok(response.body.weeklyBlocks.length>0);
+ assert.ok(response.body.weeklyBlocks.some(e=>e.group==='423'));
+ assert.ok(response.body.weeklyBlocks.every(e=>!e.date&&e.weekRangeStart&&e.weekRangeEnd));
+ assert.ok(!response.body.events.some(e=>e.group==='424'));
 });
 
 test('event API canonicalizes offset timestamps to UTC',async()=>{

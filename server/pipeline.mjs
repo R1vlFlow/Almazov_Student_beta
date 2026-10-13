@@ -5,7 +5,7 @@ import {normalizeGroup,normalizeGroupList,cleanSubject,cleanLocation,cleanTeache
 import {parseSourceBuffer} from './source-parser.mjs';
 import {RedisScheduleCache} from './redis-cache.mjs';
 
-const STORAGE=join(process.cwd(),'storage','snapshots');const PIPELINE_VERSION='2026-10-10-schedule-normalization-v6-multifaculty-content-verified-merge';const memory=new Map();
+const STORAGE=join(process.cwd(),'storage','snapshots');const PIPELINE_VERSION='2026-10-13-verified-weekly-matrix-v7';const memory=new Map();
 let redisPromise;
 async function redisCache(){if(!process.env.REDIS_URL)return null;if(!redisPromise){redisPromise=(async()=>{try{const {createClient}=await import('redis');const client=createClient({url:process.env.REDIS_URL});client.on('error',()=>{});await client.connect();return new RedisScheduleCache(client);}catch{return null;}})();}return redisPromise;}
 
@@ -19,6 +19,7 @@ export async function loadSchedule(program,course,{forceRefresh=false}={}){const
    const generated=await loadGeneratedSpecialistSnapshot(program,course);
    if(generated){memory.set(key,{cachedAt:Date.now(),result:generated});return generated;}
  }
+ if(program==='31.05.01'){const local=await loadLocalLd(program,course);if(local){memory.set(key,{cachedAt:Date.now(),result:local});return local;}}
  const mem=memory.get(key);if(!forceRefresh&&mem&&Date.now()-mem.cachedAt<10*60*1000)return mem.result;const external=await redisCache();if(!forceRefresh&&external){const cached=await external.get(key);if(cached?.pipelineVersion===PIPELINE_VERSION&&cached?.result&&Array.isArray(cached.result.events)){memory.set(key,{cachedAt:Date.now(),result:cached.result});return cached.result;}}const disk=await readSnapshot(key);if(!forceRefresh&&disk&&Date.now()-disk.cachedAt<6*60*60*1000){memory.set(key,{cachedAt:Date.now(),result:disk.result});return disk.result;}
  if(program==='31.05.01'){try{const result=await loadLiveLd(program,course);await saveSnapshot(key,result);return result;}catch(err){const local=await loadLocalLd(program,course);if(local){await saveSnapshot(key,local);return {...local,status:local.status==='partial'?'partial':'cache',message:`Live источник недоступен. Показан локальный официальный snapshot: ${err.message}`};}if(disk?.result?.events?.length)return {...disk.result,status:disk.result.status==='partial'?'partial':'cache',message:`Live источник и локальный snapshot недоступны. Показан последний snapshot: ${err.message}`};return {status:'error',events:[],issues:[String(err.message)],message:'Live источник недоступен и локальный официальный snapshot отсутствует.'};}}
  const {published,quarantined}=available(program,course);if(!published.length){return{status:'unavailable',events:[],issues:['NO_PUBLISHED_SOURCE'],message:`Официальное расписание ${programNames[program]}, ${course} курса, сейчас не опубликовано на странице кабинета студента.`,sourceUrl:STUDENT_PAGE};}
@@ -44,13 +45,21 @@ async function loadGeneratedSpecialistSnapshot(program,course){
  }catch{return null;}
 }
 
+export function normalizeOfficialWeeklyBlocks(payload,program,course){
+ const rows=payload?.courses?.[String(course)]?.events??[];
+ return rows.filter(e=>e.scheduleMode==='weekly-block').map((e,index)=>({
+  id:`${program}-${course}-${e.group}-week-${e.weekNumber}-${index}`,program,course,
+  group:String(e.group),stream:normalizeStream(e.stream),weekNumber:Number(e.calendarWeekNumber??e.weekNumber),
+  weekRangeStart:e.weekRangeStart,weekRangeEnd:e.weekRangeEnd,start:e.start,end:e.end,
+  subject:cleanSubject(e.subject),location:cleanLocation(e.location),teacher:cleanTeacher(e.teacher),type:typeFrom(e.type,e.subject),sourceUrl:e.sourceUrl
+ }));
+}
+
 function datesForRaw(raw){
   const direct=isoDate(raw?.date??raw?.dateHint??'');
   if(direct)return [direct];
-  if(raw?.scheduleMode!=='weekly-block')return [];
-  const start=isoDate(raw?.weekStart);const slots=Array.isArray(raw?.matrixSlots)?raw.matrixSlots.map(Number).filter(n=>Number.isInteger(n)&&n>=0&&n<=6):[];
-  if(!start||!slots.length)return [];
-  const base=new Date(`${start}T00:00:00Z`);return slots.map(slot=>{const d=new Date(base);d.setUTCDate(d.getUTCDate()+slot);return d.toISOString().slice(0,10);});
+  // Matrix subcolumns are not weekdays. Undated cycles remain weekly blocks.
+  return [];
 }
 export function splitDoubleTimes(start,end){
   const [sh,sm]=start.split(':').map(Number);const [eh,em]=end.split(':').map(Number);const a=sh*60+sm,b=eh*60+em,d=b-a;
@@ -62,7 +71,7 @@ export function normalizeOfficialCoursePayload(payload,program,course,sourceUrl,
   const events=[];const courseData=payload?.courses?.[String(course)];
   for(const [index,raw] of (Array.isArray(courseData?.events)?courseData.events:[]).entries()){
     const dates=datesForRaw(raw);const tr=timeRange(`${raw?.start??''} ${raw?.end??''}`)||timeRange(raw?.time);const subject=cleanSubject(raw?.subject??raw?.discipline??raw?.name);if(!dates.length||!tr||!subject)continue;
-    const groups=normalizeGroupList(raw?.groups??raw?.group);const stream=normalizeStream(raw?.stream);if(!groups.length&&!stream)continue;const visibleGroups=groups.length?groups:['_ALL_'];
+    const groups=normalizeGroupList(raw?.groups??raw?.group);const stream=normalizeStream(raw?.stream);const common=['ALL','*','ВСЕ'].includes(String(raw?.group??'').toUpperCase());if(!groups.length&&!stream&&!common)continue;const visibleGroups=groups.length?groups:['_ALL_'];
     const alreadyDouble=raw?.doubleIndex===1||raw?.doubleIndex===2;
     const durationMinutes=Number(tr.end.slice(0,2))*60+Number(tr.end.slice(3))-Number(tr.start.slice(0,2))*60-Number(tr.start.slice(3));
     if(durationMinutes<=0) console.warn(`[schedule-parser] invalid duration ${program}/${course} ${raw?.date??raw?.weekStart??'?'} ${subject}: ${tr.start}-${tr.end}`);
@@ -92,9 +101,9 @@ function officialScheduleQuality(payload,course){
  if(state!=='live-generated'&&!issues.length)issues.push('SCHEDULE_PROVENANCE_UNVERIFIED');
  return{status:issues.length?'partial':'live',issues};
 }
-async function loadLiveLd(program,course){const res=await fetch(LIVE_LD_JSON,{cache:'no-store',signal:AbortSignal.timeout(Number(process.env.SCHEDULE_FETCH_TIMEOUT_MS??30000))});if(!res.ok)throw new Error(`HTTP ${res.status}`);const payload=await res.json();if(typeof payload?.schemaVersion!=='number'||!payload?.courses)throw new Error('Invalid official JSON schema');const events=normalizeOfficialCoursePayload(payload,program,course,LIVE_LD_JSON);const quality=officialScheduleQuality(payload,course);return{...quality,events,generatedAt:payload.generatedAt,sourceUrl:LIVE_LD_JSON,sourceName:'official-schedules.json',message:`${quality.status==='live'?'Live':'Частичный'} snapshot ${payload.generatedAt??''} · ${events.length} событий`};}
-async function loadLocalLd(program,course){try{const payload=JSON.parse(await readFile(join(process.cwd(),'data','official-schedules.json'),'utf8'));if(typeof payload?.schemaVersion!=='number'||!payload?.courses)throw new Error('Invalid local official JSON schema');const events=normalizeOfficialCoursePayload(payload,program,course,'file://local/data/official-schedules.json','local official-schedules.json');if(!events.length)throw new Error('Локальный официальный snapshot не содержит событий');const quality=officialScheduleQuality(payload,course);return{...quality,status:quality.status==='partial'?'partial':'cache',events,generatedAt:payload.generatedAt,sourceUrl:LIVE_LD_JSON,sourceName:'local official-schedules.json',message:`${quality.status==='partial'?'Частичный локальный':'Локальный официальный'} snapshot ${payload.generatedAt??''} · ${events.length} событий`};}catch{return null;}}
+async function loadLiveLd(program,course){const res=await fetch(LIVE_LD_JSON,{cache:'no-store',signal:AbortSignal.timeout(Number(process.env.SCHEDULE_FETCH_TIMEOUT_MS??30000))});if(!res.ok)throw new Error(`HTTP ${res.status}`);const payload=await res.json();if(typeof payload?.schemaVersion!=='number'||!payload?.courses)throw new Error('Invalid official JSON schema');const events=normalizeOfficialCoursePayload(payload,program,course,LIVE_LD_JSON);const quality=officialScheduleQuality(payload,course);return{...quality,events,weeklyBlocks:normalizeOfficialWeeklyBlocks(payload,program,course),generatedAt:payload.generatedAt,sourceUrl:LIVE_LD_JSON,sourceName:'official-schedules.json',message:`${quality.status==='live'?'Live':'Частичный'} snapshot ${payload.generatedAt??''} · ${events.length} событий`};}
+async function loadLocalLd(program,course){try{const payload=JSON.parse(await readFile(join(process.cwd(),'data','official-schedules.json'),'utf8'));if(typeof payload?.schemaVersion!=='number'||!payload?.courses)throw new Error('Invalid local official JSON schema');const events=normalizeOfficialCoursePayload(payload,program,course,'file://local/data/official-schedules.json','local official-schedules.json');if(!events.length)throw new Error('Локальный официальный snapshot не содержит событий');const quality=officialScheduleQuality(payload,course);return{...quality,events,weeklyBlocks:normalizeOfficialWeeklyBlocks(payload,program,course),generatedAt:payload.generatedAt,sourceUrl:LIVE_LD_JSON,sourceName:'local official-schedules.json',message:`${quality.status==='partial'?'Частичный локальный':'Локальный официальный'} snapshot ${payload.generatedAt??''} · ${events.length} событий`};}catch{return null;}}
 async function fetchSource(source){const res=await fetch(source.url,{redirect:'follow',signal:AbortSignal.timeout(30000),headers:{accept:'application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/html;q=0.9,*/*;q=0.1'}});if(!res.ok)throw new Error(`HTTP ${res.status}`);const declared=source.kind==='official-pdf'?'pdf':source.kind==='official-xlsx'?'xlsx':'html';const buffer=Buffer.from(await res.arrayBuffer());return parseSourceBuffer(buffer,{program:source.program,course:source.course,source},declared);}
 export function dedupe(events){const map=new Map();for(const e of events){const key=[e.program,e.course,e.group,e.stream??'',e.date,e.start,e.end,e.subject.toLowerCase(),e.location.toLowerCase(),e.type,e.half??''].join('|');const p=map.get(key);if(!p||(e.confidence??0)>(p.confidence??0))map.set(key,e);}return[...map.values()];}
-async function readSnapshot(key){try{const payload=JSON.parse(await readFile(join(STORAGE,`${key.replace(/[^a-z0-9:.\-]/gi,'_')}.json`),'utf8'));return payload?.pipelineVersion===PIPELINE_VERSION?payload:null;}catch{return null;}}
-async function saveSnapshot(key,result){await mkdir(STORAGE,{recursive:true});const file=join(STORAGE,`${key.replace(/[^a-z0-9:.\-]/gi,'_')}.json`);const tmp=`${file}.tmp`;const payload={pipelineVersion:PIPELINE_VERSION,cachedAt:Date.now(),result};await writeFile(tmp,JSON.stringify(payload));await rename(tmp,file);memory.set(key,{cachedAt:Date.now(),result});const external=await redisCache();if(external)await external.set(key,{pipelineVersion:PIPELINE_VERSION,result},6*60*60*1000);}
+async function readSnapshot(key){try{const payload=JSON.parse(await readFile(join(STORAGE,`${key.replace(/[^a-z0-9.\-]/gi,'_')}.json`),'utf8'));return payload?.pipelineVersion===PIPELINE_VERSION?payload:null;}catch{return null;}}
+async function saveSnapshot(key,result){await mkdir(STORAGE,{recursive:true});const file=join(STORAGE,`${key.replace(/[^a-z0-9.\-]/gi,'_')}.json`);const tmp=`${file}.tmp`;const payload={pipelineVersion:PIPELINE_VERSION,cachedAt:Date.now(),result};await writeFile(tmp,JSON.stringify(payload));await rename(tmp,file);memory.set(key,{cachedAt:Date.now(),result});const external=await redisCache();if(external)await external.set(key,{pipelineVersion:PIPELINE_VERSION,result},6*60*60*1000);}

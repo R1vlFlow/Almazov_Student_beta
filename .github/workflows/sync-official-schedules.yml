@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SCHEDULE_ENGINE_VERSION: '4.9.0-rc.1'
-      RELEASE_COURSE_SCOPE: '1'
+      RELEASE_COURSE_SCOPE: 'all'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -71,7 +71,7 @@ jobs:
         run: npm install
       - name: Verify schedule engine metadata
         run: python scripts/verify_engine_version.py
-      - name: Synchronize official sources for the first-year release and run its strict gate
+      - name: Synchronize official sources for the all-course release and run its strict gate
         run: npm run sync:official
       - name: Release QA and minified production build
         run: npm run qa

@@ -25,7 +25,7 @@ test('static schedule loading reads the bundled snapshot and never calls an API'
     const service=await import('../dist/services/scheduleService.js?local-runtime');
     service.clearScheduleMemory();
     const result=await service.loadSchedule('31.05.01',4);
-    assert.equal(result.status,'partial');
+    assert.equal(result.status,JSON.parse(await readFile('dist/data/schedules/31.05.01/4.json','utf8')).status);
     assert.ok(result.events.length>0);
     assert.ok(result.weeklyBlocks.length>0);
     assert.equal(staticCalls,1);

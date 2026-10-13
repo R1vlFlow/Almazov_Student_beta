@@ -1,7 +1,8 @@
 import { access, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('..', import.meta.url));
 const required = [
   'package.json','tsconfig.json','src/main.ts','src/app.ts','public/index.html','public/styles.css',
   'public/boot.js','public/sw.js','data/official-schedules.json','server/server.mjs','server/pipeline.mjs',

@@ -14,14 +14,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from schedule_validation_common import bootstrap_event_errors, calendar_consistency_errors
 DATA_PATH = ROOT / 'data' / 'official-schedules.json'
 EXPECTED_SCHEMA = 7
-EXPECTED = {
-    '1': {'A': list(map(str, range(101,123))), 'B': list(map(str, range(123,136)))},
-    '2': {'A': list(map(str, range(201,217))), 'B': list(map(str, range(217,230)))},
-    '3': {'A': list(map(str, range(301,313))), 'B': list(map(str, range(313,323)))},
-    '4': {'A': list(map(str, range(401,413))), 'B': list(map(str, range(413,425)))},
-    '5': {'A': list(map(str, range(501,513))), 'B': list(map(str, range(513,523)))},
-    '6': {'': list(map(str, range(601,619)))},
-}
+EXPECTED = {str(c): {str(st): list(map(str, groups)) for st, groups in streams.items()}
+            for c, streams in json.loads((ROOT/'data/official-roster-contract.json').read_text(encoding='utf-8')).items()}
 
 def fail(*lines):
     print('GENERATED INDEX VALIDATION: FAILED')

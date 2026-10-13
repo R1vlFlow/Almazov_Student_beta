@@ -17,7 +17,7 @@ export async function loadSchedule(program:ProgramCode,course:Course):Promise<Sc
   // bundled with that release before trying the optional API, so GitHub Pages
   // and local static hosting never wait for a backend timeout.
   const staticResult=await loadStaticSnapshot(program,course);
-  if(staticResult&&(staticResult.events.length>0||staticResult.status==='unavailable')){
+  if(staticResult&&(staticResult.events.length>0||(staticResult.weeklyBlocks?.length??0)>0||staticResult.status==='unavailable')){
     memory.set(key,staticResult);
     return staticResult;
   }

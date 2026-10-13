@@ -16,8 +16,18 @@ assert REPORT['summary']['ld_weekly_block_practice_records']==692
 assert REPORT['local_snapshot']['dataState']=='local-recovery-snapshot'
 assert REPORT['local_snapshot']['program_schedules_json_present'] is True
 SPEC=json.loads((ROOT/'data/program-schedules.json').read_text(encoding='utf-8'))
-assert SPEC['dataState']=='local-recovery-snapshot'
-assert sum(len(c.get('events',[])) for pr in SPEC['programs'].values() for c in pr['courses'].values())==1544
+if SPEC['dataState']=='local-recovery-snapshot':
+    assert sum(len(c.get('events',[])) for pr in SPEC['programs'].values() for c in pr['courses'].values())==1544
+else:
+    # The historical audit above remains immutable; a newly synchronized
+    # specialist snapshot must be evaluated against its current provenance.
+    assert SPEC['dataState']=='live-generated'
+    for program in ('31.05.02', '37.05.01'):
+        for course in ('1', '2'):
+            snapshot=SPEC['programs'][program]['courses'][course]
+            assert snapshot['events']
+            assert {e['type'] for e in snapshot['events']} >= {'lecture', 'practice'}
+            assert all(e.get('sourceVerification') in ('live-byte-verified', 'hash-verified') for e in snapshot['events'])
 assert REPORT['summary']['kug_expected_course_count']==10
 rows=REPORT['group_rows']
 assert len(rows)==164

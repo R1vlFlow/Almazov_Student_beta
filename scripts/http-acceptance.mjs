@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mkdtemp,rm} from 'node:fs/promises';
+import {mkdtemp,rm,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawn} from 'node:child_process';
@@ -7,6 +7,8 @@ import {setTimeout as delay} from 'node:timers/promises';
 
 const dir=await mkdtemp(join(tmpdir(),'zalma-http-accept-'));
 const port=4327;
+const official=JSON.parse(await readFile('data/official-schedules.json','utf8'));
+const expectedStatus=course=>official.dataState==='live-generated'&&official.courses[String(course)].coverage?.status==='full'?'live':'partial';
 const env={...process.env,PORT:String(port),HOST:'127.0.0.1',APP_DB_PATH:join(dir,'app.sqlite'),APP_ATTACHMENTS_DIR:join(dir,'attachments')};
 const child=spawn(process.execPath,['server/server.mjs'],{cwd:process.cwd(),env,stdio:['ignore','pipe','pipe']});
 let output='';child.stdout.on('data',d=>output+=d.toString());child.stderr.on('data',d=>output+=d.toString());
@@ -14,8 +16,8 @@ async function request(path,options={}){const res=await fetch(`http://127.0.0.1:
 try{
   for(let i=0;i<50;i++){try{const h=await request('/api/health');if(h.res.ok)break;}catch{}await delay(100);if(i===49)throw new Error(`server did not start: ${output}`);}
   const schedule4=await request('/api/schedule?program=31.05.01&course=4');
-  assert.equal(schedule4.res.status,200);assert.equal(schedule4.body.status,'partial');assert.ok(schedule4.body.events.length>=100);assert.match(schedule4.res.headers.get('cache-control')??'',/no-cache, no-store, must-revalidate/);
-  assert.ok(schedule4.body.issues.includes('SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'));
+  assert.equal(schedule4.res.status,200,JSON.stringify(schedule4.body));assert.equal(schedule4.body.status,expectedStatus(4));assert.ok(schedule4.body.events.length>=100);assert.match(schedule4.res.headers.get('cache-control')??'',/no-cache, no-store, must-revalidate/);
+  assert.equal(schedule4.body.issues.includes('SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'),expectedStatus(4)==='partial');
   assert.ok(schedule4.body.events.some(e=>e.type==='lecture'));assert.ok(schedule4.body.events.every(e=>!String(e.sourceUrl??'').startsWith('fixture://')));
   const e424=schedule4.body.events.filter(e=>e.group==='424'&&e.date==='2026-10-05'&&e.subject==='Эндокринология');
   assert.equal(e424.length,0,'synthetic practice must remain excluded until an official source is parsed');
@@ -28,11 +30,12 @@ try{
     }
   }
   const schedule6=await request('/api/schedule?program=31.05.01&course=6');
-  assert.equal(schedule6.res.status,200);assert.ok(['partial','cache'].includes(schedule6.body.status));
-  assert.ok(schedule6.body.issues.includes('SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'));
-  assert.ok(schedule6.body.events.length>=50,'verified 6K timetable rows must survive a missing stream field');
-  assert.ok(schedule6.body.events.some(e=>/^6\d{2}$/.test(String(e.group))));
-  const groups6=new Set(schedule6.body.events.filter(e=>['617','618'].includes(e.group)).map(e=>e.group));
+  assert.equal(schedule6.res.status,200);assert.equal(schedule6.body.status,expectedStatus(6));
+  assert.equal(schedule6.body.issues.includes('SCHEDULE_SOURCE_COVERAGE_INCOMPLETE'),expectedStatus(6)==='partial');
+  assert.ok(schedule6.body.events.length>=50,'verified 6K lectures must survive a missing stream field');
+  assert.ok(schedule6.body.weeklyBlocks.length>0,'weekly practices must be visible without guessed dates');
+  assert.ok(schedule6.body.weeklyBlocks.some(e=>/^6\d{2}$/.test(String(e.group))));
+  const groups6=new Set(schedule6.body.weeklyBlocks.filter(e=>['617','618'].includes(e.group)).map(e=>e.group));
   assert.deepEqual([...groups6].sort(),['617','618'],'official 6K groups 617/618 must be present');
   assert.ok(schedule6.body.events.filter(e=>['617','618'].includes(e.group)).every(e=>!String(e.sourceUrl??'').startsWith('fixture://')),'6K group-specific rows must not come from fixtures');
   assert.ok(schedule6.body.events.every(e=>!String(e.sourceUrl??'').startsWith('fixture://')));

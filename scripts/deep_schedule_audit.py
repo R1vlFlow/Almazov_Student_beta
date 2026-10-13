@@ -54,14 +54,8 @@ if DATA.get("dataState") not in {None, "live-generated"}:
     print(f"DEEP SCHEDULE AUDIT: FAILED\n - unsupported dataState={DATA.get('dataState')!r}")
     raise SystemExit(1)
 COURSES=DATA.get("courses", {})
-EXPECTED={
-    "1":{"A":[str(x) for x in range(101,123)],"B":[str(x) for x in range(123,136)]},
-    "2":{"A":[str(x) for x in range(201,217)],"B":[str(x) for x in range(217,230)]},
-    "3":{"A":[str(x) for x in range(301,313)],"B":[str(x) for x in range(313,323)]},
-    "4":{"A":[str(x) for x in range(401,413)],"B":[str(x) for x in range(413,425)]},
-    "5":{"A":[str(x) for x in range(501,513)],"B":[str(x) for x in range(513,523)]},
-    "6":{"":[str(x) for x in range(601,619)]},
-}
+EXPECTED = {str(c): {str(st): list(map(str, groups)) for st, groups in streams.items()}
+            for c, streams in json.loads((ROOT/'data/official-roster-contract.json').read_text(encoding='utf-8')).items()}
 START=datetime.date(2026,8,31)
 errors=[]; warnings=[]
 

@@ -2,11 +2,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 const {parseHtmlTable,detectHeaders}=await import('../dist/core/htmlTableParser.js');
 const {cleanSubject,cleanTeacher,cleanLocation,normalizeStream,normalizeGroupList,normalizeTimeRange,normalizeHalf,parseWeekSpec}=await import('../dist/core/normalize.js');
-const {validateScheduleIndex,normalizeLiveEvents,dedupe,validateEvents}=await import('../dist/core/validate.js');
+const {validateScheduleIndex,normalizeLiveEvents,normalizeWeeklyBlocks,dedupe,validateEvents}=await import('../dist/core/validate.js');
 const {eventAppliesToGroup,filterEvents}=await import('../dist/core/filter.js');
 const {mondayOf,addDays,weekNumberFromAnchor,mondayFromWeek}=await import('../dist/core/date.js');
 
 const base={program:'31.05.01',course:1,date:'2026-10-06',start:'09:00',end:'10:35',subject:'Химия',location:'ЦДТИ, ауд. 4.2.11',teacher:'Иванов И.И.',type:'practice'};
+
+test('weekly matrix subcolumns never become invented dates in browser or API',async()=>{
+ const {normalizeOfficialCoursePayload,normalizeOfficialWeeklyBlocks}=await import('../server/pipeline.mjs');
+ const cycle={group:'609',stream:'',type:'practice',subject:'Внутренние болезни',location:'КПК, ауд. 3158',start:'09:00',end:'12:25',scheduleMode:'weekly-block',weekNumber:11,weekStart:'2026-11-09',weekRangeStart:'2026-11-09',weekRangeEnd:'2026-11-14',matrixSlots:[0,1]};
+ const payload={specialty:'31.05.01',courses:{6:{specialty:'31.05.01',events:[cycle]}}};
+ assert.deepEqual(normalizeLiveEvents(payload),[]);
+ assert.deepEqual(normalizeOfficialCoursePayload(payload,'31.05.01',6,'https://example.test/schedule.pdf'),[]);
+ for(const blocks of [normalizeWeeklyBlocks(payload,'31.05.01',6),normalizeOfficialWeeklyBlocks(payload,'31.05.01',6)]){
+  assert.equal(blocks.length,1);assert.equal(blocks[0].subject,'Внутренние болезни');
+  assert.equal(blocks[0].weekRangeEnd,'2026-11-14');assert.equal(blocks[0].group,'609');
+ }
+});
 
 test('HTML parser resolves nested rowspan/colspan and keeps columns aligned',()=>{
  const html=`<table><thead><tr><th rowspan="2">День</th><th colspan="2">Время</th><th colspan="2">Группы</th></tr><tr><th>начало</th><th>конец</th><th>101</th><th>102</th></tr></thead><tbody><tr><td>ПН</td><td>09:00</td><td>10:35</td><td rowspan="2">Химия</td><td>Физика</td></tr><tr><td>ВТ</td><td colspan="2">10:50-12:25</td><td>Практика</td></tr></tbody></table>`;
@@ -134,9 +146,9 @@ test('catalog exposes all 18 program/course selectors without inventing unpublis
 
 test('official LD roster uses exact published group matrix',async()=>{
   const {groupsFor,streamForGroup}=await import('../dist/data/roster.js');
-  assert.deepEqual(groupsFor('31.05.01',4).slice(-4),['421','422','423','424']);
-  assert.equal(groupsFor('31.05.01',4).length,24);
+  assert.deepEqual(groupsFor('31.05.01',4).slice(-4),['420','421','422','423']);
+  assert.equal(groupsFor('31.05.01',4).length,23);
   assert.equal(groupsFor('31.05.01',6).length,18);
-  assert.equal(streamForGroup('31.05.01','424'),'B');
+  assert.equal(streamForGroup('31.05.01','423'),'B');
   assert.equal(streamForGroup('31.05.01','617'), null);
 });

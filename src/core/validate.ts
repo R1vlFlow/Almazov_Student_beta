@@ -35,9 +35,9 @@ export function normalizeLiveEvents(payload:unknown):ScheduleEvent[]{
     const rawEvents=Array.isArray(courseData?.events)?courseData.events:[];
     for(const [index,raw] of rawEvents.entries()){
       const directDate=isoDate(raw?.date??raw?.dateHint??raw?.weekDate);
-      const matrixSlots=Array.isArray(raw?.matrixSlots)?raw.matrixSlots.map((v:unknown)=>Number(v)).filter((n:number)=>Number.isInteger(n)&&n>=0&&n<=6):[];
       const weekStart=isoDate(raw?.weekStart);
-      const blockDates:string[]=directDate?[directDate]:(raw?.scheduleMode==='weekly-block'&&weekStart&&matrixSlots.length?matrixSlots.map((slot:number)=>addIsoDays(weekStart,slot)).filter(Boolean) as string[]:[]);
+      // Matrix subcolumns are cell geometry, not weekday numbers.
+      const blockDates:string[]=directDate?[directDate]:[];
       const time=normalizeTimeRange(`${raw?.start??''} ${raw?.end??''}`) ?? normalizeTimeRange(raw?.time);
       const subject=cleanSubject(raw?.subject??raw?.discipline??raw?.name);
       const stream=normalizeStream(raw?.stream);

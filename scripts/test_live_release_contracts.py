@@ -17,7 +17,8 @@ from build_specialist_program_schedules import doc_metadata
 def pdf_bytes(text: str) -> bytes:
     doc = fitz.open()
     page = doc.new_page(width=595, height=842)
-    font = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+    font = next((str(p) for p in (Path('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'), Path('C:/Windows/Fonts/arial.ttf'), Path('/System/Library/Fonts/Supplemental/Arial.ttf')) if p.is_file()), None)
+    assert font, 'A Unicode font is required for the Cyrillic PDF fixture'
     page.insert_textbox(fitz.Rect(40, 40, 550, 800), text, fontsize=11, fontname='DejaVuSans', fontfile=font)
     data = doc.tobytes()
     doc.close()

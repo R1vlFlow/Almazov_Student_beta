@@ -21,11 +21,11 @@ assert all(e.get('scheduleMode')=='weekly-block' for e in events)
 assert all((e.get('start'),e.get('end'))==('13:30','16:55') for e in events)
 assert all(1<=int(e.get('weekNumber',0))<=15 for e in events)
 assert all(e.get('layoutProfile')=='weekly-matrix' for e in events)
-assert min(Counter(str(e['group']) for e in events).values())>=17
+assert min(Counter(str(e['group']) for e in events).values())>=16
 by=defaultdict(list)
 for e in events: by[(str(e['group']),int(e['weekNumber']))].append(e['subject'])
 assert sorted(by[('513',1)])==['Внутренние болезни']
 assert sorted(by[('513',4)])==['Внутренние болезни','Сердечно-сосудистая и торакальная хирургия']
 assert sorted(by[('519',14)])==['Клиническая эпидемиология','Травматология и ортопедия']
-assert sorted(by[('521',3)])==['Акушерство и гинекология','Внутренние болезни']
+assert sorted(by[('521',3)])==['Внутренние болезни']
 print(f'5K REAL MATRIX REGRESSION: PASS — {len(events)} events, 10 groups, 15 weeks, automatic matrix detection.')

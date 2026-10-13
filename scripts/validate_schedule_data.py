@@ -27,14 +27,8 @@ if DATA.get('dataState') == 'bootstrap-pending':
 if DATA.get('dataState') not in {None, 'live-generated', 'live-generated-partial', 'local-recovery-snapshot'}:
     raise SystemExit(f"Unsupported dataState={DATA.get('dataState')!r}")
 courses=DATA.get('courses',{})
-expected={
- '1': {'A':list(map(str,range(101,123))), 'B':list(map(str,range(123,136)))},
- '2': {'A':list(map(str,range(201,217))), 'B':list(map(str,range(217,230)))},
- '3': {'A':list(map(str,range(301,313))), 'B':list(map(str,range(313,323)))},
- '4': {'A':list(map(str,range(401,413))), 'B':list(map(str,range(413,425)))},
- '5': {'A':list(map(str,range(501,513))), 'B':list(map(str,range(513,523)))},
- '6': {'':list(map(str,range(601,619)))},
-}
+expected = {str(c): {str(st): list(map(str, groups)) for st, groups in streams.items()}
+            for c, streams in json.loads((ROOT/'data/official-roster-contract.json').read_text(encoding='utf-8')).items()}
 errors=[]
 recovery = DATA.get('dataState') == 'local-recovery-snapshot'
 documented_partial = DATA.get('dataState') == 'live-generated-partial'

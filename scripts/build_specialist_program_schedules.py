@@ -322,6 +322,8 @@ def normalize_events(raw_events: list[dict], meta: dict) -> list[dict]:
                 'weekCalendarSource': (official_week_map().get(int(raw['weekNumber']), {}).get('_source', {}).get('url') if raw.get('weekNumber') not in (None, '') and str(raw.get('weekNumber')).isdigit() else None),
                 'weekCalendarStatus': (official_week_map().get(int(raw['weekNumber']), {}).get('_status') if raw.get('weekNumber') not in (None, '') and str(raw.get('weekNumber')).isdigit() else None),
                 'sourceUrl': meta['url'], 'sourceTitle': meta['title'], 'sourceKind': meta['format'],
+                'sourceVerification': 'live-byte-verified' if meta.get('sha256') else 'unverified',
+                'sourceSha256': meta.get('sha256'), 'sourceCheckedAt': meta.get('checkedAt'),
                 'confidence': 0.92, 'parser': raw.get('parser', f"universal-ingest-{meta['format']}-v2")
             })
     # Keep metadata for diagnostics but remove exact repeated exports across first-week + semester PDFs.
