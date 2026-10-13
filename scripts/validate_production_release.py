@@ -7,6 +7,7 @@ specialist-course roster, and all ten official KUG documents before deployment.
 """
 from __future__ import annotations
 import json
+import os
 import re
 import sys
 from datetime import datetime, timezone, timedelta
@@ -70,9 +71,24 @@ def schedule_coverage_errors(course: str, course_data: dict) -> list[str]:
     return errors
 
 
+def release_course_scope() -> list[str]:
+    """Return the explicitly published LD course scope (all courses by default)."""
+    raw = os.environ.get('RELEASE_COURSE_SCOPE', 'all').strip().lower()
+    if raw in {'', 'all', '*'}:
+        return list(map(str, range(1, 7)))
+    courses = [part.strip() for part in raw.split(',') if part.strip()]
+    if not courses or any(course not in {'1', '2', '3', '4', '5', '6'} for course in courses):
+        raise ValueError('RELEASE_COURSE_SCOPE must be "all" or a comma-separated list from 1 to 6')
+    return list(dict.fromkeys(courses))
+
+
 def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
     now = now or datetime.now(timezone.utc)
     errors: list[str] = []
+    try:
+        course_scope = release_course_scope()
+    except ValueError as exc:
+        return [str(exc)]
     required = {
         'ld snapshot': 'data/official-schedules.json',
         'sync status': 'data/official-sync-status.json',
@@ -111,7 +127,7 @@ def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
     if status.get('dataState') not in ('live-generated', 'live-generated-partial') or status.get('status') not in ('ok', 'release-ready', 'partially-ready'):
         errors.append('official-sync-status.json does not declare a completed official sync')
 
-    for course in map(str, range(1, 7)):
+    for course in course_scope:
         cdata = ld.get('courses', {}).get(course, {})
         errors.extend(schedule_coverage_errors(course, cdata))
         if not cdata.get('events'):
@@ -252,8 +268,10 @@ def main() -> int:
     errors = validate()
     ld = read_json('data/official-schedules.json')
     specialist = read_json('data/program-schedules.json')
+    course_scope = release_course_scope()
     missing_groups = [f"{course}/{row.get('stream') or 'common'}/{row.get('group')} ({', '.join(row.get('missingKinds', []))})"
-        for course, coverage in ld.get('coverage', {}).items() for row in coverage.get('missingGroups', [])]
+        for course, coverage in ld.get('coverage', {}).items() if str(course) in course_scope
+        for row in coverage.get('missingGroups', [])]
     # Pediatrics and Clinical Psychology currently publish only years 1–2.
     # Later-year placeholders remain visible in the app but are outside this
     # release's source-coverage scope until the official student hub publishes them.
@@ -280,8 +298,8 @@ def main() -> int:
             blockers.append({'code':'COVERAGE_REPORT_INVALID','message':'Отчёт покрытия не удалось проверить.'})
     readiness = 'not-ready' if errors or any(b.get('code') == 'SCHEDULE_INTEGRITY_CONFLICTS' for b in blockers) else ('partially-ready' if blockers else 'release-ready')
     report = {'checkedAt': datetime.now(timezone.utc).isoformat(), 'status': readiness, 'errors': errors, 'blockers': blockers,
-              'counts': {'ldCourses':6,'specialistCourseSnapshots':12,'unpublishedSnapshots':len(unpublished),'missingGroupAssignments':len(missing_groups)},
-              'checks': {'requiredKugProgramCourses': 10, 'academicYear': '2026/2027', 'hashAlgorithm': 'SHA-256', 'maxSourceAgeHours': 36}}
+              'counts': {'ldCourses':len(course_scope),'specialistCourseSnapshots':12,'unpublishedSnapshots':len(unpublished),'missingGroupAssignments':len(missing_groups)},
+              'checks': {'releaseCourseScope':course_scope,'requiredKugProgramCourses': 10, 'academicYear': '2026/2027', 'hashAlgorithm': 'SHA-256', 'maxSourceAgeHours': 36}}
     report_path = ROOT / 'reports' / 'production-release-audit.json'
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
