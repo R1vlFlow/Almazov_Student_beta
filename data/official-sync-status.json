@@ -2,15 +2,15 @@
   "status": "ok",
   "dataState": "live-generated",
   "engineVersion": "4.9.0-rc.1",
-  "generatedAt": "2026-10-13T15:12:31.247963+00:00",
+  "generatedAt": "2026-10-14T15:26:55.168998+00:00",
   "sourcePage": "https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/",
   "schemaVersion": 7,
   "courses": {
     "1": {
       "groups": 35,
-      "events": 4487,
+      "events": 4365,
       "lecture": 172,
-      "practice": 4315,
+      "practice": 4193,
       "coverage": {
         "status": "full",
         "streams": {
@@ -54,7 +54,7 @@
               "103": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 210
+                "verifiedEventCount": 205
               },
               "104": {
                 "status": "full",
@@ -64,12 +64,12 @@
               "105": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 209
+                "verifiedEventCount": 204
               },
               "106": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 212
+                "verifiedEventCount": 207
               },
               "107": {
                 "status": "full",
@@ -104,22 +104,22 @@
               "113": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 213
+                "verifiedEventCount": 211
               },
               "114": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 213
+                "verifiedEventCount": 211
               },
               "115": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 211
+                "verifiedEventCount": 208
               },
               "116": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 213
+                "verifiedEventCount": 208
               },
               "117": {
                 "status": "full",
@@ -149,7 +149,7 @@
               "122": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 210
+                "verifiedEventCount": 205
               }
             }
           },
@@ -174,12 +174,12 @@
               "123": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 235
+                "verifiedEventCount": 205
               },
               "124": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 235
+                "verifiedEventCount": 205
               },
               "125": {
                 "status": "full",
@@ -204,32 +204,32 @@
               "129": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 210
+                "verifiedEventCount": 205
               },
               "130": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 210
+                "verifiedEventCount": 205
               },
               "131": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 210
+                "verifiedEventCount": 205
               },
               "132": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 210
+                "verifiedEventCount": 205
               },
               "133": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 210
+                "verifiedEventCount": 205
               },
               "134": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 210
+                "verifiedEventCount": 205
               },
               "135": {
                 "status": "full",
@@ -448,9 +448,9 @@
     },
     "3": {
       "groups": 22,
-      "events": 1837,
+      "events": 2711,
       "lecture": 177,
-      "practice": 1660,
+      "practice": 2534,
       "coverage": {
         "status": "full",
         "streams": {
@@ -551,52 +551,52 @@
               "313": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 112
+                "verifiedEventCount": 203
               },
               "314": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 112
+                "verifiedEventCount": 203
               },
               "315": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 114
+                "verifiedEventCount": 205
               },
               "316": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 114
+                "verifiedEventCount": 205
               },
               "317": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 126
+                "verifiedEventCount": 205
               },
               "318": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 126
+                "verifiedEventCount": 203
               },
               "319": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 115
+                "verifiedEventCount": 205
               },
               "320": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 115
+                "verifiedEventCount": 205
               },
               "321": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 118
+                "verifiedEventCount": 205
               },
               "322": {
                 "status": "full",
                 "missingKinds": [],
-                "verifiedEventCount": 118
+                "verifiedEventCount": 205
               }
             }
           }
