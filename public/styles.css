@@ -1,3 +1,4 @@
+[hidden]{display:none!important}
 :root{
  --bg:#f4f7fb;--surface:#ffffff;--surface-2:#f8fafc;--surface-3:#eef3f8;--text:#142033;--text-2:#47566b;--text-3:#64748b;--border:#dfe6ef;--border-subtle:#edf1f5;--accent:#315fce;--accent-hover:#274fae;--focus:#7aa2ff;--success:#18794e;--warning:#9a6700;--danger:#c43d51;--info:#2d63a7;--current:#d64a63;--today:#eaf1ff;--shadow-sm:0 4px 14px rgba(17,31,55,.06);--shadow-md:0 14px 38px rgba(17,31,55,.10);--radius:16px;--radius-sm:12px;--side:272px;--grid-line:#e5eaf1;--event-official:#e5efff;--event-official-text:#214e9f;--event-personal:#e4f7ef;--event-personal-text:#146b4a;--double1:#315fce;--double2:#1f9073;--overlay:rgba(14,23,36,.58)
 }

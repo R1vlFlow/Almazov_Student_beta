@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "description": "Explicitly verified corrections and double-lesson overlays. Entries are applied only to matching course/group/week/day/time keys; the source URL and verification note are retained.",
-  "overrides": [
+  "retiredOverrides": [
     {
       "course": "1",
       "group": "123",
@@ -1512,5 +1512,8 @@
       "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/1k_ld_b-26-27-na-sajt.pdf",
       "verifiedSource": "Официальное расписание ПЗ 1 курса, поток Б; сверено с PDF"
     }
-  ]
+  ],
+  "overrides": [],
+  "retiredAt": "2026-10-14",
+  "retirementReason": "All 125 lesson identities are now extracted directly from the reviewed official 1B PDF (SHA-256 9360f25a6b71ecba3345ac20101bc01997db5e3146163242ba3dc067e720e446). Preserve official room details and exact lesson spans; historical overlays must not duplicate merged source events."
 }
