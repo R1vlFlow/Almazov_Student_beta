@@ -1,22 +1,25 @@
-# Almazov Schedule Hub — release 2.8.0-rc.5 (Master RC)
+# Almazov Student — 2.8.0-rc.6
 
-Версия приложения: **2.8.0-rc.5** (кандидат в релиз).
-Версия интерфейса: **2.8.0-rc.5**.
-Движок официального расписания: **4.9.0-rc.1**.
+Веб-приложение для повседневного расписания, задач, материалов и личных заметок.
 
-> **Статус данных на 11.10.2026: BLOCKED_FOR_PRODUCTION.** Последняя записанная синхронизация получила 10 PDF КУГ, но отчёт содержит SHA-256 только для 6 и четыре ошибки разбора; новый прямой запрос PDF завершился тайм-аутом. Официальный хаб публикует 10 КУГ: Лечебное дело 1–6, Педиатрия 1–2, Клиническая психология 1–2. Локальный снимок неполон: нет прямой практики для группы 103, групп 217–222 и 225–229, групп 501–512 и групп 601–618. Пока официальные PDF не будут скачаны и разобраны, недостающие занятия не добавлять по догадке. См. [`reports/official-coverage-audit-2026-10-10.md`](reports/official-coverage-audit-2026-10-10.md) и [`docs/PRODUCTION_SYNC_AND_RELEASE.md`](docs/PRODUCTION_SYNC_AND_RELEASE.md).
+## Охват расписания
 
-> **Локальный режим:** данные расписания загружаются из `dist/data/schedules`; для работы не требуются API, Redis или доступ к сети. Личные события и настройки хранятся в браузере. Обращения и заметки поддержки также остаются на этом устройстве и не отправляются. Это работоспособная статическая сборка, но её расписание пока неполное.
+- Лечебное дело: 1–6 курсы, лекции и ПЗ из официальных источников.
+- Педиатрия и Клиническая психология: опубликованные 1–2 курсы. Старшие курсы появятся после публикации источников.
+- Циклы старших курсов показываются по официальным учебным неделям. Если неделя содержит несколько дисциплин, приложение не выдумывает дни перехода между ними: рядом доступен исходный PDF.
+- Для 4–6 курсов доступен личный импорт ПЗ. Сохранённый импорт имеет приоритет для выбранной группы.
 
+## Проверка перед публикацией
 
-## Integration changes in RC5 (2026-10-11)
+Текущий результат проверки источников: `reports/production-release-audit.json`. Дополнительный отчёт целостности: `reports/data-coverage-latest.json`. Публикация требует свежей синхронизации, отсутствия блокеров, успешного полного QA и минифицированной сборки. Исторические отчёты не заменяют эти проверки.
 
-- The practice parser now emits newline-delimited JSON diagnostics for extractor errors, candidate rejection, garbled matrix cells, missing groups, event counts and parser selection. Candidates from PDFPlumber and PyMuPDF are unioned/deduplicated before whole-roster validation, so a partial extractor does not discard rows recoverable by the other backend.
-- The Stream A 4th-course matrix has a dedicated real-PDF fixture regression: 250 weekly assignments for groups 401–412, no inferred weekdays, exact time bounds, duplicate rejection and structured completion diagnostics. The CI schedule-sync workflow runs this regression before ingestion.
-- Settings now use a touch-friendly 12-color preset grid, a custom color picker, immediate schedule preview, local persistence and optional collapsed gradient presets. Solid colors clear an active gradient for predictable appearance.
-- The timetable exposes only “Все”, “Лекции”, “ПЗ” and “Контроль” as type filters. Seminar, lab and clinical lesson types are still parsed, stored and rendered by “Все”; only their separate filter buttons were removed.
+Проверка источников запланирована с целевым интервалом 40 минут. GitHub Actions может задерживать запуск; точный интервал не гарантирован. Открытое приложение также проверяет обновлённый снимок раз в 40 минут и после возврата в сеть. При ошибке публикации остаётся предыдущая версия.
 
-Validation for this patch: TypeScript build passes, Node tests pass 83/83, canonical Python regression passes 13/13, and production/data/cache contracts pass when run individually. The environment lacks npm lockfile/dependencies for minification, so the current `dist` is not minified. Official live-sync remains blocked by network/DNS and the stored recovery snapshot remains explicitly partial; this RC5 is an integration patch, not a production declaration.
+Профиль, ФИО преподавателей, заметки, задачи и материалы сохраняются на прежнем устройстве и адресе сайта. Обновление не очищает эти данные. Перенос между устройствами, браузерами или доменами не происходит автоматически.
+
+## Android
+
+Этот выпуск — сайт и PWA. Старый ключ подписи APK утрачен; совместимое обновление установленного APK пока не опубликовано. Не удаляйте старое приложение до сохранения личных данных.
 
 ## Локально, без API/backend
 

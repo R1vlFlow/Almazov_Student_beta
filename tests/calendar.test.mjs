@@ -64,7 +64,7 @@ test('official practice matrices stay week-based and never invent a weekday',asy
   assert.equal(halves.length,2,'explicit 1/2 and 2/2 parts must remain separate');
   assert.deepEqual(halves.map(e=>e.doublePart),[1,2]);
   const course6=JSON.parse(await readFile('dist/data/schedules/31.05.01/6.json','utf8'));
-  assert.equal(course6.status,'partial','verified weekly blocks remain partial while the integrity report has unresolved time collisions');
+  assert.equal(course6.status,'live','verified 6K weekly blocks have no unresolved parser collisions');
   assert.ok(course6.weeklyBlocks.length>0,'current official 6K PDF practice rows should be included as week-based blocks');
-  assert.ok(course6.message.includes('совпадают по группе, дате и времени'),'partial status explains the unresolved source collision');
+  assert.ok(!course6.issues.includes('SCHEDULE_SLOT_CONFLICT_REVIEW_REQUIRED'));
 });

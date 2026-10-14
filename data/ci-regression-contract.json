@@ -14,6 +14,7 @@
     "scripts/test_6k_matrix_real_pdf.py",
     "scripts/test_6k_lecture_regression.py",
     "tests/test_specialist_source_discovery.py",
-    "scripts/test_sync_failure_diagnostic.py"
+    "scripts/test_sync_failure_diagnostic.py",
+    "scripts/test_daily_merged_cells.py"
   ]
 }

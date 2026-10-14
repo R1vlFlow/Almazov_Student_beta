@@ -111,6 +111,24 @@ def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
     if errors:
         return errors
     ld = loaded['ld snapshot']
+    import copy
+    from source_notices import apply_source_notices
+    expected_notices=copy.deepcopy(ld)
+    apply_source_notices(expected_notices,root)
+    for cid, cdata in ld.get('courses',{}).items():
+        if cid not in course_scope: continue
+        slots={}
+        expected_events=expected_notices['courses'][cid].get('events',[])
+        for event,expected_event in zip(cdata.get('events',[]),expected_events):
+            if event.get('sourceNoticeId')!=expected_event.get('sourceNoticeId') or event.get('sourceNotice')!=expected_event.get('sourceNotice'):
+                errors.append(f'{cid}: source notice does not match reviewed source bytes')
+            if not event.get('date'): continue
+            key=(event.get('stream'),event.get('group'),event['date'],event.get('start'))
+            prior=slots.get(key)
+            if prior and (prior.get('subject'),prior.get('location'))!=(event.get('subject'),event.get('location')):
+                if not (event.get('sourceNoticeId') and event.get('sourceNoticeId')==prior.get('sourceNoticeId')):
+                    errors.append(f'{cid}: unreviewed simultaneous assignments {key}')
+            slots[key]=event
     from schedule_validation_common import bootstrap_event_errors, calendar_consistency_errors
     scoped_ld = {**ld, 'courses': {c: v for c, v in ld.get('courses', {}).items() if c in course_scope}}
     errors.extend(bootstrap_event_errors(scoped_ld))
@@ -301,13 +319,13 @@ def main() -> int:
         except Exception:
             blockers.append({'code':'COVERAGE_REPORT_INVALID','message':'Отчёт покрытия не удалось проверить.'})
     readiness = 'not-ready' if errors or any(b.get('code') == 'SCHEDULE_INTEGRITY_CONFLICTS' for b in blockers) else ('partially-ready' if blockers else 'release-ready')
-    report = {'checkedAt': datetime.now(timezone.utc).isoformat(), 'status': readiness, 'errors': errors, 'blockers': blockers,
+    report = {'checkedAt': datetime.now(timezone.utc).isoformat(), 'status': readiness, 'errors': errors, 'blockers': blockers, 'sourceNotices': ld.get('sourceNotices',[]),
               'counts': {'ldCourses':len(course_scope),'specialistCourseSnapshots':12,'unpublishedSnapshots':len(unpublished),'missingGroupAssignments':len(missing_groups)},
               'checks': {'releaseCourseScope':course_scope,'requiredKugProgramCourses': 10, 'academicYear': '2026/2027', 'hashAlgorithm': 'SHA-256', 'maxSourceAgeHours': 36}}
     report_path = ROOT / 'reports' / 'production-release-audit.json'
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    if errors:
+    if readiness != 'release-ready':
         print(json.dumps(report, ensure_ascii=False, indent=2), file=sys.stderr)
         return 1
     print(json.dumps(report, ensure_ascii=False, indent=2))

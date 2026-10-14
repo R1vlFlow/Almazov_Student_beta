@@ -1,7 +1,7 @@
 import type { Course, Program, ProgramCode, SourceDescriptor } from '../core/types.js';
 export const STUDENT_PAGE='https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/';
 export const ELECTRONIC_SCHEDULE='https://education.almazovcentre.ru/elektronnoe-raspisanie/';
-export const LIVE_LD_JSON='https://raw.githubusercontent.com/R1vlFlow/Zalma/main/data/official-schedules.json';
+export const LIVE_LD_JSON='https://raw.githubusercontent.com/R1vlFlow/Almazov_Student_beta/main/data/official-schedules.json';
 
 export const PROGRAMS:Program[]=[
  {code:'31.05.01',title:'Лечебное дело',shortTitle:'ЛД',faculty:'Лечебный факультет',scheduleCourses:[1,2,3,4,5,6],publishedCourses:[1,2,3,4,5,6],officialStudentUrl:STUDENT_PAGE},

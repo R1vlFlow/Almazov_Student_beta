@@ -47,6 +47,8 @@ export interface ScheduleEvent {
   weeks?: string;
   sourceUrl?: string;
   sourceTitle?: string;
+  sourceNotice?: string;
+  lessonParts?: Array<{start:string;end:string}>;
   sourceKind?: 'live-json' | 'official-pdf' | 'official-xlsx' | 'official-html' | 'manual';
   confidence?: number;
   kind?: 'schedule' | 'personal';

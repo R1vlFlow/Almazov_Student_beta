@@ -175,6 +175,7 @@ def merge_consecutive_identical_events(events):
         if a1 is None or b1 is None or b1<=a1 or not (first_valid_slot or first_valid_block):
             out.append(first); i+=1; continue
         merged_item=dict(first); j=i+1; last_end=b1; slot_count=max(1,int(first.get('mergedSlotCount') or (2 if first_is_merged else 1)))
+        parts=list(first.get('lessonParts') or ([{'start':first['start'],'end':first['end']}] if first_valid_slot else []))
         while j < len(ordered):
             second=ordered[j]
             a2,b2=minutes(second,'start'),minutes(second,'end')
@@ -187,12 +188,14 @@ def merge_consecutive_identical_events(events):
                     or not (0 <= a2-last_end <= 20)):
                 break
             merged_item['end']=second['end']
+            parts.extend(second.get('lessonParts') or ([{'start':second['start'],'end':second['end']}] if second_valid_slot else []))
             last_end=b2; slot_count+=max(1,int(second.get('mergedSlotCount') or (2 if second_is_merged else 1))); j+=1
         if slot_count<2:
             out.append(first); i+=1; continue
         merged_item['double']=True
         merged_item['durationMinutes']=last_end-a1
         merged_item['mergedSlotCount']=slot_count
+        if len(parts)==slot_count: merged_item['lessonParts']=parts
         for key in ('doubleIndex','doubleOf','doublePart'):
             merged_item.pop(key,None)
         if is_org_subject(first.get('subject')):
@@ -661,6 +664,14 @@ def repair_subject_leaks_from_location(location, known_subjects):
     return value
 
 
+def practice_location_ends(text):
+    ends=list(LOCATION_END_RE.finditer(text))
+    # A campus abbreviation can be part of the following subject (e.g. БЖД АСЦ).
+    # Prefer the preceding explicit room/address boundary in compound cells.
+    explicit=[m for m in ends if re.search(r'\d|ауд\.|каб\.|подготовки|зал',m.group(),re.I)]
+    return explicit or ends
+
+
 def split_practice_cell(text):
     """Return ``(subject, weeks, location)`` records from one practice cell.
 
@@ -677,7 +688,7 @@ def split_practice_cell(text):
             current_subject,current_leading_location=split_leading_location(before)
             current_subject=repair_pdf_subject(current_subject)
         else:
-            ends=list(LOCATION_END_RE.finditer(before))
+            ends=practice_location_ends(before)
             suffix=before[ends[-1].end():].strip(' /,;') if ends else ''
             if not suffix:
                 nm=NEXT_SUBJECT_RE.search(before)
@@ -691,7 +702,7 @@ def split_practice_cell(text):
         end=matches[i+1].start() if i+1<len(matches) else len(text)
         location=text[match.end():end].strip(' /,;')
         if i+1<len(matches):
-            ends=list(LOCATION_END_RE.finditer(location))
+            ends=practice_location_ends(location)
             if ends:
                 suffix=location[ends[-1].end():].strip(' /,;')
                 if suffix and re.search(r'[А-ЯЁA-Zа-яёa-z]{2,}',suffix):
@@ -729,7 +740,7 @@ def parse_dual_location_time(text, location):
 
 def extract_practice_table(page, strategy='lines'):
     """Extract plausible spreadsheet grids using one independent strategy."""
-    settings = PRACTICE_TABLE_SETTINGS if strategy == 'lines' else {
+    settings = {**PRACTICE_TABLE_SETTINGS, 'vertical_strategy':'lines_strict', 'horizontal_strategy':'lines_strict'} if strategy == 'lines' else {
         **PRACTICE_TABLE_SETTINGS,
         'vertical_strategy': 'text',
         'horizontal_strategy': 'text',
@@ -739,7 +750,26 @@ def extract_practice_table(page, strategy='lines'):
         'text_y_tolerance': 3,
     }
     try:
-        tables = page.extract_tables(settings) or []
+        tables = []
+        for grid in page.find_tables(settings):
+            values=grid.extract()
+            if strategy == 'lines':
+                # A merged lesson cell belongs to every period it physically spans.
+                # Populate only geometric continuations, never nearby text rows.
+                known={tuple(box):values[ri][ci] for ri,row in enumerate(grid.rows)
+                       for ci,box in enumerate(row.cells) if box and values[ri][ci]}
+                for ri,row in enumerate(grid.rows):
+                    next_top=grid.rows[ri+1].bbox[1] if ri+1<len(grid.rows) else grid.bbox[3]
+                    cy=(row.bbox[1]+next_top)/2
+                    for ci,box in enumerate(row.cells):
+                        if box or values[ri][ci] is not None: continue
+                        column=grid.columns[ci]
+                        next_left=grid.columns[ci+1].bbox[0] if ci+1<len(grid.columns) else grid.bbox[2]
+                        cx=(column.bbox[0]+next_left)/2
+                        containing=[value for bounds,value in known.items()
+                                    if bounds[0]<cx<bounds[2] and bounds[1]<cy<bounds[3]]
+                        if len(containing)==1: values[ri][ci]=containing[0]
+            tables.append(values)
     except Exception:
         return []
     return [table for table in tables if table and max((len(row or []) for row in table), default=0) >= 4]
@@ -750,6 +780,7 @@ def parse_practice_tables(doc, course, url, stream, table_strategy='lines'):
     events = []
     group_columns = None
     current_day = None
+    day_column, time_column = 0, 1
     course_prefix = str(course)
 
     for page in doc:
@@ -762,6 +793,8 @@ def parse_practice_tables(doc, course, url, stream, table_strategy='lines'):
             for row in table:
                 for ci, value in enumerate(row or []):
                     value = norm(value)
+                    if value.lower() == 'день недели': day_column = ci
+                    if value.lower() == 'время': time_column = ci
                     if re.fullmatch(rf'{re.escape(course_prefix)}\d{{2}}(?:КП|П|KP|P)?', value, re.I):
                         page_group_columns[value] = ci
             if page_group_columns:
@@ -774,13 +807,13 @@ def parse_practice_tables(doc, course, url, stream, table_strategy='lines'):
                 row = list(row or [])
                 if len(row) <= 1:
                     continue
-                day_text = norm(row[0] if len(row) > 0 else '')
+                day_text = norm(row[day_column] if len(row) > day_column else '')
                 day_key = day_text.lower().rstrip('.,:')
                 if day_key in DAY_ALIASES:
                     table_day = DAY_ALIASES[day_key]
                     current_day = table_day
 
-                time_text = norm(row[1] if len(row) > 1 else '')
+                time_text = norm(row[time_column] if len(row) > time_column else '')
                 if table_day is None or not TIME_RE.search(time_text):
                     continue
 
@@ -2210,6 +2243,8 @@ def main():
     has_coverage_gaps=any(row.get('status')!='full' for row in course_coverage.values()) or bool(unresolved_weekday_events)
     data_state='live-generated-partial' if has_coverage_gaps else 'live-generated'
     payload={'schemaVersion':7,'dataState':data_state,'generatedAt':generated_at,'sourcePage':PAGE,'specialty':'31.05.01','courses':courses,'coverage':course_coverage,'coverageWarnings':documented_coverage_gaps,'dateMapping':{'mappedWeekdayEvents':mapped_weekday_events,'unresolvedWeekdayEvents':unresolved_weekday_events,'calendarSource':week_calendar_source},'assessmentPeriods':assessment_periods,'kugSources':kug_sources,'bootstrapNote':'Generated from the official Almazov student schedule page. KUG periods are date ranges for attestation; exact exam appointments are a separate source layer when published.'}
+    from source_notices import apply_source_notices
+    payload['sourceNotices']=apply_source_notices(payload,Path.cwd())
     OUT.parent.mkdir(parents=True,exist_ok=True); tmp=OUT.with_suffix('.json.tmp'); tmp.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8'); tmp.replace(OUT)
     total=sum(len(c['events']) for c in courses.values())
     status={
