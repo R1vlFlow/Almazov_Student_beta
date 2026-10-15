@@ -121,3 +121,10 @@ test('day/week schedule uses compact cards instead of the legacy vertical time g
  assert.match(css,/\.schedule-card-grid/);
  assert.match(app,/class=\"schedule-event-head\"><span class=\"event-time\">/);
 });
+
+test('course changes capture the new selection before render and reset the old group',()=>{
+ assert.match(app,/await applySelectProfile\(id!=='groupSelect'\)/);
+ assert.match(app,/async function applySelectProfile\(resetGroup=false\)/);
+ assert.match(app,/group:resetGroup\?'':g.value\|\|''/);
+ assert.doesNotMatch(app,/if\(id==='programSelect'\|\|id==='courseSelect'\)renderProfileOptions\(\)/);
+});
