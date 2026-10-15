@@ -3,7 +3,7 @@
   "uiVersion": "2.8.0-rc.6",
   "engineVersion": "4.9.0-rc.1",
   "release": "ALL-COURSES-VERIFIED-MATRIX-PARSER",
-  "released": "2026-10-13",
+  "released": "2026-10-15",
   "releaseChannel": "rc",
-  "releaseStatus": "RELEASE_CANDIDATE_PENDING_FINAL_QA"
+  "releaseStatus": "VERIFIED_WEB_RELEASE_CANDIDATE"
 }

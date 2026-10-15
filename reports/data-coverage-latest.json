@@ -1,21 +1,41 @@
 {
+  "sourceNotices": [
+    {
+      "id": "ld-130-week7-thursday-source-overlap",
+      "course": "1",
+      "group": "130",
+      "date": "2026-10-15",
+      "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/1k_ld_b-26-27-na-sajt.pdf",
+      "sha256": "9360f25a6b71ecba3345ac20101bc01997db5e3146163242ba3dc067e720e446",
+      "subjects": [
+        "Иностранный язык",
+        "Латинский язык",
+        "Безопасность жизнедеятельности АСЦ"
+      ],
+      "start": "09:20",
+      "end": "12:25",
+      "message": "Пересечение в официальном PDF: языковые занятия и БЖД АСЦ указаны одновременно. Уточнения нет; проверьте занятие у старосты. Оба варианта сохранены.",
+      "reviewedAt": "2026-10-14",
+      "resolution": "Preserve both source alternatives; no inferred correction. User confirmed no clarification is available."
+    }
+  ],
   "schemaVersion": 1,
-  "generatedAt": "2026-10-11T20:38:12.850Z",
-  "sourceGeneratedAt": "2026-10-11T13:48:12.788390+00:00",
-  "status": "not-ready",
+  "generatedAt": "2026-10-15T15:28:53.595Z",
+  "sourceGeneratedAt": "2026-10-14T15:26:55.168998+00:00",
+  "status": "ready",
   "academicYear": "2026/2027",
   "counts": {
     "snapshots": 18,
-    "full": 2,
-    "partial": 8,
+    "full": 10,
+    "partial": 0,
     "unpublished": 8,
-    "missingGroupPracticeAssignments": 1,
+    "missingGroupPracticeAssignments": 0,
     "sourceRecords": 43,
     "sourceValidationFailures": 0,
     "officialKugPdfs": 10,
     "parsedKugPeriods": 62,
-    "integrityErrors": 77,
-    "quarantinedPdfRows": 6
+    "integrityErrors": 0,
+    "quarantinedPdfRows": 0
   },
   "resolvedPriorRejections": [
     {
@@ -47,21 +67,18 @@
     {
       "program": "31.05.01",
       "course": 1,
-      "status": "partial",
-      "sourceState": "live-generated-partial",
-      "events": 4487,
+      "status": "full",
+      "sourceState": "live-generated",
+      "events": 4365,
       "expectedGroups": 35,
       "coveredGroups": 35,
-      "missing": [
-        "Расписание содержит 2 назначений в совпадающие дату и время; требуется сверка групп/подгрупп"
-      ],
-      "integrityConflictCount": 2
+      "missing": []
     },
     {
       "program": "31.05.01",
       "course": 2,
       "status": "full",
-      "sourceState": "live-generated-partial",
+      "sourceState": "live-generated",
       "events": 3135,
       "expectedGroups": 29,
       "coveredGroups": 29,
@@ -70,40 +87,29 @@
     {
       "program": "31.05.01",
       "course": 3,
-      "status": "partial",
-      "sourceState": "live-generated-partial",
-      "events": 1837,
+      "status": "full",
+      "sourceState": "live-generated",
+      "events": 2711,
       "expectedGroups": 22,
       "coveredGroups": 22,
-      "missing": [
-        "Расписание содержит 74 назначений в совпадающие дату и время; требуется сверка групп/подгрупп"
-      ],
-      "integrityConflictCount": 74
+      "missing": []
     },
     {
       "program": "31.05.01",
       "course": 4,
-      "status": "partial",
-      "sourceState": "live-generated-partial",
-      "events": 685,
-      "expectedGroups": 24,
+      "status": "full",
+      "sourceState": "live-generated",
+      "events": 619,
+      "expectedGroups": 23,
       "coveredGroups": 23,
-      "missing": [
-        {
-          "stream": "B",
-          "group": "424",
-          "missingKinds": [
-            "practice"
-          ]
-        }
-      ]
+      "missing": []
     },
     {
       "program": "31.05.01",
       "course": 5,
       "status": "full",
-      "sourceState": "live-generated-partial",
-      "events": 575,
+      "sourceState": "live-generated",
+      "events": 569,
       "expectedGroups": 22,
       "coveredGroups": 22,
       "missing": []
@@ -111,43 +117,34 @@
     {
       "program": "31.05.01",
       "course": 6,
-      "status": "partial",
-      "sourceState": "live-generated-partial",
-      "events": 617,
+      "status": "full",
+      "sourceState": "live-generated",
+      "events": 464,
       "expectedGroups": 18,
       "coveredGroups": 18,
-      "missing": [
-        "Расписание содержит 1 назначений в совпадающие дату и время; требуется сверка групп/подгрупп",
-        "6 занятий помещены на проверку из-за неразобранных ячеек PDF"
-      ],
-      "integrityConflictCount": 1,
-      "parserAnomalyCount": 6
+      "missing": []
     },
     {
       "program": "31.05.02",
       "course": 1,
-      "status": "partial",
-      "sourceState": "local-recovery-snapshot",
-      "events": 532,
-      "missing": [
-        "Нет локально проверенного live snapshot"
-      ]
+      "status": "full",
+      "sourceState": "live-generated",
+      "events": 906,
+      "missing": []
     },
     {
       "program": "31.05.02",
       "course": 2,
-      "status": "partial",
-      "sourceState": "local-recovery-snapshot",
-      "events": 420,
-      "missing": [
-        "Нет локально проверенного live snapshot"
-      ]
+      "status": "full",
+      "sourceState": "live-generated",
+      "events": 404,
+      "missing": []
     },
     {
       "program": "31.05.02",
       "course": 3,
       "status": "unpublished",
-      "sourceState": "local-recovery-snapshot",
+      "sourceState": "live-generated",
       "events": 0,
       "missing": [
         "На официальном сайте не опубликовано"
@@ -157,7 +154,7 @@
       "program": "31.05.02",
       "course": 4,
       "status": "unpublished",
-      "sourceState": "local-recovery-snapshot",
+      "sourceState": "live-generated",
       "events": 0,
       "missing": [
         "На официальном сайте не опубликовано"
@@ -167,7 +164,7 @@
       "program": "31.05.02",
       "course": 5,
       "status": "unpublished",
-      "sourceState": "local-recovery-snapshot",
+      "sourceState": "live-generated",
       "events": 0,
       "missing": [
         "На официальном сайте не опубликовано"
@@ -177,7 +174,7 @@
       "program": "31.05.02",
       "course": 6,
       "status": "unpublished",
-      "sourceState": "local-recovery-snapshot",
+      "sourceState": "live-generated",
       "events": 0,
       "missing": [
         "На официальном сайте не опубликовано"
@@ -186,28 +183,24 @@
     {
       "program": "37.05.01",
       "course": 1,
-      "status": "partial",
-      "sourceState": "local-recovery-snapshot",
-      "events": 296,
-      "missing": [
-        "Нет локально проверенного live snapshot"
-      ]
+      "status": "full",
+      "sourceState": "live-generated",
+      "events": 282,
+      "missing": []
     },
     {
       "program": "37.05.01",
       "course": 2,
-      "status": "partial",
-      "sourceState": "local-recovery-snapshot",
-      "events": 296,
-      "missing": [
-        "Нет локально проверенного live snapshot"
-      ]
+      "status": "full",
+      "sourceState": "live-generated",
+      "events": 164,
+      "missing": []
     },
     {
       "program": "37.05.01",
       "course": 3,
       "status": "unpublished",
-      "sourceState": "local-recovery-snapshot",
+      "sourceState": "live-generated",
       "events": 0,
       "missing": [
         "На официальном сайте не опубликовано"
@@ -217,7 +210,7 @@
       "program": "37.05.01",
       "course": 4,
       "status": "unpublished",
-      "sourceState": "local-recovery-snapshot",
+      "sourceState": "live-generated",
       "events": 0,
       "missing": [
         "На официальном сайте не опубликовано"
@@ -227,7 +220,7 @@
       "program": "37.05.01",
       "course": 5,
       "status": "unpublished",
-      "sourceState": "local-recovery-snapshot",
+      "sourceState": "live-generated",
       "events": 0,
       "missing": [
         "На официальном сайте не опубликовано"
@@ -237,7 +230,7 @@
       "program": "37.05.01",
       "course": 6,
       "status": "unpublished",
-      "sourceState": "local-recovery-snapshot",
+      "sourceState": "live-generated",
       "events": 0,
       "missing": [
         "На официальном сайте не опубликовано"
@@ -250,327 +243,13 @@
   },
   "integrity": {
     "duplicates": [],
-    "conflicts": [
-      "1/130/date:2026-10-15/09:20",
-      "1/130/date:2026-10-15/11:00",
-      "3/315/date:2026-09-07/13:30",
-      "3/316/date:2026-09-07/13:30",
-      "3/317/date:2026-09-07/13:30",
-      "3/318/date:2026-09-07/13:30",
-      "3/321/date:2026-09-07/13:30",
-      "3/322/date:2026-09-07/13:30",
-      "3/315/date:2026-09-14/13:30",
-      "3/316/date:2026-09-14/13:30",
-      "3/317/date:2026-09-14/13:30",
-      "3/318/date:2026-09-14/13:30",
-      "3/321/date:2026-09-14/13:30",
-      "3/322/date:2026-09-14/13:30",
-      "3/315/date:2026-09-21/13:30",
-      "3/316/date:2026-09-21/13:30",
-      "3/317/date:2026-09-21/13:30",
-      "3/318/date:2026-09-21/13:30",
-      "3/321/date:2026-09-21/13:30",
-      "3/322/date:2026-09-21/13:30",
-      "3/315/date:2026-09-28/13:30",
-      "3/316/date:2026-09-28/13:30",
-      "3/317/date:2026-09-28/13:30",
-      "3/318/date:2026-09-28/13:30",
-      "3/321/date:2026-09-28/13:30",
-      "3/322/date:2026-09-28/13:30",
-      "3/315/date:2026-10-05/13:30",
-      "3/316/date:2026-10-05/13:30",
-      "3/317/date:2026-10-05/13:30",
-      "3/318/date:2026-10-05/13:30",
-      "3/321/date:2026-10-05/13:30",
-      "3/322/date:2026-10-05/13:30",
-      "3/315/date:2026-10-12/13:30",
-      "3/316/date:2026-10-12/13:30",
-      "3/317/date:2026-10-12/13:30",
-      "3/318/date:2026-10-12/13:30",
-      "3/321/date:2026-10-12/13:30",
-      "3/322/date:2026-10-12/13:30",
-      "3/315/date:2026-10-19/13:30",
-      "3/316/date:2026-10-19/13:30",
-      "3/317/date:2026-10-19/13:30",
-      "3/318/date:2026-10-19/13:30",
-      "3/321/date:2026-10-19/13:30",
-      "3/322/date:2026-10-19/13:30",
-      "3/315/date:2026-10-26/13:30",
-      "3/316/date:2026-10-26/13:30",
-      "3/317/date:2026-10-26/13:30",
-      "3/318/date:2026-10-26/13:30",
-      "3/321/date:2026-10-26/13:30",
-      "3/322/date:2026-10-26/13:30",
-      "3/315/date:2026-11-02/13:30",
-      "3/316/date:2026-11-02/13:30",
-      "3/317/date:2026-11-02/13:30",
-      "3/318/date:2026-11-02/13:30",
-      "3/321/date:2026-11-02/13:30",
-      "3/322/date:2026-11-02/13:30",
-      "3/315/date:2026-11-09/13:30",
-      "3/316/date:2026-11-09/13:30",
-      "3/317/date:2026-11-09/13:30",
-      "3/318/date:2026-11-09/13:30",
-      "3/321/date:2026-11-09/13:30",
-      "3/322/date:2026-11-09/13:30",
-      "3/317/date:2026-11-16/13:30",
-      "3/318/date:2026-11-16/13:30",
-      "3/321/date:2026-11-16/13:30",
-      "3/322/date:2026-11-16/13:30",
-      "3/321/date:2026-11-23/13:30",
-      "3/322/date:2026-11-23/13:30",
-      "3/321/date:2026-11-30/13:30",
-      "3/322/date:2026-11-30/13:30",
-      "3/321/date:2026-12-07/13:30",
-      "3/322/date:2026-12-07/13:30",
-      "3/317/date:2026-12-14/13:30",
-      "3/318/date:2026-12-14/13:30",
-      "3/321/date:2026-12-14/13:30",
-      "3/322/date:2026-12-14/13:30",
-      "6/ALL/date:2026-09-03/15:20"
-    ],
-    "conflictsByCourse": {
-      "1": 2,
-      "3": 74,
-      "6": 1
-    },
+    "conflicts": [],
+    "conflictsByCourse": {},
     "missingRequired": [],
-    "missingTeacher": 11336,
-    "missingLocation": 101
+    "missingTeacher": 11863,
+    "missingLocation": 4
   },
-  "parserAnomalies": [
-    {
-      "course": "6",
-      "group": "609",
-      "date": null,
-      "weekNumber": 1,
-      "start": "09:00",
-      "subject": "СПБ ГБУЗ \"Клиническая Фтизиатрия Звездная, 12, лит. А ГПТД Фтизиатрия Звездная, 12, лит. А ГПТД",
-      "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/6k_ld-26-27-na-sajt-1.pdf",
-      "reason": "PDF extraction placed an off-site address in the subject field; source cell could not be split without guessing"
-    },
-    {
-      "course": "6",
-      "group": "609",
-      "date": null,
-      "weekNumber": 2,
-      "start": "09:00",
-      "subject": "СПБ ГБУЗ \"Клиническая Фтизиатрия Звездная, 12, лит. А ГПТД Фтизиатрия Звездная, 12, лит. А ГПТД",
-      "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/6k_ld-26-27-na-sajt-1.pdf",
-      "reason": "PDF extraction placed an off-site address in the subject field; source cell could not be split without guessing"
-    },
-    {
-      "course": "6",
-      "group": "609",
-      "date": null,
-      "weekNumber": 10,
-      "start": "09:00",
-      "subject": "КПК, ауд. 2150 Фтизиатрия Студенческая,16, лит.А ГПТД, диспансерное отделение Приморское Внутренние болезни КПК, ауд. 3158 Внутренние болезни КПК, ауд. 3168",
-      "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/6k_ld-26-27-na-sajt-1.pdf",
-      "reason": "PDF extraction placed an off-site address in the subject field; source cell could not be split without guessing"
-    },
-    {
-      "course": "6",
-      "group": "609",
-      "date": null,
-      "weekNumber": 11,
-      "start": "09:00",
-      "subject": "КПК, ауд. 2150 Фтизиатрия Студенческая,16, лит.А ГПТД, диспансерное отделение Приморское Внутренние болезни КПК, ауд. 3158 Внутренние болезни КПК, ауд. 3168",
-      "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/6k_ld-26-27-na-sajt-1.pdf",
-      "reason": "PDF extraction placed an off-site address in the subject field; source cell could not be split without guessing"
-    },
-    {
-      "course": "6",
-      "group": "609",
-      "date": null,
-      "weekNumber": 12,
-      "start": "09:00",
-      "subject": "КПК, ауд. 2150 Фтизиатрия Студенческая,16, лит.А ГПТД, диспансерное отделение Приморское Внутренние болезни КПК, ауд. 3158 Внутренние болезни КПК, ауд. 3168",
-      "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/6k_ld-26-27-na-sajt-1.pdf",
-      "reason": "PDF extraction placed an off-site address in the subject field; source cell could not be split without guessing"
-    },
-    {
-      "course": "6",
-      "group": "609",
-      "date": null,
-      "weekNumber": 13,
-      "start": "09:00",
-      "subject": "КПК, ауд. 2150 Фтизиатрия Студенческая,16, лит.А ГПТД, диспансерное отделение Приморское Внутренние болезни КПК, ауд. 3158 Внутренние болезни КПК, ауд. 3168",
-      "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/6k_ld-26-27-na-sajt-1.pdf",
-      "reason": "PDF extraction placed an off-site address in the subject field; source cell could not be split without guessing"
-    }
-  ],
-  "specialistSourceState": "local-recovery-snapshot",
-  "blockers": [
-    {
-      "code": "MISSING_GROUP_ASSIGNMENT",
-      "program": "31.05.01",
-      "course": 4,
-      "stream": "B",
-      "group": "424",
-      "missingKinds": [
-        "practice"
-      ]
-    },
-    {
-      "code": "UNRESOLVED_TIME_CONFLICTS",
-      "program": "31.05.01",
-      "course": 1,
-      "count": 2
-    },
-    {
-      "code": "UNRESOLVED_TIME_CONFLICTS",
-      "program": "31.05.01",
-      "course": 3,
-      "count": 74
-    },
-    {
-      "code": "UNRESOLVED_TIME_CONFLICTS",
-      "program": "31.05.01",
-      "course": 6,
-      "count": 1
-    },
-    {
-      "code": "QUARANTINED_PDF_ROWS",
-      "program": "31.05.01",
-      "course": 6,
-      "count": 6,
-      "groups": [
-        "Расписание содержит 1 назначений в совпадающие дату и время; требуется сверка групп/подгрупп",
-        "6 занятий помещены на проверку из-за неразобранных ячеек PDF"
-      ]
-    },
-    {
-      "code": "UNVERIFIED_LOCAL_SNAPSHOT",
-      "program": "31.05.02",
-      "course": 1
-    },
-    {
-      "code": "UNVERIFIED_LOCAL_SNAPSHOT",
-      "program": "31.05.02",
-      "course": 2
-    },
-    {
-      "code": "UNVERIFIED_LOCAL_SNAPSHOT",
-      "program": "37.05.01",
-      "course": 1
-    },
-    {
-      "code": "UNVERIFIED_LOCAL_SNAPSHOT",
-      "program": "37.05.01",
-      "course": 2
-    },
-    {
-      "code": "NO_PUBLISHED_DATA",
-      "program": "31.05.02",
-      "course": 3
-    },
-    {
-      "code": "NO_PUBLISHED_DATA",
-      "program": "31.05.02",
-      "course": 4
-    },
-    {
-      "code": "NO_PUBLISHED_DATA",
-      "program": "31.05.02",
-      "course": 5
-    },
-    {
-      "code": "NO_PUBLISHED_DATA",
-      "program": "31.05.02",
-      "course": 6
-    },
-    {
-      "code": "NO_PUBLISHED_DATA",
-      "program": "37.05.01",
-      "course": 3
-    },
-    {
-      "code": "NO_PUBLISHED_DATA",
-      "program": "37.05.01",
-      "course": 4
-    },
-    {
-      "code": "NO_PUBLISHED_DATA",
-      "program": "37.05.01",
-      "course": 5
-    },
-    {
-      "code": "NO_PUBLISHED_DATA",
-      "program": "37.05.01",
-      "course": 6
-    },
-    {
-      "code": "DATA_INTEGRITY_FAILURE",
-      "duplicates": 0,
-      "conflicts": 77,
-      "missingRequired": 0
-    },
-    {
-      "code": "PDF_PARSE_ANOMALIES",
-      "count": 6,
-      "items": [
-        {
-          "course": "6",
-          "group": "609",
-          "date": null,
-          "weekNumber": 1,
-          "start": "09:00",
-          "subject": "СПБ ГБУЗ \"Клиническая Фтизиатрия Звездная, 12, лит. А ГПТД Фтизиатрия Звездная, 12, лит. А ГПТД",
-          "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/6k_ld-26-27-na-sajt-1.pdf",
-          "reason": "PDF extraction placed an off-site address in the subject field; source cell could not be split without guessing"
-        },
-        {
-          "course": "6",
-          "group": "609",
-          "date": null,
-          "weekNumber": 2,
-          "start": "09:00",
-          "subject": "СПБ ГБУЗ \"Клиническая Фтизиатрия Звездная, 12, лит. А ГПТД Фтизиатрия Звездная, 12, лит. А ГПТД",
-          "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/6k_ld-26-27-na-sajt-1.pdf",
-          "reason": "PDF extraction placed an off-site address in the subject field; source cell could not be split without guessing"
-        },
-        {
-          "course": "6",
-          "group": "609",
-          "date": null,
-          "weekNumber": 10,
-          "start": "09:00",
-          "subject": "КПК, ауд. 2150 Фтизиатрия Студенческая,16, лит.А ГПТД, диспансерное отделение Приморское Внутренние болезни КПК, ауд. 3158 Внутренние болезни КПК, ауд. 3168",
-          "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/6k_ld-26-27-na-sajt-1.pdf",
-          "reason": "PDF extraction placed an off-site address in the subject field; source cell could not be split without guessing"
-        },
-        {
-          "course": "6",
-          "group": "609",
-          "date": null,
-          "weekNumber": 11,
-          "start": "09:00",
-          "subject": "КПК, ауд. 2150 Фтизиатрия Студенческая,16, лит.А ГПТД, диспансерное отделение Приморское Внутренние болезни КПК, ауд. 3158 Внутренние болезни КПК, ауд. 3168",
-          "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/6k_ld-26-27-na-sajt-1.pdf",
-          "reason": "PDF extraction placed an off-site address in the subject field; source cell could not be split without guessing"
-        },
-        {
-          "course": "6",
-          "group": "609",
-          "date": null,
-          "weekNumber": 12,
-          "start": "09:00",
-          "subject": "КПК, ауд. 2150 Фтизиатрия Студенческая,16, лит.А ГПТД, диспансерное отделение Приморское Внутренние болезни КПК, ауд. 3158 Внутренние болезни КПК, ауд. 3168",
-          "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/6k_ld-26-27-na-sajt-1.pdf",
-          "reason": "PDF extraction placed an off-site address in the subject field; source cell could not be split without guessing"
-        },
-        {
-          "course": "6",
-          "group": "609",
-          "date": null,
-          "weekNumber": 13,
-          "start": "09:00",
-          "subject": "КПК, ауд. 2150 Фтизиатрия Студенческая,16, лит.А ГПТД, диспансерное отделение Приморское Внутренние болезни КПК, ауд. 3158 Внутренние болезни КПК, ауд. 3168",
-          "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/6k_ld-26-27-na-sajt-1.pdf",
-          "reason": "PDF extraction placed an off-site address in the subject field; source cell could not be split without guessing"
-        }
-      ]
-    }
-  ]
+  "parserAnomalies": [],
+  "specialistSourceState": "live-generated",
+  "blockers": []
 }

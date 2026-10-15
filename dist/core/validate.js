@@ -1,4 +1,4 @@
-import { cleanLocation, cleanSubject, cleanTeacher, isoDate, normalizeCourse, normalizeGroup, normalizeHalf, normalizeStream, normalizeTime, normalizeTimeRange, normalizeType } from './normalize.js?v=df2a77035cc6be39';
+import { cleanLocation, cleanSubject, cleanTeacher, isoDate, normalizeCourse, normalizeGroup, normalizeHalf, normalizeStream, normalizeTime, normalizeTimeRange, normalizeType } from './normalize.js?v=e928bed48344205e';
 const VALID_PROGRAMS = new Set(['31.05.01', '31.05.02', '37.05.01']);
 export function validateScheduleIndex(payload) {
     const issues = [];
@@ -47,9 +47,9 @@ export function normalizeLiveEvents(payload) {
         const rawEvents = Array.isArray(courseData?.events) ? courseData.events : [];
         for (const [index, raw] of rawEvents.entries()) {
             const directDate = isoDate(raw?.date ?? raw?.dateHint ?? raw?.weekDate);
-            const matrixSlots = Array.isArray(raw?.matrixSlots) ? raw.matrixSlots.map((v) => Number(v)).filter((n) => Number.isInteger(n) && n >= 0 && n <= 6) : [];
             const weekStart = isoDate(raw?.weekStart);
-            const blockDates = directDate ? [directDate] : (raw?.scheduleMode === 'weekly-block' && weekStart && matrixSlots.length ? matrixSlots.map((slot) => addIsoDays(weekStart, slot)).filter(Boolean) : []);
+            // Matrix subcolumns are cell geometry, not weekday numbers.
+            const blockDates = directDate ? [directDate] : [];
             const time = normalizeTimeRange(`${raw?.start ?? ''} ${raw?.end ?? ''}`) ?? normalizeTimeRange(raw?.time);
             const subject = cleanSubject(raw?.subject ?? raw?.discipline ?? raw?.name);
             const stream = normalizeStream(raw?.stream);
@@ -70,7 +70,7 @@ export function normalizeLiveEvents(payload) {
                     if (!group)
                         continue;
                     for (const slot of doubleSlots) {
-                        result.push({ id: String(raw?.id ? `${raw.id}-${date}-${slot.doublePart ?? 0}` : `${program}-${course}-${group}-${date}-${slot.start}-${slot.end}-${subject}-${index}-${slot.doublePart ?? 0}`), program, course, group, stream, date, start: slot.start, end: slot.end, subject, location: cleanLocation(raw?.location), teacher: cleanTeacher(raw?.teacher), type: normalizeType(raw?.type, subject), half: normalizeHalf(raw?.half), double: slot.double, orgMerged: raw?.orgMerged === true || undefined, mergedConsecutive: raw?.mergedConsecutive === true || undefined, doublePart: slot.doublePart, doubleOf: slot.doubleOf, durationMinutes: slot.durationMinutes, weeks: raw?.weekNumber ? `нед. ${Array.isArray(raw.weekNumber) ? raw.weekNumber.join(', ') : String(raw.weekNumber)}` : undefined, sourceUrl: raw?.sourceUrl, sourceTitle: raw?.sourceTitle, sourceKind: 'live-json', confidence: 1 });
+                        result.push({ id: String(raw?.id ? `${raw.id}-${date}-${slot.doublePart ?? 0}` : `${program}-${course}-${group}-${date}-${slot.start}-${slot.end}-${subject}-${index}-${slot.doublePart ?? 0}`), program, course, group, stream, date, start: slot.start, end: slot.end, subject, location: cleanLocation(raw?.location), teacher: cleanTeacher(raw?.teacher), lessonParts: Array.isArray(raw?.lessonParts) ? raw.lessonParts : undefined, sourceNotice: typeof raw?.sourceNotice === 'string' ? raw.sourceNotice : undefined, type: normalizeType(raw?.type, subject), half: normalizeHalf(raw?.half), double: slot.double, orgMerged: raw?.orgMerged === true || undefined, mergedConsecutive: raw?.mergedConsecutive === true || undefined, doublePart: slot.doublePart, doubleOf: slot.doubleOf, durationMinutes: slot.durationMinutes, weeks: raw?.weekNumber ? `нед. ${Array.isArray(raw.weekNumber) ? raw.weekNumber.join(', ') : String(raw.weekNumber)}` : undefined, sourceUrl: raw?.sourceUrl, sourceTitle: raw?.sourceTitle, sourceKind: 'live-json', confidence: 1 });
                     }
                 }
         }

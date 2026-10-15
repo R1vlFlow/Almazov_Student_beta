@@ -1,22 +1,22 @@
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=df2a77035cc6be39';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=df2a77035cc6be39';
-import { groupsFor, streamForGroup } from './data/roster.js?v=df2a77035cc6be39';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO } from './core/date.js?v=df2a77035cc6be39';
-import { eventAppliesToGroup } from './core/filter.js?v=df2a77035cc6be39';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=df2a77035cc6be39';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=df2a77035cc6be39';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=df2a77035cc6be39';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=df2a77035cc6be39';
-import { FAQ } from './ui/faq.js?v=df2a77035cc6be39';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=df2a77035cc6be39';
-import { fileToAttachment } from './services/supportService.js?v=df2a77035cc6be39';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=df2a77035cc6be39';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=df2a77035cc6be39';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=df2a77035cc6be39';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=df2a77035cc6be39';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=df2a77035cc6be39';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=df2a77035cc6be39';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=df2a77035cc6be39';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=e928bed48344205e';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=e928bed48344205e';
+import { groupsFor, streamForGroup } from './data/roster.js?v=e928bed48344205e';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO } from './core/date.js?v=e928bed48344205e';
+import { eventAppliesToGroup } from './core/filter.js?v=e928bed48344205e';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=e928bed48344205e';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=e928bed48344205e';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=e928bed48344205e';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=e928bed48344205e';
+import { FAQ } from './ui/faq.js?v=e928bed48344205e';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=e928bed48344205e';
+import { fileToAttachment } from './services/supportService.js?v=e928bed48344205e';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=e928bed48344205e';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=e928bed48344205e';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=e928bed48344205e';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=e928bed48344205e';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=e928bed48344205e';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=e928bed48344205e';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=e928bed48344205e';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -28,7 +28,8 @@ const state = { profile: initial, week: mondayOf(todayISO(userTimeZone())), focu
 function $(id) { const el = document.getElementById(id); if (!el)
     throw new Error(`Missing #${id}`); return el; }
 function esc(v) { return String(v).replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[c])); }
-function importsPracticeSchedule() { return state.profile.course >= 4; }
+function canImportPracticeSchedule() { return state.profile.course >= 4; }
+function importsPracticeSchedule() { return canImportPracticeSchedule() && state.importedPracticeCount > 0; }
 function groupOptions(program, course) { const groups = groupsFor(program, course); return groups.length ? groups : ['']; }
 function ensureCurrentGroupOption(id) { const select = document.getElementById(id); if (!select || !state.profile.group)
     return; if (!Array.from(select.options).some(option => option.value === state.profile.group))
@@ -93,7 +94,7 @@ function getDisplayEvents() {
     if (state.scheduleMode === 'kug')
         return [];
     const selected = state.official.filter(e => (!importsPracticeSchedule() || e.type !== 'practice') && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
-    const imported = (importsPracticeSchedule() ? state.importedPractices : []).map(importedPracticeCalendar);
+    const imported = (importsPracticeSchedule() ? state.importedPractices : []).flatMap(importedPracticeCalendar);
     const personal = state.personal.map(e => ({ id: e.id, kind: 'personal', title: e.title, description: e.description ?? '', category: e.category, status: e.status, startAt: e.startAt, endAt: e.endAt, timeZone: e.timeZone, allDay: e.allDay, location: e.location ?? '', meetingUrl: e.meetingUrl, attendees: e.attendees, recurrence: e.recurrence, seriesId: e.seriesId, readOnly: false }));
     const combined = [...selected, ...imported, ...personal];
     return combined.filter(e => {
@@ -149,7 +150,7 @@ async function reloadEvents() {
     }
     try {
         const range = rangeDates();
-        const [rows, count] = importsPracticeSchedule() ? await Promise.all([
+        const [rows, count] = canImportPracticeSchedule() ? await Promise.all([
             listImportedPractices(state.profile.program, state.profile.course, state.profile.group, range.from, range.to),
             countImportedPractices(state.profile.program, state.profile.course, state.profile.group)
         ]) : [[], 0];
@@ -171,7 +172,30 @@ async function reloadEvents() {
     renderSchedule();
 }
 export async function boot() { await ensureScheduleCacheVersion(document.documentElement.dataset.buildId ?? 'dev'); initTheme(); loadAppearance(); applyAppearance(); ensureProfile(); enhanceControls(); renderShell(); bind(); render(); void loadKugData(); await reloadEvents(); await refreshHomePersonal(); await refreshUploadedMaterials(); render(); window.dispatchEvent(new Event('app:ready')); window.setInterval(() => { if (state.page === 'home')
-    renderHome(); }, 30000); }
+    renderHome(); }, 30000); startScheduleRefresh(); }
+function startScheduleRefresh() {
+    const interval = 40 * 60 * 1000;
+    let lastRefresh = Date.now(), refreshing = false;
+    const refresh = async () => {
+        if (refreshing || document.hidden || navigator.onLine === false || Date.now() - lastRefresh < interval || document.querySelector('.modal.open,dialog[open]'))
+            return;
+        refreshing = true;
+        lastRefresh = Date.now();
+        try {
+            clearScheduleMemory();
+            await reloadEvents();
+            await loadKugData();
+            if (state.page === 'home')
+                renderHome();
+        }
+        finally {
+            refreshing = false;
+        }
+    };
+    window.setInterval(() => { void refresh(); }, 60000);
+    document.addEventListener('visibilitychange', () => { void refresh(); });
+    window.addEventListener('online', () => { void refresh(); });
+}
 function render() { renderShell(); renderProfileOptions(); renderSchedule(); renderTasks(); renderFaculties(); renderResources(); renderKug(); renderFaq(state.faqQuery); renderHome(); renderSettings(); renderProfilePage(); refreshControls(); }
 function nav(page) {
     const destination = document.getElementById(`page-${page}`);
@@ -209,7 +233,7 @@ function nav(page) {
 }
 function renderShell() { state.personalization = readPersonalization(); const p = PROGRAMS.find(x => x.code === state.profile.program); $('profileName').textContent = state.personalization.displayName || (state.profile.group ? `Группа ${state.profile.group}` : p?.shortTitle ?? 'Профиль'); $('profileMeta').textContent = `${p?.title ?? ''} · ${state.profile.course} курс${state.profile.group ? ` · группа ${state.profile.group}` : ''}${streamForGroup(state.profile.program, state.profile.group) ? ` · поток ${streamForGroup(state.profile.program, state.profile.group)}` : ''}`; applyAppearance(); document.querySelectorAll('.avatar').forEach(a => { a.textContent = state.personalization.avatarDataUrl ? '' : state.personalization.avatarPreset || '🎓'; a.style.backgroundImage = state.personalization.avatarDataUrl ? `url("${state.personalization.avatarDataUrl}")` : ''; a.style.backgroundSize = 'cover'; a.style.backgroundPosition = 'center'; }); $('syncLabel').textContent = state.message; $('statusDot').className = `${state.status === 'live' ? 'ok' : state.status === 'cache' ? 'cache' : state.status === 'loading' ? 'loading' : 'bad'}`; }
 function calendarPersonal(e) { return { id: e.id, kind: 'personal', title: e.title, description: e.description ?? '', category: e.category, status: e.status, startAt: e.startAt, endAt: e.endAt, timeZone: e.timeZone, allDay: e.allDay, location: e.location ?? '', meetingUrl: e.meetingUrl, attendees: e.attendees, recurrence: e.recurrence, seriesId: e.seriesId, readOnly: false }; }
-function importedPracticeCalendar(e) { const schedule = { id: e.id, program: e.program, course: e.course, group: e.group, stream: streamForGroup(e.program, e.group), date: e.date, start: e.start, end: e.end, subject: e.subject, location: e.location, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher, type: 'practice', sourceKind: 'manual', sourceTitle: e.sourceFile }; return scheduleToCalendarEvent(schedule, state.timezone); }
+function importedPracticeCalendar(e) { const start = e.start.split(':').map(Number); const end = e.end.split(':').map(Number); const duration = (end[0] ?? 0) * 60 + (end[1] ?? 0) - (start[0] ?? 0) * 60 - (start[1] ?? 0); const isDouble = [185, 205].includes(duration); const schedule = { id: e.id, program: e.program, course: e.course, group: e.group, stream: streamForGroup(e.program, e.group), date: e.date, start: e.start, end: e.end, subject: e.subject, location: e.location, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher, type: 'practice', double: isDouble, mergedConsecutive: isDouble, sourceKind: 'manual', sourceTitle: e.sourceFile }; return displayScheduleParts(schedule).map(part => scheduleToCalendarEvent(part, state.timezone)); }
 async function refreshHomePersonal() { try {
     const today = todayISO(state.timezone);
     state.homePersonal = await listPersonalEvents(localMidnightUtc(today), localMidnightUtc(addDays(today, 1)));
@@ -224,9 +248,10 @@ function countdownLabel(milliseconds) { const minutes = Math.max(0, Math.floor(M
 function renderHome() {
     const today = todayISO(state.timezone), now = Date.now();
     const official = state.official.filter(e => (!importsPracticeSchedule() || e.type !== 'practice') && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
-    const events = [...official, ...(importsPracticeSchedule() ? state.importedPractices : []).map(importedPracticeCalendar), ...state.homePersonal.map(calendarPersonal)].sort((a, b) => a.startAt.localeCompare(b.startAt));
+    const events = [...official, ...(importsPracticeSchedule() ? state.importedPractices : []).flatMap(importedPracticeCalendar), ...state.homePersonal.map(calendarPersonal)].sort((a, b) => a.startAt.localeCompare(b.startAt));
     const weekEvents = events.filter(e => { const d = localDate(e.startAt, state.timezone); return d >= startOfWeek(today) && d <= addDays(startOfWeek(today), 6); });
     const todayEvents = events.filter(e => localDate(e.startAt, state.timezone) === today || localDate(e.endAt, state.timezone) === today);
+    const todayCycles = importsPracticeSchedule() ? [] : visibleWeeklyBlocks(today, today);
     const todayClasses = todayEvents.filter(e => e.kind === 'schedule');
     const active = todayClasses.find(e => Date.parse(e.startAt) <= now && Date.parse(e.endAt) > now);
     // Use the entire official snapshot, not only today's range, so the hero still shows tomorrow's next class.
@@ -235,15 +260,17 @@ function renderHome() {
     const focusTitle = focus ? String(focus.title ?? (('subject' in focus) ? focus.subject : '')) : '';
     $('homeContext').textContent = state.profile.group ? `${PROGRAMS.find(p => p.code === state.profile.program)?.title} · ${state.profile.course} курс · группа ${state.profile.group}` : 'Выберите группу';
     $('homeStats').innerHTML = [['Занятий сегодня', String(todayEvents.length)], ['На неделе', String(weekEvents.length)], ['Активных ДЗ', String(state.tasks.filter(t => (t.status ?? (t.done ? 'done' : 'todo')) !== 'done').length)], ['Источник', state.status === 'live' ? 'LIVE' : state.status === 'cache' ? 'CACHE' : state.status === 'partial' ? 'PARTIAL' : 'OFFLINE']].map(([a, b]) => `<div class="stat-card"><span>${a}</span><b>${b}</b></div>`).join('');
-    $('homeHero').innerHTML = focus ? `<div class="home-hero-copy"><span class="eyebrow">${active ? 'Сейчас идёт пара' : 'Следующая пара'}</span><h2>${esc(focusTitle)}</h2><p>${esc(focus.location || 'Аудитория не указана')} · ${esc(focus.kind === 'schedule' ? (focus.teacher || 'Преподаватель не указан') : 'Личное событие')}</p><div class="home-hero-chips"><span>${esc(focus.kind === 'schedule' ? String(focus.type ?? 'Занятие') : 'Личное')}</span><span>${esc(localTime(focus.startAt, state.timezone))}–${esc(localTime(focus.endAt, state.timezone))}</span><span>${esc(state.timezone)}</span></div></div><div class="home-countdown"><span>${active ? 'До конца' : 'До начала'}</span><strong id="homeCountdownValue">${countdownLabel((active ? Date.parse(focus.endAt) : Date.parse(focus.startAt)) - now)}</strong><small>${esc(longDateRu(focus ? localDate(focus.startAt, state.timezone) : today))}</small></div>` : `<div class="home-hero-copy"><span class="eyebrow">Сегодня</span><h2>Занятий больше нет</h2><p>В расписании не найдено будущих пар на сегодня.</p></div><div class="home-countdown"><span>Свободное время</span><strong>—</strong><small>${esc(longDateRu(today))}</small></div>`;
-    $('homeTodayTimeline').innerHTML = todayEvents.length ? todayEvents.map(e => `<article class="home-timeline-item"><span class="home-timeline-time">${e.allDay ? 'Весь день' : esc(localTime(e.startAt, state.timezone))}</span><div class="home-timeline-content"><b>${esc(String(e.title ?? (('subject' in e) ? e.subject : '')))}</b><small>${esc(e.location || 'Место не указано')}${e.kind === 'schedule' && e.teacher ? ` · ${esc(e.teacher)}` : ''}</small></div><div class="home-timeline-actions"><button class="btn small ghost" data-open-event="${esc(e.id)}">Открыть</button>${e.kind === 'schedule' ? `<button class="btn small" data-homework-from-event="${esc(e.id)}">Записать ДЗ</button>` : ''}</div></article>`).join('') : `<div class="empty-state compact"><p>На сегодня занятий нет или источник пока не содержит данных.</p><button class="btn" data-page="schedule">Открыть расписание</button></div>`;
+    $('homeHero').innerHTML = focus ? `<div class="home-hero-copy"><span class="eyebrow">${active ? 'Сейчас идёт пара' : 'Следующая пара'}</span><h2>${esc(focusTitle)}</h2><p>${esc(focus.location || 'Аудитория не указана')} · ${esc(focus.kind === 'schedule' ? (focus.teacher || 'Преподаватель не указан') : 'Личное событие')}</p><div class="home-hero-chips"><span>${esc(focus.kind === 'schedule' ? String(focus.type ?? 'Занятие') : 'Личное')}</span><span>${esc(localTime(focus.startAt, state.timezone))}–${esc(localTime(focus.endAt, state.timezone))}</span><span>${esc(state.timezone)}</span></div></div><div class="home-countdown"><span>${active ? 'До конца' : 'До начала'}</span><strong id="homeCountdownValue">${countdownLabel((active ? Date.parse(focus.endAt) : Date.parse(focus.startAt)) - now)}</strong><small>${esc(longDateRu(focus ? localDate(focus.startAt, state.timezone) : today))}</small></div>` : `<div class="home-hero-copy"><span class="eyebrow">Сегодня</span><h2>${todayCycles.length ? 'Практический цикл этой недели' : 'Ближайших пар нет'}</h2><p>${todayCycles.length ? 'Период, время и предметы цикла указаны ниже.' : 'В опубликованном расписании не найдено будущих пар.'}</p></div><div class="home-countdown"><span>${todayCycles.length ? 'Смотрите цикл ниже' : 'Расписание'}</span><strong>—</strong><small>${esc(longDateRu(today))}</small></div>`;
+    $('homeTodayTimeline').innerHTML = todayEvents.length ? todayEvents.map(e => `<article class="home-timeline-item"><span class="home-timeline-time">${e.allDay ? 'Весь день' : esc(localTime(e.startAt, state.timezone))}</span><div class="home-timeline-content"><b>${esc(String(e.title ?? (('subject' in e) ? e.subject : '')))}</b><small>${esc(e.location || 'Место не указано')}${e.kind === 'schedule' && e.teacher ? ` · ${esc(e.teacher)}` : ''}</small></div><div class="home-timeline-actions"><button class="btn small ghost" data-open-event="${esc(e.id)}">Открыть</button>${e.kind === 'schedule' ? `<button class="btn small" data-homework-from-event="${esc(e.id)}">Записать ДЗ</button>` : ''}</div></article>`).join('') : `<div class="empty-state compact"><p>${todayCycles.length ? 'Практика этой недели показана ниже.' : 'На сегодня занятий нет или источник пока не содержит данных.'}</p><button class="btn" data-page="schedule">Открыть расписание</button></div>`;
+    if (!importsPracticeSchedule())
+        $('homeTodayTimeline').insertAdjacentHTML('beforeend', renderWeeklyBlocks(visibleWeeklyBlocks(today, today)));
     const dueTasks = state.tasks.filter(t => (t.status ?? (t.done ? 'done' : 'todo')) !== 'done' && t.due && Number.isFinite(Date.parse(t.due))).sort((a, b) => Date.parse(a.due) - Date.parse(b.due)).slice(0, 3);
     $('homeDeadlines').innerHTML = dueTasks.length ? dueTasks.map(t => { const late = Date.parse(t.due) < now; return `<article class="home-deadline ${late ? 'overdue' : ''}"><span class="home-deadline-mark">${late ? '!' : '◷'}</span><div><b>${esc(t.subject)}</b><p>${esc(t.text)}</p><small>${late ? 'Просрочено' : 'Сдать'} · ${esc(formatTaskDue(t.due))}</small></div><span class="priority-badge priority-${t.priority ?? 'medium'}">${priorityLabel(t.priority ?? 'medium')}</span></article>`; }).join('') : `<div class="empty-state compact"><p>Нет невыполненных заданий с установленным дедлайном.</p><button class="btn" data-action="add-task">＋ Добавить ДЗ</button></div>`;
     $('homeUpcoming').innerHTML = weekEvents.filter(e => localDate(e.startAt, state.timezone) >= today).slice(0, 5).map(e => `<article class="next-item"><div><span>${longDateRu(localDate(e.startAt, state.timezone))} · ${localTime(e.startAt, state.timezone)}</span><b>${esc(String(e.title ?? (('subject' in e) ? e.subject : '')))}</b><small>${esc(e.location || 'Без места')}</small></div><button class="btn small" data-open-event="${esc(e.id)}">Открыть</button></article>`).join('') || `<div class="empty-state compact card"><p>Ближайших событий на неделе нет.</p></div>`;
 }
 function renderSchedule() {
     state.tasks = readTasks();
-    document.querySelectorAll('[data-action="import-practices"]').forEach(button => { button.hidden = !importsPracticeSchedule(); });
+    document.querySelectorAll('[data-action="import-practices"]').forEach(button => { button.hidden = !canImportPracticeSchedule(); });
     // Empty state is rendered dynamically, so its absence on first render is normal.
     document.getElementById('emptyState')?.remove();
     const allEvents = getDisplayEvents();
@@ -255,7 +282,17 @@ function renderSchedule() {
         return false;
     } });
     state.events = events;
-    const weeklyBlocks = [];
+    const weeklyBlocks = state.scheduleMode === 'kug' || importsPracticeSchedule() ? [] : visibleWeeklyBlocks(range.from, range.to);
+    const notices = state.official.filter(e => e.sourceNotice && e.group === state.profile.group && e.date >= range.from && e.date <= range.to);
+    document.getElementById('officialSourceNotice')?.remove();
+    if (notices.length) {
+        const notice = document.createElement('aside');
+        notice.id = 'officialSourceNotice';
+        notice.className = 'practice-source-note';
+        notice.setAttribute('role', 'note');
+        notice.innerHTML = `<div><b>В источнике есть пересечение занятий</b><p>${esc(notices[0].sourceNotice ?? '')}</p><a href="${esc(notices[0].sourceUrl ?? sourceFor(state.profile.program, state.profile.course))}" target="_blank" rel="noopener noreferrer">Проверить официальный PDF ↗</a></div>`;
+        $('page-schedule').prepend(notice);
+    }
     $('weekLabel').textContent = state.scheduleMode === 'kug' ? `${formatDateRu(monthStart(state.focusDate))} — ${formatDateRu(monthEnd(state.focusDate))}` : state.view === 'month' ? `${formatDateRu(monthStart(state.focusDate))} — ${formatDateRu(monthEnd(state.focusDate))}` : `${formatDateRu(range.from)} — ${formatDateRu(range.to)}`;
     $('weekSubLabel').textContent = `${PROGRAMS.find(p => p.code === state.profile.program)?.shortTitle ?? ''} · ${state.profile.course} курс${state.profile.group ? ` · группа ${state.profile.group}` : ''} · ${state.timezone}`;
     $('scheduleCount').textContent = state.scheduleMode === 'kug' ? `${activeKugPeriods().filter(p => p.start <= range.to && p.end >= range.from).length} периодов КУГ` : `${events.length} событий${weeklyBlocks.length ? ` · ${weeklyBlocks.length} по неделям` : ''}`;
@@ -336,7 +373,7 @@ function visibleWeeklyBlocks(from, to) {
 function renderWeeklyBlocks(blocks) {
     if (!blocks.length)
         return '';
-    return `<section class="weekly-rotation card" aria-labelledby="weeklyRotationTitle"><header><div><span class="eyebrow">Расписание по номеру недели</span><h3 id="weeklyRotationTitle">Практические занятия</h3></div><small>День недели в PDF не указан — показываем период и время без догадки о дате занятия.</small></header><div class="weekly-rotation-list">${blocks.map(block => `<article class="weekly-rotation-item"><div><b>${block.weekNumber}-я неделя</b><small>${block.weekRangeStart && block.weekRangeEnd ? `${formatDateRu(block.weekRangeStart)} — ${formatDateRu(block.weekRangeEnd)}` : 'Период недели не указан'}</small></div><strong>${esc(block.start)}–${esc(block.end)}</strong><div class="weekly-rotation-subject"><b>${esc(block.subject)}</b><small>${esc(block.location || 'Аудитория не указана')} · ${block.group === 'ALL' ? `поток ${esc(block.stream ?? 'общий')}` : `группа ${esc(block.group)}`}</small></div>${block.sourceUrl ? `<a href="${esc(block.sourceUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Открыть PDF-источник">PDF ↗</a>` : ''}</article>`).join('')}</div></section>`;
+    return `<section class="weekly-rotation card" aria-label="Практические занятия по неделям"><header><div><span class="eyebrow">Расписание по номеру недели</span><h3>Практические занятия</h3></div><small>Циклы на выбранную неделю. Если указано несколько дисциплин, дни перехода уточняйте в исходном расписании.</small></header><div class="weekly-rotation-list">${blocks.map(block => `<article class="weekly-rotation-item"><div><b>${block.weekNumber}-я неделя</b><small>${block.weekRangeStart && block.weekRangeEnd ? `${formatDateRu(block.weekRangeStart)} — ${formatDateRu(block.weekRangeEnd)}` : 'Период недели не указан'}</small></div><strong>${esc(block.start)}–${esc(block.end)}</strong><div class="weekly-rotation-subject"><b>${esc(block.subject)}</b><small>${esc(block.location || 'Аудитория не указана')} · ${block.group === 'ALL' ? `поток ${esc(block.stream ?? 'общий')}` : `группа ${esc(block.group)}`}</small></div>${block.sourceUrl ? `<a href="${esc(block.sourceUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Открыть PDF-источник">PDF ↗</a>` : ''}</article>`).join('')}</div></section>`;
 }
 function renderMobileSkeleton() { return `<div class="mobile-skeleton" aria-label="Загрузка расписания">${Array.from({ length: 4 }, () => '<div class="skeleton-card"></div>').join('')}</div>`; }
 function renderSkeleton() { const count = state.scheduleMode === 'kug' ? 7 : rangeDates().dates.length; return `<div class="calendar-skeleton" style="grid-template-columns:repeat(${count},minmax(0,1fr))">${Array.from({ length: count }, (_, i) => `<div><span></span><i></i><i></i><i></i></div>`).join('')}</div>`; }
@@ -381,8 +418,8 @@ function eventHalfLabel(e) {
         return '2/2';
     return '';
 }
-function eventHalfMarkup(e, compact = false) { const half = eventHalfLabel(e); if (!half)
-    return ''; const part = half === '1/2' ? 'part-1' : 'part-2'; return `<span class="event-half ${part}${compact ? ' compact' : ''}" aria-label="Часть пары ${half}">${half}</span>`; }
+function eventHalfMarkup(e, compact = false) { const warning = e.sourceNotice ? '<span class="event-source-warning" title="Пересечение в официальном источнике">⚠</span>' : ''; const half = eventHalfLabel(e); if (!half)
+    return warning; const part = half === '1/2' ? 'part-1' : 'part-2'; return `${warning}<span class="event-half ${part}${compact ? ' compact' : ''}" aria-label="Часть пары ${half}">${half}</span>`; }
 function eventSubject(e) { return String(e.title ?? (('subject' in e) ? e.subject : '')); }
 function subjectColor(e) { return state.personalization.subjectColors[subjectColorKey(eventSubject(e))] || ''; }
 function subjectColorControl(e) { if (e.kind !== 'schedule')
@@ -660,7 +697,7 @@ function openTaskFromEvent(id) { const clicked = state.events.find(e => e.id ===
     return; const subject = eventSubject(clicked), now = Date.now(), threshold = Math.max(now, Date.parse(clicked.startAt) + 1000); const next = getDisplayEvents().filter(e => e.kind === 'schedule' && subjectColorKey(eventSubject(e)) === subjectColorKey(subject) && Date.parse(e.startAt) >= threshold).sort((a, b) => a.startAt.localeCompare(b.startAt))[0]; openTask(subject, next ? localDateTimeInput(next.startAt, state.timezone) : ''); }
 function fileAsDataUrl(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onerror = () => reject(new Error('Не удалось прочитать файл.')); reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Неверный формат файла.')); reader.readAsDataURL(file); }); }
 function openPracticeImporter() {
-    if (!importsPracticeSchedule()) {
+    if (!canImportPracticeSchedule()) {
         toast('Для 1–3 курсов ПЗ загружаются из официального расписания. Импорт доступен с 4 курса.', 'error');
         return;
     }
