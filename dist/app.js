@@ -1,22 +1,22 @@
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=8d4d8526f6023c67';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=8d4d8526f6023c67';
-import { groupsFor, streamForGroup } from './data/roster.js?v=8d4d8526f6023c67';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO } from './core/date.js?v=8d4d8526f6023c67';
-import { eventAppliesToGroup } from './core/filter.js?v=8d4d8526f6023c67';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=8d4d8526f6023c67';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=8d4d8526f6023c67';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=8d4d8526f6023c67';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=8d4d8526f6023c67';
-import { FAQ } from './ui/faq.js?v=8d4d8526f6023c67';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=8d4d8526f6023c67';
-import { fileToAttachment } from './services/supportService.js?v=8d4d8526f6023c67';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=8d4d8526f6023c67';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=8d4d8526f6023c67';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=8d4d8526f6023c67';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=8d4d8526f6023c67';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=8d4d8526f6023c67';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=8d4d8526f6023c67';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=8d4d8526f6023c67';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=fdea9e14281cc30e';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=fdea9e14281cc30e';
+import { groupsFor, streamForGroup } from './data/roster.js?v=fdea9e14281cc30e';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=fdea9e14281cc30e';
+import { eventAppliesToGroup } from './core/filter.js?v=fdea9e14281cc30e';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=fdea9e14281cc30e';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=fdea9e14281cc30e';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=fdea9e14281cc30e';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=fdea9e14281cc30e';
+import { FAQ } from './ui/faq.js?v=fdea9e14281cc30e';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=fdea9e14281cc30e';
+import { fileToAttachment } from './services/supportService.js?v=fdea9e14281cc30e';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=fdea9e14281cc30e';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=fdea9e14281cc30e';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=fdea9e14281cc30e';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=fdea9e14281cc30e';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=fdea9e14281cc30e';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=fdea9e14281cc30e';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=fdea9e14281cc30e';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -1235,15 +1235,8 @@ function bind() {
             render();
             return;
         }
-        if (action === 'prev-period') {
-            state.focusDate = state.view === 'month' ? addDays(state.focusDate, -30) : addDays(state.focusDate, state.view === 'day' ? -1 : -7);
-            state.week = mondayOf(state.focusDate);
-            await reloadEvents();
-            render();
-            return;
-        }
-        if (action === 'next-period') {
-            state.focusDate = state.view === 'month' ? addDays(state.focusDate, 30) : addDays(state.focusDate, state.view === 'day' ? 1 : -7);
+        if (action === 'prev-period' || action === 'next-period') {
+            state.focusDate = shiftCalendarPeriod(state.focusDate, state.view, action === 'next-period' ? 1 : -1);
             state.week = mondayOf(state.focusDate);
             await reloadEvents();
             render();

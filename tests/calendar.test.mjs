@@ -68,3 +68,24 @@ test('official practice matrices stay week-based and never invent a weekday',asy
   assert.ok(course6.weeklyBlocks.length>0,'current official 6K PDF practice rows should be included as week-based blocks');
   assert.ok(!course6.issues.includes('SCHEDULE_SLOT_CONFLICT_REVIEW_REQUIRED'));
 });
+
+const {shiftCalendarPeriod}=await import('../dist/core/date.js');
+test('calendar arrows move in opposite directions in every view',()=>{
+ for(const view of ['day','workweek','week','agenda','list','month']){
+  const before=shiftCalendarPeriod('2026-10-15',view,-1);
+  const after=shiftCalendarPeriod('2026-10-15',view,1);
+  assert.ok(before<'2026-10-15',view+' backwards');
+  assert.ok(after>'2026-10-15',view+' forwards');
+  assert.equal(shiftCalendarPeriod(after,view,-1),'2026-10-15');
+ }
+ assert.equal(shiftCalendarPeriod('2026-10-15','week',1),'2026-10-22');
+ assert.equal(shiftCalendarPeriod('2026-10-15','day',1),'2026-10-16');
+ assert.match(appSource,/shiftCalendarPeriod\(state.focusDate,state.view,action==='next-period'\?1:-1\)/);
+});
+test('month arrows respect short months, leap years and year boundaries',()=>{
+ for(const [date,direction,expected] of [
+  ['2026-01-31',1,'2026-02-28'],['2028-01-31',1,'2028-02-29'],
+  ['2026-03-31',-1,'2026-02-28'],['2026-12-15',1,'2027-01-15'],
+  ['2026-01-15',-1,'2025-12-15'],['2026-08-31',1,'2026-09-30']
+ ])assert.equal(shiftCalendarPeriod(date,'month',direction),expected);
+});
