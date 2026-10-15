@@ -11,3 +11,14 @@ export function academicWeekMap(anchorMonday = '2026-08-31', count = 52) { const
     map[String(n)] = mondayFromWeek(anchorMonday, n); return map; }
 export function sameDay(a, b) { return a === b; }
 export function todayISO(timeZone = 'Europe/Moscow') { return new Intl.DateTimeFormat('en-CA', { timeZone }).format(new Date()); }
+/** Move by a calendar period, clamping month-end dates to the target month. */
+export function shiftCalendarPeriod(date, view, direction) {
+    if (view !== 'month')
+        return addDays(date, direction * (view === 'day' ? 1 : 7));
+    const next = parseISODate(date), day = next.getUTCDate();
+    next.setUTCDate(1);
+    next.setUTCMonth(next.getUTCMonth() + direction);
+    const lastDay = new Date(Date.UTC(next.getUTCFullYear(), next.getUTCMonth() + 1, 0)).getUTCDate();
+    next.setUTCDate(Math.min(day, lastDay));
+    return next.toISOString().slice(0, 10);
+}

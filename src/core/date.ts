@@ -10,3 +10,14 @@ export function mondayFromWeek(anchorMonday:string,week:number):string{return ad
 export function academicWeekMap(anchorMonday='2026-08-31',count=52):Record<string,string>{const map:Record<string,string>={};for(let n=1;n<=count;n++)map[String(n)]=mondayFromWeek(anchorMonday,n);return map;}
 export function sameDay(a:string,b:string):boolean{return a===b;}
 export function todayISO(timeZone='Europe/Moscow'):string{return new Intl.DateTimeFormat('en-CA',{timeZone}).format(new Date());}
+
+/** Move by a calendar period, clamping month-end dates to the target month. */
+export function shiftCalendarPeriod(date:string,view:'day'|'workweek'|'week'|'month'|'agenda'|'list',direction:1|-1):string{
+ if(view!=='month')return addDays(date,direction*(view==='day'?1:7));
+ const next=parseISODate(date),day=next.getUTCDate();
+ next.setUTCDate(1);
+ next.setUTCMonth(next.getUTCMonth()+direction);
+ const lastDay=new Date(Date.UTC(next.getUTCFullYear(),next.getUTCMonth()+1,0)).getUTCDate();
+ next.setUTCDate(Math.min(day,lastDay));
+ return next.toISOString().slice(0,10);
+}
