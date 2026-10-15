@@ -1,22 +1,22 @@
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=e928bed48344205e';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=e928bed48344205e';
-import { groupsFor, streamForGroup } from './data/roster.js?v=e928bed48344205e';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO } from './core/date.js?v=e928bed48344205e';
-import { eventAppliesToGroup } from './core/filter.js?v=e928bed48344205e';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=e928bed48344205e';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=e928bed48344205e';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=e928bed48344205e';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=e928bed48344205e';
-import { FAQ } from './ui/faq.js?v=e928bed48344205e';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=e928bed48344205e';
-import { fileToAttachment } from './services/supportService.js?v=e928bed48344205e';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=e928bed48344205e';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=e928bed48344205e';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=e928bed48344205e';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=e928bed48344205e';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=e928bed48344205e';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=e928bed48344205e';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=e928bed48344205e';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js';
+import { groupsFor, streamForGroup } from './data/roster.js';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO } from './core/date.js';
+import { eventAppliesToGroup } from './core/filter.js';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js';
+import { FAQ } from './ui/faq.js';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js';
+import { fileToAttachment } from './services/supportService.js';
+import { createTicket, listTickets, getTicket } from './services/supportService.js';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js';
+import { enhanceControls, refreshControls } from './ui/customControls.js';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js';
+import { ensureScheduleCacheVersion } from './services/cache.js';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -1431,8 +1431,7 @@ function bind() {
         state.double2 = t.value;
         saveAppearance();
     } });
-    ['programSelect', 'courseSelect', 'groupSelect'].forEach(id => $(id).addEventListener('change', async () => { if (id === 'programSelect' || id === 'courseSelect')
-        renderProfileOptions(); applySelectProfile(); }));
+    ['programSelect', 'courseSelect', 'groupSelect'].forEach(id => $(id).addEventListener('change', async () => { await applySelectProfile(id !== 'groupSelect'); }));
     $('modalProgram').addEventListener('change', () => { const p = $('modalProgram').value; const c = Number($('modalCourse').value); const old = $('modalGroup').value; const g = $('modalGroup'); g.innerHTML = groupOptions(p, c).map(x => `<option value="${esc(x)}">${esc(x || '—')}</option>`).join(''); g.value = groupOptions(p, c).includes(old) ? old : groupOptions(p, c)[0] ?? ''; });
     $('modalCourse').addEventListener('change', () => { const p = $('modalProgram').value; const c = Number($('modalCourse').value); const g = $('modalGroup'); g.innerHTML = groupOptions(p, c).map(x => `<option value="${esc(x)}">${esc(x || '—')}</option>`).join(''); g.value = groupOptions(p, c)[0] ?? ''; });
     document.querySelectorAll('#typeFilter [data-type]').forEach(b => b.addEventListener('click', () => { state.type = b.dataset.type ?? 'all'; document.querySelectorAll('#typeFilter [data-type]').forEach(x => x.classList.remove('active')); b.classList.add('active'); renderSchedule(); }));
@@ -1507,7 +1506,7 @@ function bind() {
         toast(error instanceof Error ? error.message : 'Не удалось перенести событие', 'error');
     } });
 }
-async function applySelectProfile() { const p = $('programSelect'), c = $('courseSelect'), g = $('groupSelect'); state.profile = { program: p.value, course: Number(c.value), group: g.value || '' }; ensureProfile(); localStorage.setItem('almazov.profile', JSON.stringify(state.profile)); setAcademicProfile(state.profile); state.focusDate = todayISO(state.timezone); state.week = mondayOf(state.focusDate); state.events = []; state.status = 'loading'; clearScheduleMemory(); render(); await reloadEvents(); await refreshUploadedMaterials(); await refreshHomePersonal(); render(); }
+async function applySelectProfile(resetGroup = false) { const p = $('programSelect'), c = $('courseSelect'), g = $('groupSelect'); state.profile = { program: p.value, course: Number(c.value), group: resetGroup ? '' : g.value || '' }; ensureProfile(); localStorage.setItem('almazov.profile', JSON.stringify(state.profile)); setAcademicProfile(state.profile); state.focusDate = todayISO(state.timezone); state.week = mondayOf(state.focusDate); state.events = []; state.status = 'loading'; clearScheduleMemory(); render(); await reloadEvents(); await refreshUploadedMaterials(); await refreshHomePersonal(); render(); }
 async function shareLink() { const url = new URL(location.href); url.search = ''; url.searchParams.set('program', state.profile.program); url.searchParams.set('course', String(state.profile.course)); if (state.profile.group)
     url.searchParams.set('group', state.profile.group); try {
     await navigator.clipboard.writeText(url.toString());

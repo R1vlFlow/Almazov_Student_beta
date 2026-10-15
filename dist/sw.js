@@ -1,7 +1,7 @@
 /* Build-time values are injected by scripts/copy-public.mjs. */
-const BUILD_ID='e928bed48344205e';
+const BUILD_ID='__BUILD_ID__';
 const CACHE_NAME=`almazov-hub-${BUILD_ID}`;
-const VERSIONED_SHELL=["./styles.css?v=e928bed48344205e","./splash.css?v=e928bed48344205e","./boot.js?v=e928bed48344205e","./manifest.webmanifest?v=e928bed48344205e","./offline.html?v=e928bed48344205e","./app.js?v=e928bed48344205e","./core/calendar.js?v=e928bed48344205e","./core/date.js?v=e928bed48344205e","./core/excelParser.js?v=e928bed48344205e","./core/filter.js?v=e928bed48344205e","./core/htmlTableParser.js?v=e928bed48344205e","./core/normalize.js?v=e928bed48344205e","./core/time.js?v=e928bed48344205e","./core/types.js?v=e928bed48344205e","./core/validate.js?v=e928bed48344205e","./data/addresses.js?v=e928bed48344205e","./data/catalog.js?v=e928bed48344205e","./data/roster.js?v=e928bed48344205e","./main.js?v=e928bed48344205e","./runtime-config.js?v=e928bed48344205e","./services/cache.js?v=e928bed48344205e","./services/eventService.js?v=e928bed48344205e","./services/materialStore.js?v=e928bed48344205e","./services/personalizationStore.js?v=e928bed48344205e","./services/practiceScheduleImport.js?v=e928bed48344205e","./services/scheduleService.js?v=e928bed48344205e","./services/supportService.js?v=e928bed48344205e","./services/taskService.js?v=e928bed48344205e","./telemetry.js?v=e928bed48344205e","./ui/customControls.js?v=e928bed48344205e","./ui/faq.js?v=e928bed48344205e","./ui/theme.js?v=e928bed48344205e"];
+const VERSIONED_SHELL=__VERSIONED_SHELL__;
 const OFFLINE_URL=new URL(`./offline.html?v=${BUILD_ID}`,self.registration.scope).href;
 
 self.addEventListener('install',event=>event.waitUntil((async()=>{

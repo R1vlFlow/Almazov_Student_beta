@@ -1,4 +1,4 @@
-import { localDate, localTime, localDateTimeInput } from './time.js?v=e928bed48344205e';
+import { localDate, localTime, localDateTimeInput } from './time.js';
 export function displayScheduleParts(e) {
     if (!(e.orgMerged || e.mergedConsecutive) || e.doublePart)
         return [e];
