@@ -1,0 +1,46 @@
+{
+  "checkedAt": "2026-10-15T15:34:38.246409+00:00",
+  "status": "release-ready",
+  "errors": [],
+  "blockers": [],
+  "sourceNotices": [
+    {
+      "id": "ld-130-week7-thursday-source-overlap",
+      "course": "1",
+      "group": "130",
+      "date": "2026-10-15",
+      "sourceUrl": "https://education.almazovcentre.ru/wp-content/uploads/2026/09/1k_ld_b-26-27-na-sajt.pdf",
+      "sha256": "9360f25a6b71ecba3345ac20101bc01997db5e3146163242ba3dc067e720e446",
+      "subjects": [
+        "Иностранный язык",
+        "Латинский язык",
+        "Безопасность жизнедеятельности АСЦ"
+      ],
+      "start": "09:20",
+      "end": "12:25",
+      "message": "Пересечение в официальном PDF: языковые занятия и БЖД АСЦ указаны одновременно. Уточнения нет; проверьте занятие у старосты. Оба варианта сохранены.",
+      "reviewedAt": "2026-10-14",
+      "resolution": "Preserve both source alternatives; no inferred correction. User confirmed no clarification is available."
+    }
+  ],
+  "counts": {
+    "ldCourses": 6,
+    "specialistCourseSnapshots": 12,
+    "unpublishedSnapshots": 0,
+    "missingGroupAssignments": 0
+  },
+  "checks": {
+    "releaseCourseScope": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "requiredKugProgramCourses": 10,
+    "academicYear": "2026/2027",
+    "hashAlgorithm": "SHA-256",
+    "maxSourceAgeHours": 36
+  }
+}

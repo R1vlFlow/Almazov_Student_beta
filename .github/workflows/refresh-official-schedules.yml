@@ -1,0 +1,70 @@
+# Validate official schedule parsing whenever its code, tests, or workflow changes.
+name: Refresh official schedules for release candidate
+
+on:
+  push:
+    branches: [feature/zalma-integration-beta]
+    paths:
+      - '.github/workflows/refresh-official-schedules.yml'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'requirements-official-sync.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-candidate-official-schedule-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/zalma-integration-beta
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install official schedule parser dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements-official-sync.txt
+      - name: Install application dependencies
+        run: npm install --no-audit --no-fund
+      - name: Fetch official sources for the all-course release scope
+        id: sync
+        continue-on-error: true
+        env:
+          RELEASE_COURSE_SCOPE: 'all'
+          OFFICIAL_SOURCE_ARCHIVE: 'storage/official-sources'
+        run: npm run sync:official
+      - name: Preserve synchronization diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-schedule-sync-${{ github.run_number }}
+          path: |
+            reports/live-sync-attempt-latest.json
+            reports/production-release-audit.json
+            data/official-sync-status.json
+            data/kug-source-manifest.json
+            storage/official-sources
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Commit refreshed schedules only after every release check passes
+        if: steps.sync.outcome == 'success'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data reports
+          git diff --cached --quiet || git commit -m 'chore: refresh verified official schedules'
+          git push origin feature/zalma-integration-beta
+      - name: Fail when official data or release validation is incomplete
+        if: steps.sync.outcome != 'success'
+        run: exit 1
