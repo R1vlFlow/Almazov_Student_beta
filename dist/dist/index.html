@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Almazov Student</title>
+<p>Открываем обновлённое расписание… <a href="../">Перейти к расписанию</a></p>
+<script>
+const destination=new URL('../',location.href);
+destination.search=location.search;destination.hash=location.hash;
+location.replace(destination.href);
+</script></html>

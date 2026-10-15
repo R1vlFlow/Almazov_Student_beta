@@ -29,6 +29,11 @@ check('specialist producer discovers official page, verifies document identity a
 check('specialist JSON is bundled into per-program static snapshots',copyPublic.includes("'data','program-schedules.json'")&&copyPublic.includes("'data','schedules',program")&&copyPublic.includes('REQUIRE_SPECIALIST_SNAPSHOT'));
 check('server checks generated specialist snapshot before memory/redis/disk cache',pipeline.indexOf('loadGeneratedSpecialistSnapshot(program,course)')<pipeline.indexOf('const mem=memory.get(key)'));
 
+const legacyEntry=await read('dist/dist/index.html');
+const legacyWorker=await read('dist/dist/sw.js');
+check('old installed PWA entry keeps query and fragment and redirects to root',legacyEntry.includes("new URL('../',location.href)")&&legacyEntry.includes('destination.search=location.search')&&legacyEntry.includes('destination.hash=location.hash'));
+check('old PWA worker redirects navigation without deleting personal storage',legacyWorker.includes('Response.redirect(target.href,302)')&&!legacyWorker.includes('deleteDatabase')&&!legacyWorker.includes('localStorage.clear'));
+
 const failures=checks.filter(([,ok])=>!ok);
 for(const [name,ok] of checks) console.log(`${ok?'PASS':'FAIL'} — ${name}`);
 console.log(`DEPLOYMENT CONTRACT: ${checks.length-failures.length}/${checks.length} passed`);
