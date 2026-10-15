@@ -1,4 +1,4 @@
-import { cleanText } from './normalize.js';
+import { cleanText } from './normalize.js?v=8d4d8526f6023c67';
 export function parseExcelWithSheetJS(data, XLSX) {
     const wb = XLSX.read(data, { type: 'array' });
     return wb.SheetNames.map(name => {

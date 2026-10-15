@@ -1,7 +1,1 @@
-/* Public runtime configuration. Never put secrets in this file. */
-window.ZALMA_RUNTIME_CONFIG = Object.assign({
-  errorEndpoint: '',
-  googleAnalyticsId: '',
-  yandexMetrikaId: '',
-  telemetryEnabled: false
-}, window.ZALMA_RUNTIME_CONFIG || {});
+window.ZALMA_RUNTIME_CONFIG=Object.assign({errorEndpoint:"",googleAnalyticsId:"",yandexMetrikaId:"",telemetryEnabled:!1},window.ZALMA_RUNTIME_CONFIG||{});
