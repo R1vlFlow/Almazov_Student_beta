@@ -1,8 +1,8 @@
 {
-  "status": "local-recovery",
+  "status": "ok",
   "dataState": "live-generated",
   "engineVersion": "4.9.0-rc.1",
-  "generatedAt": "2026-10-16T00:46:50.439182+00:00",
+  "generatedAt": "2026-10-16T20:50:59.230440+00:00",
   "sourcePage": "https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/",
   "schemaVersion": 7,
   "courses": {
@@ -1063,21 +1063,5 @@
     }
   },
   "assessmentPeriods": 13,
-  "kugSources": 6,
-  "lastLiveSyncAttempt": {
-    "attemptedAt": "2026-10-16T16:13:36.980162+00:00",
-    "command": "npm run sync:official",
-    "result": "failed-before-source-bytes",
-    "failedStage": "official-hub-discovery",
-    "exception": "ConnectTimeout",
-    "reason": "HTTPSConnectionPool(host='education.almazovcentre.ru', port=443): Max retries exceeded with url: /about_institute/programm/specialist_programme/student/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='education.almazovcentre.ru', port=443) at 0x1e2d1cdfbc0>, 'Connection to education.almazovcentre.ru timed out. (connect timeout=15)'))",
-    "rawPdfBytesDownloaded": false,
-    "rawPdfFileCount": 0,
-    "officialPdfSha256Verified": 0,
-    "snapshotFilesReplaced": false,
-    "publicationAllowed": false,
-    "gateStatusAfterAttempt": "BLOCKED_FOR_PRODUCTION"
-  },
-  "previousStatusBeforeFailedAttempt": "ok",
-  "message": "Latest live sync failed after downloading 0 PDF files and computing 0 SHA-256 fingerprints; cached payloads were left unchanged and production publication is denied. HTTPSConnectionPool(host='education.almazovcentre.ru', port=443): Max retries exceeded with url: /about_institute/programm/specialist_programme/student/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='education.almazovcentre.ru', port=443) at 0x1e2d1cdfbc0>, 'Connection to education.almazovcentre.ru timed out. (connect timeout=15)'))"
+  "kugSources": 6
 }
