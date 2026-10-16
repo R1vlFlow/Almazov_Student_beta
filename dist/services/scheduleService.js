@@ -1,6 +1,6 @@
-import { LIVE_LD_JSON, PROGRAMS, sourceFor, sourcesFor } from '../data/catalog.js?v=fdea9e14281cc30e';
-import { validateScheduleIndex, normalizeLiveEvents, normalizeWeeklyBlocks } from '../core/validate.js?v=fdea9e14281cc30e';
-import { saveCache, readCache } from './cache.js?v=fdea9e14281cc30e';
+import { LIVE_LD_JSON, PROGRAMS, sourceFor, sourcesFor } from '../data/catalog.js?v=e671cf852fbcaf77';
+import { validateScheduleIndex, normalizeLiveEvents, normalizeWeeklyBlocks } from '../core/validate.js?v=e671cf852fbcaf77';
+import { saveCache, readCache } from './cache.js?v=e671cf852fbcaf77';
 const API_BASE = './api/schedule';
 const memory = new Map();
 function isStaticRuntime() { return typeof document !== 'undefined' && document.documentElement.dataset.runtimeMode === 'static'; }

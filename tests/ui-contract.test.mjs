@@ -128,3 +128,24 @@ test('course changes capture the new selection before render and reset the old g
  assert.match(app,/group:resetGroup\?'':g.value\|\|''/);
  assert.doesNotMatch(app,/if\(id==='programSelect'\|\|id==='courseSelect'\)renderProfileOptions\(\)/);
 });
+
+test('phone period navigation stays beside lessons and announces the selected dates',()=>{
+ assert.match(html,/class="mobile-period-nav" aria-label="Переключение периода"/);
+ assert.match(html,/id="mobilePeriodLabel" role="status" aria-live="polite"/);
+ assert.match(css,/#page-schedule\.active \.mobile-period-nav\{[^}]*position:fixed;bottom:0/);
+ assert.match(css,/safe-area-inset-bottom/);
+ assert.match(app,/\$\('mobilePeriodLabel'\)\.textContent=\$\('weekLabel'\)\.textContent/);
+ assert.match(app,/target\.hasAttribute\('data-mobile-period'\).*scrollIntoView/);
+});
+test('phone lesson cards explicitly distinguish practice and lectures',()=>{
+ assert.match(app,/mobile-lesson-kind[\s\S]*?e\.type==='practice'\?'ПЗ':e\.type==='lecture'\?'Лекция'/);
+});
+
+test('month day selection opens a day instead of remaining on the month',()=>{
+ assert.match(app,/if\(target.dataset.jumpDate\)\{[^}]*state.view='day';await reloadEvents\(\)/);
+ assert.doesNotMatch(app,/if\(state.view==='month'\)\{\}/);
+});
+test('view changes do not render every hidden page or pre-render the whole calendar',()=>{
+ assert.match(app,/if\(state.page==='home'\)renderHome\(\)/);
+ assert.match(app,/state.view=target.dataset.view as ViewMode;await reloadEvents\(\);return/);
+});

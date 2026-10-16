@@ -9,6 +9,7 @@ import fitz
 import pdfplumber
 from universal_schedule_ingest import sniff_format, decode_rows, parse_source_bytes
 from source_integrity import source_provenance
+from cycle_dates import describe_week_cells, cell_week_span, resolve_cycle_dates
 
 PAGE='https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/'
 OUT=Path('data/official-schedules.json')
@@ -623,6 +624,7 @@ SUBJECT_PDF_ALIASES = {
     'жизнидеятельност и': 'жизнедеятельности',
     'жизнедеятельност и': 'жизнедеятельности',
     'государственност и': 'государственности',
+    'Внутренни е болезни': 'Внутренние болезни',
     'Эндокрино логия': 'Эндокринология',
     'Пархоменк о': 'Пархоменко',
     'диагностик а': 'диагностика',
@@ -1121,7 +1123,7 @@ def parse_week_matrix_pdfplumber_cells(doc_bytes, course, url, stream):
     """Parse an intact weekly matrix from actual merged PDF cell geometry."""
     import io
     out=[]
-    carry_bands={}; fixed_time=None; previous_width=None
+    carry_bands={}; fixed_time=None; previous_width=None; week_cells={}
     try:
         with pdfplumber.open(io.BytesIO(doc_bytes)) as pdf:
             for page in pdf.pages:
@@ -1131,6 +1133,7 @@ def parse_week_matrix_pdfplumber_cells(doc_bytes, course, url, stream):
                 bands=_matrix_week_bands_from_date_row(table)
                 if bands:
                     carry_bands=bands; previous_width=page.width
+                    week_cells=describe_week_cells(table,bands)
                 elif carry_bands and abs(page.width-previous_width)<1:
                     bands=carry_bands
                 if len(bands)<6:
@@ -1180,7 +1183,8 @@ def parse_week_matrix_pdfplumber_cells(doc_bytes, course, url, stream):
                                     'group':group,'stream':stream or '','type':'practice','weekNumber':w,'weekStart':week_start(w),
                                     'sourceUrl':url,'scheduleMode':'weekly-block','matrixBBox':[round(x0,3),round(y0,3),round(x1,3),round(y1,3)],
                                     'sourcePageNumber':page.page_number,
-                                    'parser':'pdfplumber-merged-cell-matrix-v7'})
+                                    **cell_week_span(cell,week_cells[w]),
+                                    'parser':'pdfplumber-merged-cell-matrix-v8'})
     except Exception as exc:
         print(f'MERGED CELL MATRIX WARNING: {type(exc).__name__}: {exc}',file=sys.stderr)
     seen=set(); clean=[]
@@ -2097,6 +2101,7 @@ def main():
                     event['weekCalendarSha256']=week_doc.get('source',{}).get('sha256')
                     event['weekCalendarStatus']=week_doc.get('status')
                     event['date']=None; event['dateHint']=None; event['weekDate']=None
+                    resolve_cycle_dates(event,week)
             cc=courses[str(c)]
             source_row={'kind':k,'stream':st or '','title':title,'url':url,'events':len(events),**provenance}
             if provenance.get('academicYearInDocument') != '2026/2027':

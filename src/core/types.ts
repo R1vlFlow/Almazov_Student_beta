@@ -74,6 +74,8 @@ export interface ScheduleWeeklyBlock {
   group:string;
   stream:Stream;
   weekNumber:number;
+  cycleDates?:string[];
+  cycleDateStatus?:'matrix-subcolumns'|'unresolved';
   weekRangeStart?:string;
   weekRangeEnd?:string;
   start:string;

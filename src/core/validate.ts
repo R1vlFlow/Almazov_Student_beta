@@ -81,7 +81,7 @@ export function normalizeWeeklyBlocks(payload:unknown,program:ProgramCode,course
     if(!group)continue;
     const weekRangeStart=isoDate(raw?.weekRangeStart)?raw.weekRangeStart:undefined;
     const weekRangeEnd=isoDate(raw?.weekRangeEnd)?raw.weekRangeEnd:undefined;
-    result.push({id:String(raw?.id??`${program}-${course}-${group}-${stream??'all'}-week-${weekNumber}-${time.start}-${subject}-${index}`),program,course,group,stream,weekNumber,weekRangeStart,weekRangeEnd,start:time.start,end:time.end,subject,location:cleanLocation(raw?.location),teacher:cleanTeacher(raw?.teacher),type:normalizeType(raw?.type,subject),sourceUrl:typeof raw?.sourceUrl==='string'?raw.sourceUrl:undefined});
+    result.push({id:String(raw?.id??`${program}-${course}-${group}-${stream??'all'}-week-${weekNumber}-${time.start}-${subject}-${index}`),program,course,group,stream,weekNumber,weekRangeStart,weekRangeEnd,cycleDates:Array.isArray(raw.cycleDates)?raw.cycleDates.filter((date:unknown)=>isoDate(date)):undefined,cycleDateStatus:raw.cycleDateStatus==='matrix-subcolumns'?'matrix-subcolumns':'unresolved',start:time.start,end:time.end,subject,location:cleanLocation(raw?.location),teacher:cleanTeacher(raw?.teacher),type:normalizeType(raw?.type,subject),sourceUrl:typeof raw?.sourceUrl==='string'?raw.sourceUrl:undefined});
   }
   return dedupeWeeklyBlocks(result);
 }
