@@ -1,23 +1,23 @@
-import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=892392c185ed2057';
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=892392c185ed2057';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=892392c185ed2057';
-import { groupsFor, streamForGroup } from './data/roster.js?v=892392c185ed2057';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=892392c185ed2057';
-import { eventAppliesToGroup } from './core/filter.js?v=892392c185ed2057';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=892392c185ed2057';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=892392c185ed2057';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=892392c185ed2057';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=892392c185ed2057';
-import { FAQ } from './ui/faq.js?v=892392c185ed2057';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=892392c185ed2057';
-import { fileToAttachment } from './services/supportService.js?v=892392c185ed2057';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=892392c185ed2057';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=892392c185ed2057';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=892392c185ed2057';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=892392c185ed2057';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=892392c185ed2057';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=892392c185ed2057';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=892392c185ed2057';
+import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=46317f52ff75086c';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=46317f52ff75086c';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=46317f52ff75086c';
+import { groupsFor, streamForGroup } from './data/roster.js?v=46317f52ff75086c';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=46317f52ff75086c';
+import { eventAppliesToGroup } from './core/filter.js?v=46317f52ff75086c';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=46317f52ff75086c';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=46317f52ff75086c';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=46317f52ff75086c';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=46317f52ff75086c';
+import { FAQ } from './ui/faq.js?v=46317f52ff75086c';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=46317f52ff75086c';
+import { fileToAttachment } from './services/supportService.js?v=46317f52ff75086c';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=46317f52ff75086c';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=46317f52ff75086c';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=46317f52ff75086c';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=46317f52ff75086c';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=46317f52ff75086c';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=46317f52ff75086c';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=46317f52ff75086c';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -95,7 +95,7 @@ function localMidnightUtc(date) { return localDateTimeToUtc(`${date}T00:00`, sta
 function getDisplayEvents() {
     if (state.scheduleMode === 'kug')
         return [];
-    const selected = [...state.official, ...expandPracticeCycles(state.weeklyBlocks)].filter(e => !hasImportedPracticeOverlap(e, importsPracticeSchedule() ? state.importedPractices : []) && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
+    const selected = [...state.official, ...expandPracticeCycles(state.weeklyBlocks.filter(e => e.group === state.profile.group))].filter(e => !hasImportedPracticeOverlap(e, importsPracticeSchedule() ? state.importedPractices : []) && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
     const imported = (importsPracticeSchedule() ? state.importedPractices : []).flatMap(importedPracticeCalendar);
     const personal = state.personal.map(e => ({ id: e.id, kind: 'personal', title: e.title, description: e.description ?? '', category: e.category, status: e.status, startAt: e.startAt, endAt: e.endAt, timeZone: e.timeZone, allDay: e.allDay, location: e.location ?? '', meetingUrl: e.meetingUrl, attendees: e.attendees, recurrence: e.recurrence, seriesId: e.seriesId, readOnly: false }));
     const combined = [...selected, ...imported, ...personal];
@@ -198,7 +198,16 @@ function startScheduleRefresh() {
     document.addEventListener('visibilitychange', () => { void refresh(); });
     window.addEventListener('online', () => { void refresh(); });
 }
-function render() { renderShell(); renderProfileOptions(); renderSchedule(); renderTasks(); renderFaculties(); renderResources(); renderKug(); renderFaq(state.faqQuery); renderHome(); renderSettings(); renderProfilePage(); refreshControls(); }
+function render() { renderShell(); renderProfileOptions(); if (state.page === 'schedule')
+    renderSchedule(); if (state.page === 'homework')
+    renderTasks(); if (state.page === 'faculties')
+    renderFaculties(); if (state.page === 'resources')
+    renderResources(); if (state.page === 'kug')
+    renderKug(); if (state.page === 'faq')
+    renderFaq(state.faqQuery); if (state.page === 'home')
+    renderHome(); if (state.page === 'settings')
+    renderSettings(); if (state.page === 'profilePage')
+    renderProfilePage(); refreshControls(); }
 function nav(page) {
     const destination = document.getElementById(`page-${page}`);
     if (!destination?.classList.contains('page')) {
@@ -211,6 +220,10 @@ function nav(page) {
     document.querySelectorAll('[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === page));
     $('pageTitle').textContent = { home: 'Главная', schedule: 'Расписание', homework: 'Задачи', kug: 'КУГ', resources: 'Материалы', addresses: 'Адреса', faculties: 'Факультеты', faq: 'FAQ', support: 'Поддержка', settings: 'Настройки', profilePage: 'Профиль' }[page] ?? 'Almazov';
     document.body.classList.remove('menu-open');
+    if (page === 'faculties')
+        renderFaculties();
+    if (page === 'kug')
+        renderKug();
     if (page === 'schedule')
         renderSchedule();
     if (page === 'homework')
@@ -249,7 +262,7 @@ function countdownLabel(milliseconds) { const minutes = Math.max(0, Math.floor(M
     return `${hours} ч ${mins} мин`; return `${mins} мин`; }
 function renderHome() {
     const today = todayISO(state.timezone), now = Date.now();
-    const official = [...state.official, ...expandPracticeCycles(state.weeklyBlocks)].filter(e => !hasImportedPracticeOverlap(e, importsPracticeSchedule() ? state.importedPractices : []) && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
+    const official = [...state.official, ...expandPracticeCycles(state.weeklyBlocks.filter(e => e.group === state.profile.group))].filter(e => !hasImportedPracticeOverlap(e, importsPracticeSchedule() ? state.importedPractices : []) && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
     const events = [...official, ...(importsPracticeSchedule() ? state.importedPractices : []).flatMap(importedPracticeCalendar), ...state.homePersonal.map(calendarPersonal)].sort((a, b) => a.startAt.localeCompare(b.startAt));
     const weekEvents = events.filter(e => { const d = localDate(e.startAt, state.timezone); return d >= startOfWeek(today) && d <= addDays(startOfWeek(today), 6); });
     const todayEvents = events.filter(e => localDate(e.startAt, state.timezone) === today || localDate(e.endAt, state.timezone) === today);
@@ -275,7 +288,7 @@ function renderSchedule() {
     document.querySelectorAll('[data-action="import-practices"]').forEach(button => { button.hidden = !canImportPracticeSchedule(); });
     // Empty state is rendered dynamically, so its absence on first render is normal.
     document.getElementById('emptyState')?.remove();
-    const allEvents = getDisplayEvents();
+    const allEvents = state.status === 'loading' ? [] : getDisplayEvents();
     const range = state.scheduleMode === 'kug' && state.view === 'month' ? monthRangeDates() : rangeDates();
     const events = allEvents.filter(e => { try {
         return localDate(e.startAt, state.timezone) <= range.to && localDate(e.endAt, state.timezone) >= range.from;
@@ -1166,9 +1179,7 @@ function bind() {
         }
         if (target.dataset.view) {
             state.view = target.dataset.view;
-            renderSchedule();
             await reloadEvents();
-            render();
             return;
         }
         if (target.dataset.faqCategory) {
@@ -1395,12 +1406,9 @@ function bind() {
         if (target.dataset.jumpDate) {
             state.focusDate = target.dataset.jumpDate;
             state.week = mondayOf(state.focusDate);
-            if (state.view === 'month') { }
-            else
-                state.view = 'day';
-            renderSchedule();
+            state.view = 'day';
             await reloadEvents();
-            render();
+            $('scheduleRoot').scrollIntoView({ block: 'start', behavior: 'instant' });
             return;
         }
     });

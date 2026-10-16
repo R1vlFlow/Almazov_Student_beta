@@ -116,3 +116,20 @@ test('import overrides only its group, date and overlapping practice interval',(
  assert.equal(hasImportedPracticeOverlap({...event,type:'lecture'},[event]),false);
  assert.match(appSource,/toggle-practice-import/);
 });
+
+test('repeated calendar conversions reuse bounded timezone formatters',async()=>{
+ const {localDateTimeToUtc,localDate,localTime,localParts}=await import('../dist/core/time.js');
+ const Native=Intl.DateTimeFormat;let created=0;
+ Intl.DateTimeFormat=function(...args){created++;return new Native(...args);};
+ try{
+  for(let i=0;i<1000;i++){
+   const utc=localDateTimeToUtc('2026-10-16T09:00','Asia/Tokyo');
+   assert.equal(utc,'2026-10-16T00:00:00.000Z');
+   assert.equal(localDate(utc,'Asia/Tokyo'),'2026-10-16');
+   assert.equal(localTime(utc,'Asia/Tokyo'),'09:00');
+  }
+  assert.ok(created<=1,`created ${created} formatters`);
+  const copy=localParts('2026-10-16T00:00:00.000Z','Asia/Tokyo');copy.hour=99;
+  assert.equal(localTime('2026-10-16T00:00:00.000Z','Asia/Tokyo'),'09:00');
+ }finally{Intl.DateTimeFormat=Native;}
+});

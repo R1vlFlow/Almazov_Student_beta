@@ -6,10 +6,27 @@ export function userTimeZone() {
         return 'Europe/Moscow';
     }
 }
+const partFormatters = new Map();
+const partCache = new Map();
 function parts(date, timeZone) {
-    const ps = new Intl.DateTimeFormat('en-US', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(date);
+    const key = `${timeZone}:${date.getTime()}`;
+    const cached = partCache.get(key);
+    if (cached)
+        return { ...cached };
+    let formatter = partFormatters.get(timeZone);
+    if (!formatter) {
+        formatter = new Intl.DateTimeFormat('en-US', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
+        if (partFormatters.size >= 32)
+            partFormatters.clear();
+        partFormatters.set(timeZone, formatter);
+    }
+    const ps = formatter.formatToParts(date);
     const get = (type) => Number(ps.find(p => p.type === type)?.value ?? 0);
-    return { year: get('year'), month: get('month'), day: get('day'), hour: get('hour'), minute: get('minute'), second: get('second') };
+    const result = { year: get('year'), month: get('month'), day: get('day'), hour: get('hour'), minute: get('minute'), second: get('second') };
+    if (partCache.size >= 4096)
+        partCache.clear();
+    partCache.set(key, result);
+    return { ...result };
 }
 function offsetMs(date, timeZone) {
     const p = parts(date, timeZone);

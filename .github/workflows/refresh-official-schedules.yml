@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feature/zalma-integration-beta
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
@@ -59,12 +59,14 @@ jobs:
           retention-days: 7
       - name: Commit refreshed schedules only after every release check passes
         if: steps.sync.outcome == 'success'
+        env:
+          SYNC_BRANCH: ${{ github.ref_name }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add data reports
           git diff --cached --quiet || git commit -m 'chore: refresh verified official schedules'
-          git push origin feature/zalma-integration-beta
+          git push origin "HEAD:$SYNC_BRANCH"
       - name: Fail when official data or release validation is incomplete
         if: steps.sync.outcome != 'success'
         run: exit 1

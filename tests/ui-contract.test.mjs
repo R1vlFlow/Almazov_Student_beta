@@ -140,3 +140,12 @@ test('phone period navigation stays beside lessons and announces the selected da
 test('phone lesson cards explicitly distinguish practice and lectures',()=>{
  assert.match(app,/mobile-lesson-kind[\s\S]*?e\.type==='practice'\?'ПЗ':e\.type==='lecture'\?'Лекция'/);
 });
+
+test('month day selection opens a day instead of remaining on the month',()=>{
+ assert.match(app,/if\(target.dataset.jumpDate\)\{[^}]*state.view='day';await reloadEvents\(\)/);
+ assert.doesNotMatch(app,/if\(state.view==='month'\)\{\}/);
+});
+test('view changes do not render every hidden page or pre-render the whole calendar',()=>{
+ assert.match(app,/if\(state.page==='home'\)renderHome\(\)/);
+ assert.match(app,/state.view=target.dataset.view as ViewMode;await reloadEvents\(\);return/);
+});
