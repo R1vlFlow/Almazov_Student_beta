@@ -12,6 +12,7 @@ import re
 import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from cycle_dates import validate_cycle_assignments
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = 'https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/'
@@ -151,6 +152,8 @@ def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
 
     for course in course_scope:
         cdata = ld.get('courses', {}).get(course, {})
+        if int(course)>=4:
+            errors.extend(f'LD {course}: {error}' for error in validate_cycle_assignments(cdata.get('events',[]),{w['weekNumber']:w for w in weeks.get('weeks',[])}))
         errors.extend(schedule_coverage_errors(course, cdata))
         if not cdata.get('events'):
             errors.append(f'LD course {course}: no events')

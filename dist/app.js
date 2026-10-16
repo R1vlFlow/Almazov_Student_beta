@@ -1,22 +1,23 @@
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=fdea9e14281cc30e';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=fdea9e14281cc30e';
-import { groupsFor, streamForGroup } from './data/roster.js?v=fdea9e14281cc30e';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=fdea9e14281cc30e';
-import { eventAppliesToGroup } from './core/filter.js?v=fdea9e14281cc30e';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=fdea9e14281cc30e';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=fdea9e14281cc30e';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=fdea9e14281cc30e';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=fdea9e14281cc30e';
-import { FAQ } from './ui/faq.js?v=fdea9e14281cc30e';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=fdea9e14281cc30e';
-import { fileToAttachment } from './services/supportService.js?v=fdea9e14281cc30e';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=fdea9e14281cc30e';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=fdea9e14281cc30e';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=fdea9e14281cc30e';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=fdea9e14281cc30e';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=fdea9e14281cc30e';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=fdea9e14281cc30e';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=fdea9e14281cc30e';
+import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=c92025d955992ad7';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=c92025d955992ad7';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=c92025d955992ad7';
+import { groupsFor, streamForGroup } from './data/roster.js?v=c92025d955992ad7';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=c92025d955992ad7';
+import { eventAppliesToGroup } from './core/filter.js?v=c92025d955992ad7';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=c92025d955992ad7';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=c92025d955992ad7';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=c92025d955992ad7';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=c92025d955992ad7';
+import { FAQ } from './ui/faq.js?v=c92025d955992ad7';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=c92025d955992ad7';
+import { fileToAttachment } from './services/supportService.js?v=c92025d955992ad7';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=c92025d955992ad7';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=c92025d955992ad7';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=c92025d955992ad7';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=c92025d955992ad7';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=c92025d955992ad7';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=c92025d955992ad7';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=c92025d955992ad7';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -29,7 +30,8 @@ function $(id) { const el = document.getElementById(id); if (!el)
     throw new Error(`Missing #${id}`); return el; }
 function esc(v) { return String(v).replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[c])); }
 function canImportPracticeSchedule() { return state.profile.course >= 4; }
-function importsPracticeSchedule() { return canImportPracticeSchedule() && state.importedPracticeCount > 0; }
+function practiceImportPreferenceKey() { return `almazov.practice-import-enabled:${state.profile.program}:${state.profile.course}:${state.profile.group}`; }
+function importsPracticeSchedule() { return canImportPracticeSchedule() && state.importedPracticeCount > 0 && localStorage.getItem(practiceImportPreferenceKey()) !== 'false'; }
 function groupOptions(program, course) { const groups = groupsFor(program, course); return groups.length ? groups : ['']; }
 function ensureCurrentGroupOption(id) { const select = document.getElementById(id); if (!select || !state.profile.group)
     return; if (!Array.from(select.options).some(option => option.value === state.profile.group))
@@ -93,7 +95,7 @@ function localMidnightUtc(date) { return localDateTimeToUtc(`${date}T00:00`, sta
 function getDisplayEvents() {
     if (state.scheduleMode === 'kug')
         return [];
-    const selected = state.official.filter(e => (!importsPracticeSchedule() || e.type !== 'practice') && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
+    const selected = [...state.official, ...expandPracticeCycles(state.weeklyBlocks)].filter(e => !hasImportedPracticeOverlap(e, importsPracticeSchedule() ? state.importedPractices : []) && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
     const imported = (importsPracticeSchedule() ? state.importedPractices : []).flatMap(importedPracticeCalendar);
     const personal = state.personal.map(e => ({ id: e.id, kind: 'personal', title: e.title, description: e.description ?? '', category: e.category, status: e.status, startAt: e.startAt, endAt: e.endAt, timeZone: e.timeZone, allDay: e.allDay, location: e.location ?? '', meetingUrl: e.meetingUrl, attendees: e.attendees, recurrence: e.recurrence, seriesId: e.seriesId, readOnly: false }));
     const combined = [...selected, ...imported, ...personal];
@@ -151,7 +153,7 @@ async function reloadEvents() {
     try {
         const range = rangeDates();
         const [rows, count] = canImportPracticeSchedule() ? await Promise.all([
-            listImportedPractices(state.profile.program, state.profile.course, state.profile.group, range.from, range.to),
+            listImportedPractices(state.profile.program, state.profile.course, state.profile.group, '0001-01-01', '9999-12-31'),
             countImportedPractices(state.profile.program, state.profile.course, state.profile.group)
         ]) : [[], 0];
         if (sequence !== reloadSequence)
@@ -247,11 +249,11 @@ function countdownLabel(milliseconds) { const minutes = Math.max(0, Math.floor(M
     return `${hours} ч ${mins} мин`; return `${mins} мин`; }
 function renderHome() {
     const today = todayISO(state.timezone), now = Date.now();
-    const official = state.official.filter(e => (!importsPracticeSchedule() || e.type !== 'practice') && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
+    const official = [...state.official, ...expandPracticeCycles(state.weeklyBlocks)].filter(e => !hasImportedPracticeOverlap(e, importsPracticeSchedule() ? state.importedPractices : []) && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
     const events = [...official, ...(importsPracticeSchedule() ? state.importedPractices : []).flatMap(importedPracticeCalendar), ...state.homePersonal.map(calendarPersonal)].sort((a, b) => a.startAt.localeCompare(b.startAt));
     const weekEvents = events.filter(e => { const d = localDate(e.startAt, state.timezone); return d >= startOfWeek(today) && d <= addDays(startOfWeek(today), 6); });
     const todayEvents = events.filter(e => localDate(e.startAt, state.timezone) === today || localDate(e.endAt, state.timezone) === today);
-    const todayCycles = importsPracticeSchedule() ? [] : visibleWeeklyBlocks(today, today);
+    const todayCycles = visibleWeeklyBlocks(today, today);
     const todayClasses = todayEvents.filter(e => e.kind === 'schedule');
     const active = todayClasses.find(e => Date.parse(e.startAt) <= now && Date.parse(e.endAt) > now);
     // Use the entire official snapshot, not only today's range, so the hero still shows tomorrow's next class.
@@ -282,7 +284,7 @@ function renderSchedule() {
         return false;
     } });
     state.events = events;
-    const weeklyBlocks = state.scheduleMode === 'kug' || importsPracticeSchedule() ? [] : visibleWeeklyBlocks(range.from, range.to);
+    const weeklyBlocks = state.scheduleMode === 'kug' ? [] : visibleWeeklyBlocks(range.from, range.to);
     const notices = state.official.filter(e => e.sourceNotice && e.group === state.profile.group && e.date >= range.from && e.date <= range.to);
     document.getElementById('officialSourceNotice')?.remove();
     if (notices.length) {
@@ -320,9 +322,9 @@ function renderSchedule() {
     else {
         const html = state.scheduleMode === 'kug' ? (state.view === 'agenda' || state.view === 'list' ? renderKugAgenda(range.from, range.to) : renderKugGrid(range.dates)) : state.view === 'month' ? renderMonth(events) : state.view === 'agenda' ? renderAgenda(events) : state.view === 'list' ? renderList(events) : renderCardSchedule(events, dates);
         const weekBlocksHtml = renderWeeklyBlocks(weeklyBlocks);
-        const importNote = state.scheduleMode === 'kug' || !importsPracticeSchedule() ? '' : `<aside class="practice-source-note ${state.importedPracticeCount ? 'has-import' : 'needs-import'}"><div><b>${state.importedPracticeCount ? `Импортировано ПЗ: ${state.importedPracticeCount}` : 'ПЗ для этой группы ещё не импортированы'}</b><small>Лекции берутся с официального сайта. Файл ПЗ относится к группе ${esc(state.profile.group || 'не выбрана')} и хранится на этом устройстве.</small></div><button class="btn small" data-action="import-practices">${state.importedPracticeCount ? 'Обновить ПЗ' : 'Загрузить файл ПЗ'}</button></aside>`;
-        $('desktopSchedule').innerHTML = importNote + html + weekBlocksHtml;
-        $('mobileSchedule').innerHTML = importNote + (state.scheduleMode === 'kug' || state.view === 'month' ? html : renderMobile(events, dates)) + weekBlocksHtml;
+        const importNote = state.scheduleMode === 'kug' || !canImportPracticeSchedule() || !state.importedPracticeCount ? '' : `<aside class="practice-source-note ${state.importedPracticeCount ? 'has-import' : 'needs-import'}"><div><b>${state.importedPracticeCount ? `${importsPracticeSchedule() ? 'Импортировано ПЗ' : 'Импорт сохранён, показано официальное расписание'}: ${state.importedPracticeCount}` : 'ПЗ для этой группы ещё не импортированы'}</b><small>Лекции берутся с официального сайта. Ваши ПЗ заменяют официальные только в совпадающее время. Файл группы ${esc(state.profile.group || 'не выбрана')} хранится на этом устройстве.</small></div><button class="btn small" data-action="toggle-practice-import">${importsPracticeSchedule() ? 'Использовать официальное' : 'Включить свой импорт'}</button><button class="btn small" data-action="import-practices">${state.importedPracticeCount ? 'Обновить ПЗ' : 'Загрузить файл ПЗ'}</button></aside>`;
+        $('desktopSchedule').innerHTML = importNote + weekBlocksHtml + html;
+        $('mobileSchedule').innerHTML = importNote + weekBlocksHtml + (state.scheduleMode === 'kug' || state.view === 'month' ? html : renderMobile(events, dates));
     }
     $('dataHealthTitle').textContent = state.status === 'live' ? 'Источник актуален' : state.status === 'cache' ? 'Локальный snapshot' : state.status === 'loading' ? 'Загрузка…' : state.status === 'partial' ? 'Частичные данные' : state.status === 'error' || state.status === 'unavailable' ? 'Источник недоступен' : 'Источник доступен';
     const selectedCoverage = state.coverage?.streams?.[streamForGroup(state.profile.program, state.profile.group) ?? '']?.groups?.[state.profile.group] ?? state.coverage?.groups?.[state.profile.group];
@@ -354,6 +356,8 @@ function visibleWeeklyBlocks(from, to) {
     const stream = streamForGroup(state.profile.program, state.profile.group);
     const query = state.search.trim().toLocaleLowerCase('ru-RU');
     return state.weeklyBlocks.filter(block => {
+        if (block.cycleDateStatus === 'matrix-subcolumns')
+            return false;
         if (block.program !== state.profile.program || block.course !== state.profile.course)
             return false;
         const common = ['ALL', '*', 'ОБЩИЕ', 'ОБЩАЯ', 'ВСЕ'].includes(block.group.toUpperCase());
@@ -373,7 +377,7 @@ function visibleWeeklyBlocks(from, to) {
 function renderWeeklyBlocks(blocks) {
     if (!blocks.length)
         return '';
-    return `<section class="weekly-rotation card" aria-label="Практические занятия по неделям"><header><div><span class="eyebrow">Расписание по номеру недели</span><h3>Практические занятия</h3></div><small>Циклы на выбранную неделю. Если указано несколько дисциплин, дни перехода уточняйте в исходном расписании.</small></header><div class="weekly-rotation-list">${blocks.map(block => `<article class="weekly-rotation-item"><div><b>${block.weekNumber}-я неделя</b><small>${block.weekRangeStart && block.weekRangeEnd ? `${formatDateRu(block.weekRangeStart)} — ${formatDateRu(block.weekRangeEnd)}` : 'Период недели не указан'}</small></div><strong>${esc(block.start)}–${esc(block.end)}</strong><div class="weekly-rotation-subject"><b>${esc(block.subject)}</b><small>${esc(block.location || 'Аудитория не указана')} · ${block.group === 'ALL' ? `поток ${esc(block.stream ?? 'общий')}` : `группа ${esc(block.group)}`}</small></div>${block.sourceUrl ? `<a href="${esc(block.sourceUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Открыть PDF-источник">PDF ↗</a>` : ''}</article>`).join('')}</div></section>`;
+    return `<section class="weekly-rotation card" aria-label="Практические занятия по неделям"><header><div><span class="eyebrow">Расписание по номеру недели</span><h3>Практические занятия</h3></div><small>Даты этих циклов требуют уточнения. Они не включены в ежедневные занятия; проверьте таблицу по ссылке.</small></header><div class="weekly-rotation-list">${blocks.map(block => `<article class="weekly-rotation-item"><div><b>${block.weekNumber}-я неделя</b><small>${block.weekRangeStart && block.weekRangeEnd ? `${formatDateRu(block.weekRangeStart)} — ${formatDateRu(block.weekRangeEnd)}` : 'Период недели не указан'}</small></div><strong>${esc(block.start)}–${esc(block.end)}</strong><div class="weekly-rotation-subject"><b>${esc(block.subject)}</b><small>${esc(block.location || 'Аудитория не указана')} · ${block.group === 'ALL' ? `поток ${esc(block.stream ?? 'общий')}` : `группа ${esc(block.group)}`}</small></div>${block.sourceUrl ? `<a href="${esc(block.sourceUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Открыть PDF-источник">PDF ↗</a>` : ''}</article>`).join('')}</div></section>`;
 }
 function renderMobileSkeleton() { return `<div class="mobile-skeleton" aria-label="Загрузка расписания">${Array.from({ length: 4 }, () => '<div class="skeleton-card"></div>').join('')}</div>`; }
 function renderSkeleton() { const count = state.scheduleMode === 'kug' ? 7 : rangeDates().dates.length; return `<div class="calendar-skeleton" style="grid-template-columns:repeat(${count},minmax(0,1fr))">${Array.from({ length: count }, (_, i) => `<div><span></span><i></i><i></i><i></i></div>`).join('')}</div>`; }
@@ -1195,6 +1199,11 @@ function bind() {
         }
         if (action === 'kug-retry') {
             void loadKugData();
+            return;
+        }
+        if (action === 'toggle-practice-import') {
+            localStorage.setItem(practiceImportPreferenceKey(), String(!importsPracticeSchedule()));
+            render();
             return;
         }
         if (action === 'import-practices') {

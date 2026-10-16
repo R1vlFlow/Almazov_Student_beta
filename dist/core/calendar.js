@@ -1,4 +1,4 @@
-import { localDate, localTime, localDateTimeInput } from './time.js?v=fdea9e14281cc30e';
+import { localDate, localTime, localDateTimeInput } from './time.js?v=c92025d955992ad7';
 export function displayScheduleParts(e) {
     if (!(e.orgMerged || e.mergedConsecutive) || e.doublePart)
         return [e];
@@ -36,7 +36,7 @@ function localToUtc(localValue, zone) {
         guess = naive - offset(guess);
     return new Date(guess).toISOString();
 }
-export function scheduleToCalendarEvent(e, _displayTimeZone) { const startAt = localToUtc(`${e.date}T${e.start}`, 'Europe/Moscow'); const endAt = localToUtc(`${e.date}T${e.end}`, 'Europe/Moscow'); return { id: e.id, kind: 'schedule', title: e.subject, sourceNotice: e.sourceNotice, description: e.sourceNotice ?? '', category: e.type, status: 'planned', startAt, endAt, timeZone: 'Europe/Moscow', allDay: false, location: e.location, program: e.program, course: e.course, group: e.group, stream: e.stream, type: e.type, teacher: e.teacher, half: e.half, doublePart: e.doublePart, weeks: e.weeks, readOnly: true }; }
+export function scheduleToCalendarEvent(e, _displayTimeZone) { const startAt = localToUtc(`${e.date}T${e.start}`, 'Europe/Moscow'); const endAt = localToUtc(`${e.date}T${e.end}`, 'Europe/Moscow'); return { id: e.id, kind: 'schedule', title: e.subject, sourceNotice: e.sourceNotice, description: e.sourceNotice ?? e.description ?? '', category: e.type, status: 'planned', startAt, endAt, timeZone: 'Europe/Moscow', allDay: false, location: e.location, program: e.program, course: e.course, group: e.group, stream: e.stream, type: e.type, teacher: e.teacher, half: e.half, doublePart: e.doublePart, weeks: e.weeks, readOnly: true }; }
 export function decorateEvent(e, timeZone) { return { event: e, date: localDate(e.startAt, timeZone), start: localTime(e.startAt, timeZone), end: localTime(e.endAt, timeZone), startInput: localDateTimeInput(e.startAt, timeZone), endInput: localDateTimeInput(e.endAt, timeZone) }; }
 export function eventDates(e, timeZone) { const first = localDate(e.startAt, timeZone), last = localDate(e.endAt, timeZone), out = []; let cursor = first; while (cursor <= last && out.length < 370) {
     out.push(cursor);

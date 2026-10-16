@@ -89,3 +89,30 @@ test('month arrows respect short months, leap years and year boundaries',()=>{
   ['2026-01-15',-1,'2025-12-15'],['2026-08-31',1,'2026-09-30']
  ])assert.equal(shiftCalendarPeriod(date,'month',direction),expected);
 });
+import {expandPracticeCycles,hasImportedPracticeOverlap} from '../dist/core/practiceCycles.js';
+
+test('senior course cycles become daily events without competing subjects',async()=>{
+ for(const course of [4,5,6]){
+  const snapshot=JSON.parse(await readFile(`dist/data/schedules/31.05.01/${course}.json`,'utf8'));
+  const events=expandPracticeCycles(snapshot.weeklyBlocks);
+  assert.ok(events.length>1000);
+  assert.ok(events.every(e=>e.type==='practice'&&new Date(e.date).getUTCDay()!==0));
+  assert.ok(events.every(e=>e.date!=='2026-11-04'));
+  for(const e of events){
+   assert.ok(!events.some(other=>other.id!==e.id&&other.group===e.group&&other.date===e.date&&other.start<e.end&&other.end>e.start),`${e.group} ${e.date}`);
+  }
+ }
+ const six=JSON.parse(await readFile('dist/data/schedules/31.05.01/6.json','utf8'));
+ const group=expandPracticeCycles(six.weeklyBlocks).filter(e=>e.group==='601'&&e.date>='2026-10-12'&&e.date<='2026-10-17');
+ assert.equal(group.length,6);
+ assert.ok(group.filter(e=>e.date<='2026-10-14').every(e=>e.subject.includes('Организация')));
+ assert.ok(group.filter(e=>e.date>='2026-10-15').every(e=>e.subject.includes('Инфекционные')));
+ assert.equal(expandPracticeCycles([{...six.weeklyBlocks[0],cycleDateStatus:'unresolved'}]).length,0);
+});
+test('import overrides only its group, date and overlapping practice interval',()=>{
+ const event={program:'31.05.01',course:6,group:'601',date:'2026-10-16',start:'09:00',end:'12:25',type:'practice'};
+ assert.equal(hasImportedPracticeOverlap(event,[event]),true);
+ for(const change of [{group:'602'},{course:5},{date:'2026-10-17'},{start:'12:25',end:'14:00'}])assert.equal(hasImportedPracticeOverlap(event,[{...event,...change}]),false);
+ assert.equal(hasImportedPracticeOverlap({...event,type:'lecture'},[event]),false);
+ assert.match(appSource,/toggle-practice-import/);
+});

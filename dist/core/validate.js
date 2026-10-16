@@ -1,4 +1,4 @@
-import { cleanLocation, cleanSubject, cleanTeacher, isoDate, normalizeCourse, normalizeGroup, normalizeHalf, normalizeStream, normalizeTime, normalizeTimeRange, normalizeType } from './normalize.js?v=fdea9e14281cc30e';
+import { cleanLocation, cleanSubject, cleanTeacher, isoDate, normalizeCourse, normalizeGroup, normalizeHalf, normalizeStream, normalizeTime, normalizeTimeRange, normalizeType } from './normalize.js?v=c92025d955992ad7';
 const VALID_PROGRAMS = new Set(['31.05.01', '31.05.02', '37.05.01']);
 export function validateScheduleIndex(payload) {
     const issues = [];
@@ -100,7 +100,7 @@ export function normalizeWeeklyBlocks(payload, program, course) {
             continue;
         const weekRangeStart = isoDate(raw?.weekRangeStart) ? raw.weekRangeStart : undefined;
         const weekRangeEnd = isoDate(raw?.weekRangeEnd) ? raw.weekRangeEnd : undefined;
-        result.push({ id: String(raw?.id ?? `${program}-${course}-${group}-${stream ?? 'all'}-week-${weekNumber}-${time.start}-${subject}-${index}`), program, course, group, stream, weekNumber, weekRangeStart, weekRangeEnd, start: time.start, end: time.end, subject, location: cleanLocation(raw?.location), teacher: cleanTeacher(raw?.teacher), type: normalizeType(raw?.type, subject), sourceUrl: typeof raw?.sourceUrl === 'string' ? raw.sourceUrl : undefined });
+        result.push({ id: String(raw?.id ?? `${program}-${course}-${group}-${stream ?? 'all'}-week-${weekNumber}-${time.start}-${subject}-${index}`), program, course, group, stream, weekNumber, weekRangeStart, weekRangeEnd, cycleDates: Array.isArray(raw.cycleDates) ? raw.cycleDates.filter((date) => isoDate(date)) : undefined, cycleDateStatus: raw.cycleDateStatus === 'matrix-subcolumns' ? 'matrix-subcolumns' : 'unresolved', start: time.start, end: time.end, subject, location: cleanLocation(raw?.location), teacher: cleanTeacher(raw?.teacher), type: normalizeType(raw?.type, subject), sourceUrl: typeof raw?.sourceUrl === 'string' ? raw.sourceUrl : undefined });
     }
     return dedupeWeeklyBlocks(result);
 }
