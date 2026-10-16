@@ -1,23 +1,23 @@
-import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=c92025d955992ad7';
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=c92025d955992ad7';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=c92025d955992ad7';
-import { groupsFor, streamForGroup } from './data/roster.js?v=c92025d955992ad7';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=c92025d955992ad7';
-import { eventAppliesToGroup } from './core/filter.js?v=c92025d955992ad7';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=c92025d955992ad7';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=c92025d955992ad7';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=c92025d955992ad7';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=c92025d955992ad7';
-import { FAQ } from './ui/faq.js?v=c92025d955992ad7';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=c92025d955992ad7';
-import { fileToAttachment } from './services/supportService.js?v=c92025d955992ad7';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=c92025d955992ad7';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=c92025d955992ad7';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=c92025d955992ad7';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=c92025d955992ad7';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=c92025d955992ad7';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=c92025d955992ad7';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=c92025d955992ad7';
+import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=892392c185ed2057';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=892392c185ed2057';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=892392c185ed2057';
+import { groupsFor, streamForGroup } from './data/roster.js?v=892392c185ed2057';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=892392c185ed2057';
+import { eventAppliesToGroup } from './core/filter.js?v=892392c185ed2057';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=892392c185ed2057';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=892392c185ed2057';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=892392c185ed2057';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=892392c185ed2057';
+import { FAQ } from './ui/faq.js?v=892392c185ed2057';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=892392c185ed2057';
+import { fileToAttachment } from './services/supportService.js?v=892392c185ed2057';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=892392c185ed2057';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=892392c185ed2057';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=892392c185ed2057';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=892392c185ed2057';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=892392c185ed2057';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=892392c185ed2057';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=892392c185ed2057';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -296,6 +296,7 @@ function renderSchedule() {
         $('page-schedule').prepend(notice);
     }
     $('weekLabel').textContent = state.scheduleMode === 'kug' ? `${formatDateRu(monthStart(state.focusDate))} — ${formatDateRu(monthEnd(state.focusDate))}` : state.view === 'month' ? `${formatDateRu(monthStart(state.focusDate))} — ${formatDateRu(monthEnd(state.focusDate))}` : `${formatDateRu(range.from)} — ${formatDateRu(range.to)}`;
+    $('mobilePeriodLabel').textContent = $('weekLabel').textContent;
     $('weekSubLabel').textContent = `${PROGRAMS.find(p => p.code === state.profile.program)?.shortTitle ?? ''} · ${state.profile.course} курс${state.profile.group ? ` · группа ${state.profile.group}` : ''} · ${state.timezone}`;
     $('scheduleCount').textContent = state.scheduleMode === 'kug' ? `${activeKugPeriods().filter(p => p.start <= range.to && p.end >= range.from).length} периодов КУГ` : `${events.length} событий${weeklyBlocks.length ? ` · ${weeklyBlocks.length} по неделям` : ''}`;
     const strip = $('weekStrip');
@@ -429,7 +430,7 @@ function subjectColor(e) { return state.personalization.subjectColors[subjectCol
 function subjectColorControl(e) { if (e.kind !== 'schedule')
     return ''; const key = subjectColorKey(eventSubject(e)); const c = subjectColor(e) || '#7892bf'; return `<button type="button" class="subject-color-trigger" data-subject-color-trigger="${esc(key)}" title="Изменить цвет предмета" aria-label="Изменить цвет предмета ${esc(eventSubject(e))}" style="--subject-swatch:${c}">●</button>`; }
 function taskBadge(subject) { const key = subjectColorKey(subject); const n = state.tasks.filter(t => t.status !== 'done' && subjectColorKey(t.subject) === key).length; return n ? `<span class="homework-badge" title="Активных заданий: ${n}">ДЗ ${n}</span>` : ''; }
-function renderMobile(events, dates) { return `<div class="mobile-days">${dates.map(d => `<section class="mobile-day ${d === todayISO(state.timezone) ? 'today' : ''}" data-drop-date="${d}"><header><div><span>${weekdayLabel(d)}</span><h3>${longDateRu(d)}</h3></div><b>${visibleSegments(events, d).length}</b></header>${kugTags(d) ? `<div class="kug-mobile-day-tags">${kugTags(d)}</div>` : ''}<div class="mobile-event-list">${visibleSegments(events, d).map(e => { const st = e.allDay ? 'Весь день' : localDate(e.startAt, state.timezone) === d ? localTime(e.startAt, state.timezone) : '00:00'; const en = e.allDay ? '' : localDate(e.endAt, state.timezone) === d ? localTime(e.endAt, state.timezone) : '24:00'; const title = e.title ?? (('subject' in e) ? e.subject : ''); return `<div class="mobile-event-wrap"><button class="mobile-event ${e.kind === 'personal' ? 'personal' : 'official'}" data-open-event="${esc(e.id)}" style="${subjectColor(e) ? `--subject-color:${subjectColor(e)};` : ''}"><span class="mobile-event-time">${e.allDay ? 'Весь день' : `${st}–${en}`}</span><span class="mobile-event-title">${eventHalfMarkup(e, true)}<strong>${esc(String(title))}</strong>${taskBadge(String(title))}</span><small>${esc(e.location || '')} ${e.kind === 'personal' ? '· личное' : '· официальное'}</small></button>${e.kind === 'schedule' ? `<button type="button" class="mobile-homework-link" data-homework-from-event="${esc(e.id)}">＋ Записать ДЗ</button>` : ''}</div>`; }).join('') || '<div class="day-empty">Свободный день</div>'}</div></section>`).join('')}</div>`; }
+function renderMobile(events, dates) { return `<div class="mobile-days">${dates.map(d => `<section class="mobile-day ${d === todayISO(state.timezone) ? 'today' : ''}" data-drop-date="${d}"><header><div><span>${weekdayLabel(d)}</span><h3>${longDateRu(d)}</h3></div><b>${visibleSegments(events, d).length}</b></header>${kugTags(d) ? `<div class="kug-mobile-day-tags">${kugTags(d)}</div>` : ''}<div class="mobile-event-list">${visibleSegments(events, d).map(e => { const st = e.allDay ? 'Весь день' : localDate(e.startAt, state.timezone) === d ? localTime(e.startAt, state.timezone) : '00:00'; const en = e.allDay ? '' : localDate(e.endAt, state.timezone) === d ? localTime(e.endAt, state.timezone) : '24:00'; const title = e.title ?? (('subject' in e) ? e.subject : ''); return `<div class="mobile-event-wrap"><button class="mobile-event ${e.kind === 'personal' ? 'personal' : 'official'}" data-open-event="${esc(e.id)}" style="${subjectColor(e) ? `--subject-color:${subjectColor(e)};` : ''}"><span class="mobile-lesson-kind">${e.kind === 'personal' ? 'Личное' : e.type === 'practice' ? 'ПЗ' : e.type === 'lecture' ? 'Лекция' : e.type === 'lab' ? 'Лабораторная' : e.type === 'assessment' ? 'Контроль' : 'Занятие'}</span><span class="mobile-event-time">${e.allDay ? 'Весь день' : `${st}–${en}`}</span><span class="mobile-event-title">${eventHalfMarkup(e, true)}<strong>${esc(String(title))}</strong>${taskBadge(String(title))}</span><small>${esc(e.location || '')} ${e.kind === 'personal' ? '· личное' : '· официальное'}</small></button>${e.kind === 'schedule' ? `<button type="button" class="mobile-homework-link" data-homework-from-event="${esc(e.id)}">＋ Записать ДЗ</button>` : ''}</div>`; }).join('') || '<div class="day-empty">Свободный день</div>'}</div></section>`).join('')}</div>`; }
 function renderMonth(events) { const from = startOfWeek(monthStart(state.focusDate)); const to = addDays(startOfWeek(monthEnd(state.focusDate)), 6); const dates = []; for (let d = from; d <= to; d = addDays(d, 1))
     dates.push(d); return `<div class="month-grid">${DAYS.map(d => `<div class="month-head">${d}</div>`).join('')}${dates.map(d => `<button class="month-cell ${d.slice(0, 7) !== state.focusDate.slice(0, 7) ? 'muted-month' : ''} ${d === todayISO(state.timezone) ? 'today' : ''}" data-jump-date="${d}"><span>${d.slice(8, 10)}</span><div class="month-kug-tags">${kugTags(d)}</div><div>${visibleSegments(events, d).slice(0, 4).map(e => `<em class="month-event ${e.kind === 'personal' ? 'personal' : ''}" style="${subjectColor(e) ? `--subject-color:${subjectColor(e)};` : ''}">${eventHalfMarkup(e, true)}${e.allDay ? 'Весь день' : localTime(e.startAt, state.timezone)} ${esc(String(e.title ?? (('subject' in e) ? e.subject : '')))} ${taskBadge(eventSubject(e))}</em>`).join('')}</div>${visibleSegments(events, d).length > 4 ? `<small>+${visibleSegments(events, d).length - 4}</small>` : ''}</button>`).join('')}</div>`; }
 function renderAgenda(events) { const dates = rangeDates().dates; return `<div class="agenda-list">${state.scheduleMode === 'combined' ? dates.map(d => kugTags(d) ? `<div class="kug-agenda-day"><b>${esc(longDateRu(d))}</b>${kugTags(d)}</div>` : '').join('') : ''}${dates.flatMap(d => visibleSegments(events, d).map(e => ({ d, e }))).sort((a, b) => a.e.startAt.localeCompare(b.e.startAt)).map(({ d, e }) => `<article class="agenda-item card" data-open-event="${esc(e.id)}" role="button" tabindex="0" style="${subjectColor(e) ? `--subject-color:${subjectColor(e)};` : ''}"><time>${esc(longDateRu(d))}<br><b>${e.allDay ? 'Весь день' : localTime(e.startAt, state.timezone)}</b></time><div><span class="eyebrow">${e.kind === 'personal' ? 'Личное' : 'Официальное'}</span><h3>${eventHalfMarkup(e, true)}${esc(String(e.title ?? (('subject' in e) ? e.subject : '')))} ${taskBadge(eventSubject(e))}</h3><p>${esc(e.location || 'Без места')} · ${e.category ? esc(e.category) : e.type}</p>${e.kind === 'schedule' ? `<button class="btn small event-homework-link" data-homework-from-event="${esc(e.id)}">＋ Записать ДЗ</button>` : ''}</div><div><span class="status-badge">${STATUS_LABEL[e.status ?? 'planned']}</span></div></article>`).join('') || '<div class="empty-state card"><h3>Пустая повестка</h3><p>В выбранном периоде нет событий.</p></div>'}</div>`; }
@@ -1242,6 +1243,8 @@ function bind() {
             state.week = mondayOf(state.focusDate);
             await reloadEvents();
             render();
+            if (target.hasAttribute('data-mobile-period'))
+                $('scheduleRoot').scrollIntoView({ block: 'start', behavior: 'instant' });
             return;
         }
         if (action === 'prev-period' || action === 'next-period') {
@@ -1249,6 +1252,8 @@ function bind() {
             state.week = mondayOf(state.focusDate);
             await reloadEvents();
             render();
+            if (target.hasAttribute('data-mobile-period'))
+                $('scheduleRoot').scrollIntoView({ block: 'start', behavior: 'instant' });
             return;
         }
         if (action === 'refresh-data') {

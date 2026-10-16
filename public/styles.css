@@ -353,3 +353,19 @@ html[data-theme="light"] .weekly-rotation-item{background:#f7fafc;border-color:#
 @media(max-width:680px){.address-card{grid-template-columns:36px minmax(0,1fr);gap:10px;padding:13px}.address-icon{width:36px;height:36px;font-size:20px}.address-copy h2{font-size:14px}.address-map-link{grid-column:1/-1;width:100%;min-height:46px}.teacher-setting-row{grid-template-columns:minmax(0,1fr);gap:8px}.app-splash{padding:10px}.app-splash #penguin-splash .scene{padding:18px 14px 16px;border-radius:20px}.app-splash #penguin-splash .stage{width:min(260px,100%);aspect-ratio:1.35}.app-splash #penguin-splash .eyebrow{margin-bottom:9px;letter-spacing:2px;font-size:9px}.app-splash #penguin-splash h2{font-size:clamp(25px,9vw,34px);letter-spacing:-1px}.app-splash #penguin-splash .subtitle{font-size:12px}.app-splash #penguin-splash .loader{margin-top:8px}.app-splash #penguin-splash .status{font-size:12px}.app-splash #penguin-splash .track{margin:9px 0}.app-splash #penguin-splash .footnote{font-size:10px}}
 @media(max-height:650px){.app-splash #penguin-splash .scene{padding-block:12px}.app-splash #penguin-splash .stage{width:min(230px,42vh);aspect-ratio:1.35}.app-splash #penguin-splash h2{font-size:28px}.app-splash #penguin-splash .loader{margin-top:5px}}
 @media(prefers-reduced-motion:reduce){.app-splash,.app-splash *{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
+
+/* Period controls remain reachable while reading lessons on a phone. */
+.mobile-period-nav{display:none}
+.mobile-lesson-kind{display:inline-block;justify-self:start;padding:3px 8px;border:1px solid var(--border);border-radius:7px;background:var(--surface-2);color:var(--text);font-size:11px;font-weight:800}
+@media(max-width:680px){
+ #page-schedule{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+ #page-schedule.active .mobile-period-nav{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:8px;position:fixed;bottom:0;left:0;right:0;z-index:25;padding:8px 14px calc(8px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--border);box-shadow:0 -4px 18px #0002}
+ .mobile-period-nav>div{display:grid;text-align:center;min-width:0;gap:2px}
+ .mobile-period-nav b{font-size:13px;color:var(--text)}
+ .mobile-period-nav .icon{width:48px;min-height:48px}
+ .mobile-period-today{border:0;background:transparent;color:var(--accent);font-weight:750;min-height:28px}
+ #scheduleRoot{scroll-margin-top:76px}
+ .calendar-toolbar-actions{display:none}
+ body.menu-open .mobile-period-nav{visibility:hidden}
+}
+@media print{.mobile-period-nav{display:none!important}}

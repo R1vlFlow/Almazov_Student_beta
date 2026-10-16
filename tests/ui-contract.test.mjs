@@ -128,3 +128,15 @@ test('course changes capture the new selection before render and reset the old g
  assert.match(app,/group:resetGroup\?'':g.value\|\|''/);
  assert.doesNotMatch(app,/if\(id==='programSelect'\|\|id==='courseSelect'\)renderProfileOptions\(\)/);
 });
+
+test('phone period navigation stays beside lessons and announces the selected dates',()=>{
+ assert.match(html,/class="mobile-period-nav" aria-label="Переключение периода"/);
+ assert.match(html,/id="mobilePeriodLabel" role="status" aria-live="polite"/);
+ assert.match(css,/#page-schedule\.active \.mobile-period-nav\{[^}]*position:fixed;bottom:0/);
+ assert.match(css,/safe-area-inset-bottom/);
+ assert.match(app,/\$\('mobilePeriodLabel'\)\.textContent=\$\('weekLabel'\)\.textContent/);
+ assert.match(app,/target\.hasAttribute\('data-mobile-period'\).*scrollIntoView/);
+});
+test('phone lesson cards explicitly distinguish practice and lectures',()=>{
+ assert.match(app,/mobile-lesson-kind[\s\S]*?e\.type==='practice'\?'ПЗ':e\.type==='lecture'\?'Лекция'/);
+});
