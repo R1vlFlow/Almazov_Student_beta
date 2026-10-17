@@ -16,6 +16,40 @@ jobs:
     timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
+      - name: Load permanent signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: almazov-student-release
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$ANDROID_KEYSTORE_PASSWORD"
+          test -n "$ANDROID_KEY_PASSWORD"
+          python3 - <<'PY'
+          import base64, os, pathlib, string
+          value = ''.join(os.environ['ANDROID_KEYSTORE_BASE64'].lstrip('\ufeff').split())
+          try:
+              decoded = base64.b64decode(value, validate=True)
+          except (ValueError, base64.binascii.Error):
+              allowed = set(string.ascii_letters + string.digits + '+/=')
+              invalid = [c for c in value if c not in allowed]
+              if any(ord(c) > 127 for c in invalid):
+                  reason = 'non-ASCII characters present'
+              elif invalid:
+                  labels = {'"': 'double quote', "'": 'single quote', ':': 'colon', '`': 'backtick', '-': 'hyphen', '_': 'underscore', '.': 'period', '\\': 'backslash', '\x00': 'NUL'}
+                  kinds = sorted({labels.get(c, 'other punctuation or control character') for c in invalid})
+                  reason = 'characters outside the Base64 alphabet present: ' + ', '.join(kinds)
+              elif len(value) % 4:
+                  reason = 'length is not divisible by four (possibly incomplete copy)'
+              else:
+                  reason = 'invalid Base64 padding'
+              raise SystemExit('Signing secret format error: ' + reason + '. Secret contents are not logged.')
+          if not decoded:
+              raise SystemExit('Signing keystore is empty.')
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'almazov-release.p12').write_bytes(decoded)
+          PY
+          test -s "$RUNNER_TEMP/almazov-release.p12"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -52,18 +86,6 @@ jobs:
         run: |
           sed -i -E 's/versionCode [0-9]+/versionCode 33/' android/app/build.gradle
           sed -i -E 's/versionName ".*"/versionName "3.2.0"/' android/app/build.gradle
-      - name: Load permanent signing key
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: almazov-student-release
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          test -n "$ANDROID_KEYSTORE_BASE64"
-          test -n "$ANDROID_KEYSTORE_PASSWORD"
-          test -n "$ANDROID_KEY_PASSWORD"
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/almazov-release.p12"
-          test -s "$RUNNER_TEMP/almazov-release.p12"
       - name: Configure Android release signing
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/almazov-release.p12
@@ -90,6 +112,11 @@ jobs:
           }
           EOF
       - name: Assemble signed APK and app bundle
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/almazov-release.p12
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: almazov-student-release
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           chmod +x android/gradlew
           cd android
@@ -99,6 +126,10 @@ jobs:
           cp android/app/build/outputs/apk/release/app-release.apk release/Almazov-Student-3.2.0.apk
           cp android/app/build/outputs/bundle/release/app-release.aab release/Almazov-Student-3.2.0.aab
           sha256sum release/Almazov-Student-3.2.0.apk release/Almazov-Student-3.2.0.aab | tee release/SHA256SUMS.txt
+      - name: Verify APK signature and record certificate
+        run: |
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs release/Almazov-Student-3.2.0.apk > release/signature-verification.txt
+          cat release/signature-verification.txt
       - name: Upload signed release artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -107,5 +138,6 @@ jobs:
             release/Almazov-Student-3.2.0.apk
             release/Almazov-Student-3.2.0.aab
             release/SHA256SUMS.txt
+            release/signature-verification.txt
           if-no-files-found: error
           retention-days: 30
