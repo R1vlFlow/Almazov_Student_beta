@@ -62,7 +62,17 @@ jobs:
           test -n "$ANDROID_KEYSTORE_BASE64"
           test -n "$ANDROID_KEYSTORE_PASSWORD"
           test -n "$ANDROID_KEY_PASSWORD"
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/almazov-release.p12"
+          python3 - <<'PY'
+          import base64, os, pathlib
+          value = ''.join(os.environ['ANDROID_KEYSTORE_BASE64'].lstrip('\ufeff').split())
+          try:
+              decoded = base64.b64decode(value, validate=True)
+          except (ValueError, base64.binascii.Error):
+              raise SystemExit('ANDROID_KEYSTORE_BASE64 must contain the Base64 file contents, without a path, quotes or code fences.')
+          if not decoded:
+              raise SystemExit('Signing keystore is empty.')
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'almazov-release.p12').write_bytes(decoded)
+          PY
           test -s "$RUNNER_TEMP/almazov-release.p12"
       - name: Configure Android release signing
         env:
@@ -99,6 +109,10 @@ jobs:
           cp android/app/build/outputs/apk/release/app-release.apk release/Almazov-Student-3.2.0.apk
           cp android/app/build/outputs/bundle/release/app-release.aab release/Almazov-Student-3.2.0.aab
           sha256sum release/Almazov-Student-3.2.0.apk release/Almazov-Student-3.2.0.aab | tee release/SHA256SUMS.txt
+      - name: Verify APK signature and record certificate
+        run: |
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs release/Almazov-Student-3.2.0.apk > release/signature-verification.txt
+          cat release/signature-verification.txt
       - name: Upload signed release artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -107,5 +121,6 @@ jobs:
             release/Almazov-Student-3.2.0.apk
             release/Almazov-Student-3.2.0.aab
             release/SHA256SUMS.txt
+            release/signature-verification.txt
           if-no-files-found: error
           retention-days: 30
