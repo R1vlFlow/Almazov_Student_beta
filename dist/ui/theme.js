@@ -1,4 +1,4 @@
-import { readPersonalization, updatePersonalization } from '../services/personalizationStore.js?v=040d5d0a939971b0';
+import { readPersonalization, updatePersonalization } from '../services/personalizationStore.js?v=7519bba90fa36986';
 const KEY = 'almazov.theme';
 export function themeMode() { const stored = readPersonalization().theme; const v = stored ?? localStorage.getItem(KEY); return v === 'light' || v === 'dark' || v === 'system' ? v : 'system'; }
 export function applyTheme(mode, save = true) { const actual = mode === 'system' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : mode; document.documentElement.dataset.theme = actual; document.documentElement.dataset.themePreference = mode; document.documentElement.style.colorScheme = actual; if (save) {

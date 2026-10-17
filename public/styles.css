@@ -369,3 +369,5 @@ html[data-theme="light"] .weekly-rotation-item{background:#f7fafc;border-color:#
  body.menu-open .mobile-period-nav{visibility:hidden}
 }
 @media print{.mobile-period-nav{display:none!important}}
+
+.install-option{flex:1 1 260px;min-width:0;padding:16px;border:1px solid var(--border,#b4bfd2);border-radius:16px;text-align:left}.install-option h3{margin:0 0 8px}.install-option p{line-height:1.5}.install-option .btn{width:100%;min-height:48px}.install-option a:not(.btn){font-size:.9rem;overflow-wrap:anywhere}.install-option [role="status"]{min-height:3em}.install-option button:disabled{opacity:.65;cursor:default}
