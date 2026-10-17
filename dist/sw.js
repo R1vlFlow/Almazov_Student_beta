@@ -1,7 +1,7 @@
 /* Build-time values are injected by scripts/copy-public.mjs. */
-const BUILD_ID='7519bba90fa36986';
+const BUILD_ID='dd4c935bb52e50ea';
 const CACHE_NAME=`almazov-hub-${BUILD_ID}`;
-const VERSIONED_SHELL=["./styles.css?v=7519bba90fa36986","./splash.css?v=7519bba90fa36986","./boot.js?v=7519bba90fa36986","./manifest.webmanifest?v=7519bba90fa36986","./offline.html?v=7519bba90fa36986","./app.js?v=7519bba90fa36986","./core/calendar.js?v=7519bba90fa36986","./core/date.js?v=7519bba90fa36986","./core/excelParser.js?v=7519bba90fa36986","./core/filter.js?v=7519bba90fa36986","./core/htmlTableParser.js?v=7519bba90fa36986","./core/normalize.js?v=7519bba90fa36986","./core/practiceCycles.js?v=7519bba90fa36986","./core/time.js?v=7519bba90fa36986","./core/types.js?v=7519bba90fa36986","./core/validate.js?v=7519bba90fa36986","./data/addresses.js?v=7519bba90fa36986","./data/catalog.js?v=7519bba90fa36986","./data/roster.js?v=7519bba90fa36986","./main.js?v=7519bba90fa36986","./runtime-config.js?v=7519bba90fa36986","./services/cache.js?v=7519bba90fa36986","./services/eventService.js?v=7519bba90fa36986","./services/materialStore.js?v=7519bba90fa36986","./services/personalizationStore.js?v=7519bba90fa36986","./services/practiceScheduleImport.js?v=7519bba90fa36986","./services/scheduleService.js?v=7519bba90fa36986","./services/supportService.js?v=7519bba90fa36986","./services/taskService.js?v=7519bba90fa36986","./telemetry.js?v=7519bba90fa36986","./ui/customControls.js?v=7519bba90fa36986","./ui/faq.js?v=7519bba90fa36986","./ui/theme.js?v=7519bba90fa36986"];
+const VERSIONED_SHELL=["./styles.css?v=dd4c935bb52e50ea","./splash.css?v=dd4c935bb52e50ea","./boot.js?v=dd4c935bb52e50ea","./manifest.webmanifest?v=dd4c935bb52e50ea","./offline.html?v=dd4c935bb52e50ea","./app.js?v=dd4c935bb52e50ea","./core/calendar.js?v=dd4c935bb52e50ea","./core/date.js?v=dd4c935bb52e50ea","./core/excelParser.js?v=dd4c935bb52e50ea","./core/filter.js?v=dd4c935bb52e50ea","./core/htmlTableParser.js?v=dd4c935bb52e50ea","./core/normalize.js?v=dd4c935bb52e50ea","./core/practiceCycles.js?v=dd4c935bb52e50ea","./core/time.js?v=dd4c935bb52e50ea","./core/types.js?v=dd4c935bb52e50ea","./core/validate.js?v=dd4c935bb52e50ea","./data/addresses.js?v=dd4c935bb52e50ea","./data/catalog.js?v=dd4c935bb52e50ea","./data/roster.js?v=dd4c935bb52e50ea","./main.js?v=dd4c935bb52e50ea","./runtime-config.js?v=dd4c935bb52e50ea","./services/cache.js?v=dd4c935bb52e50ea","./services/eventService.js?v=dd4c935bb52e50ea","./services/materialStore.js?v=dd4c935bb52e50ea","./services/personalizationStore.js?v=dd4c935bb52e50ea","./services/practiceScheduleImport.js?v=dd4c935bb52e50ea","./services/scheduleService.js?v=dd4c935bb52e50ea","./services/supportService.js?v=dd4c935bb52e50ea","./services/taskService.js?v=dd4c935bb52e50ea","./telemetry.js?v=dd4c935bb52e50ea","./ui/customControls.js?v=dd4c935bb52e50ea","./ui/faq.js?v=dd4c935bb52e50ea","./ui/theme.js?v=dd4c935bb52e50ea"];
 const OFFLINE_URL=new URL(`./offline.html?v=${BUILD_ID}`,self.registration.scope).href;
 
 self.addEventListener('install',event=>event.waitUntil((async()=>{
@@ -27,7 +27,10 @@ self.addEventListener('activate',event=>event.waitUntil((async()=>{
 })()));
 
 async function fetchFresh(request){
-  return fetch(new Request(request,{cache:'no-store'}));
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),10000);
+  try{return await fetch(new Request(request,{cache:'no-store',signal:controller.signal}));}
+  finally{clearTimeout(timer);}
 }
 
 async function cacheVersioned(request){
@@ -59,9 +62,9 @@ async function networkFirst(request){
     }
     return response;
   }catch{
-    const hit=await caches.match(request)||await caches.match(new URL('./index.html',self.registration.scope).href);
+    const hit=await cache.match(request)||((request.mode==='navigate'||request.destination==='document')?await cache.match(new URL('./index.html',self.registration.scope).href):null);
     if(hit)return hit;
-    const offline=await caches.match(OFFLINE_URL);
+    const offline=(request.mode==='navigate'||request.destination==='document')?await cache.match(OFFLINE_URL):null;
     if(offline)return offline;
     return new Response('Офлайн: приложение пока не было сохранено на этом устройстве.',{
       status:503,headers:{'content-type':'text/plain;charset=utf-8'}

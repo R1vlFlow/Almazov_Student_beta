@@ -1,23 +1,23 @@
-import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=7519bba90fa36986';
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=7519bba90fa36986';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=7519bba90fa36986';
-import { groupsFor, streamForGroup } from './data/roster.js?v=7519bba90fa36986';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=7519bba90fa36986';
-import { eventAppliesToGroup } from './core/filter.js?v=7519bba90fa36986';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=7519bba90fa36986';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=7519bba90fa36986';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=7519bba90fa36986';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=7519bba90fa36986';
-import { FAQ } from './ui/faq.js?v=7519bba90fa36986';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=7519bba90fa36986';
-import { fileToAttachment } from './services/supportService.js?v=7519bba90fa36986';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=7519bba90fa36986';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=7519bba90fa36986';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=7519bba90fa36986';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=7519bba90fa36986';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=7519bba90fa36986';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=7519bba90fa36986';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=7519bba90fa36986';
+import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=dd4c935bb52e50ea';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=dd4c935bb52e50ea';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=dd4c935bb52e50ea';
+import { groupsFor, streamForGroup } from './data/roster.js?v=dd4c935bb52e50ea';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=dd4c935bb52e50ea';
+import { eventAppliesToGroup } from './core/filter.js?v=dd4c935bb52e50ea';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=dd4c935bb52e50ea';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=dd4c935bb52e50ea';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=dd4c935bb52e50ea';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=dd4c935bb52e50ea';
+import { FAQ } from './ui/faq.js?v=dd4c935bb52e50ea';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=dd4c935bb52e50ea';
+import { fileToAttachment } from './services/supportService.js?v=dd4c935bb52e50ea';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=dd4c935bb52e50ea';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=dd4c935bb52e50ea';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=dd4c935bb52e50ea';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=dd4c935bb52e50ea';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=dd4c935bb52e50ea';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=dd4c935bb52e50ea';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=dd4c935bb52e50ea';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -546,7 +546,7 @@ function renderKug() {
     sourcesEl.innerHTML = sources.length ? sources.map(x => `<article class="kug-source"><div><b>${esc(x.title)}</b><small>${esc(kugSourceStatus(x.status))} · периодов в данных: ${x.periods}</small></div><a class="btn small" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${x.status === 'verified-bootstrap' ? 'Все документы ↗' : 'Открыть источник ↗'}</a></article>`).join('') : '<div class="empty-state compact"><h3>Источник не найден</h3><p>Для выбранного курса не найден отдельный PDF в текущем snapshot.</p><a class="btn" href="https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/" target="_blank" rel="noopener noreferrer">Все официальные документы ↗</a></div>';
 }
 function renderAddresses() { const container = $('addressList'); if (!container)
-    return; container.innerHTML = ALMAZOV_ADDRESSES.map(item => { const map = 'https://yandex.ru/maps/?text=' + encodeURIComponent(item.address); return '<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">Центр Алмазова</p><h2>' + esc(item.name) + '</h2><p>' + esc(item.address) + '</p><a class="address-source" href="' + esc(item.sourceUrl) + '" target="_blank" rel="noopener noreferrer">Официальный источник ↗</a></div><a class="btn primary address-map-link" href="' + esc(map) + '" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах ↗</a></article>'; }).join(''); }
+    return; container.innerHTML = ALMAZOV_ADDRESSES.filter(item => { const q = $('addressSearch')?.value.trim().toLocaleLowerCase('ru') ?? ''; return !q || (item.name + ' ' + item.address + ' ' + item.category).toLocaleLowerCase('ru').includes(q); }).map(item => { const map = 'https://yandex.ru/maps/?text=' + encodeURIComponent(item.address); return '<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">' + esc(item.category) + '</p><h2>' + esc(item.name) + '</h2><p>' + esc(item.address) + '</p><a class="address-source" href="' + esc(item.sourceUrl) + '" target="_blank" rel="noopener noreferrer">Официальный источник ↗</a></div><a class="btn primary address-map-link" href="' + esc(map) + '" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах ↗</a></article>'; }).join(''); }
 async function loadKugData() {
     state.kugStatus = 'loading';
     renderKug();
@@ -1536,3 +1536,4 @@ function exportICS() { const events = getDisplayEvents(); const tz = state.timez
     lines.push('BEGIN:VEVENT', `UID:${escapeICS(e.id)}@almazov-hub`, `DTSTART:${start}`, `DTEND:${end}`, `SUMMARY:${escapeICS(String(e.title ?? (('subject' in e) ? e.subject : '')))}`, `DESCRIPTION:${escapeICS(e.description ?? '')}`, `LOCATION:${escapeICS(e.location ?? '')}`, 'END:VEVENT');
 } lines.push('END:VCALENDAR'); const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `almazov-${state.profile.group || 'group'}-${state.focusDate}-${tz.replaceAll('/', '_')}.ics`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
 function escapeICS(v) { return v.replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n'); }
+$('addressSearch')?.addEventListener('input', renderAddresses);
