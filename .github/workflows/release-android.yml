@@ -37,7 +37,9 @@ jobs:
               if any(ord(c) > 127 for c in invalid):
                   reason = 'non-ASCII characters present'
               elif invalid:
-                  reason = 'characters outside the Base64 alphabet present'
+                  labels = {'"': 'double quote', "'": 'single quote', ':': 'colon', '`': 'backtick', '-': 'hyphen', '_': 'underscore', '.': 'period', '\\': 'backslash', '\x00': 'NUL'}
+                  kinds = sorted({labels.get(c, 'other punctuation or control character') for c in invalid})
+                  reason = 'characters outside the Base64 alphabet present: ' + ', '.join(kinds)
               elif len(value) % 4:
                   reason = 'length is not divisible by four (possibly incomplete copy)'
               else:
