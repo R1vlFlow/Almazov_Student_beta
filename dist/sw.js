@@ -1,7 +1,7 @@
 /* Build-time values are injected by scripts/copy-public.mjs. */
-const BUILD_ID='7519bba90fa36986';
+const BUILD_ID='ab61dd9a651715ca';
 const CACHE_NAME=`almazov-hub-${BUILD_ID}`;
-const VERSIONED_SHELL=["./styles.css?v=7519bba90fa36986","./splash.css?v=7519bba90fa36986","./boot.js?v=7519bba90fa36986","./manifest.webmanifest?v=7519bba90fa36986","./offline.html?v=7519bba90fa36986","./app.js?v=7519bba90fa36986","./core/calendar.js?v=7519bba90fa36986","./core/date.js?v=7519bba90fa36986","./core/excelParser.js?v=7519bba90fa36986","./core/filter.js?v=7519bba90fa36986","./core/htmlTableParser.js?v=7519bba90fa36986","./core/normalize.js?v=7519bba90fa36986","./core/practiceCycles.js?v=7519bba90fa36986","./core/time.js?v=7519bba90fa36986","./core/types.js?v=7519bba90fa36986","./core/validate.js?v=7519bba90fa36986","./data/addresses.js?v=7519bba90fa36986","./data/catalog.js?v=7519bba90fa36986","./data/roster.js?v=7519bba90fa36986","./main.js?v=7519bba90fa36986","./runtime-config.js?v=7519bba90fa36986","./services/cache.js?v=7519bba90fa36986","./services/eventService.js?v=7519bba90fa36986","./services/materialStore.js?v=7519bba90fa36986","./services/personalizationStore.js?v=7519bba90fa36986","./services/practiceScheduleImport.js?v=7519bba90fa36986","./services/scheduleService.js?v=7519bba90fa36986","./services/supportService.js?v=7519bba90fa36986","./services/taskService.js?v=7519bba90fa36986","./telemetry.js?v=7519bba90fa36986","./ui/customControls.js?v=7519bba90fa36986","./ui/faq.js?v=7519bba90fa36986","./ui/theme.js?v=7519bba90fa36986"];
+const VERSIONED_SHELL=["./styles.css?v=ab61dd9a651715ca","./splash.css?v=ab61dd9a651715ca","./boot.js?v=ab61dd9a651715ca","./manifest.webmanifest?v=ab61dd9a651715ca","./offline.html?v=ab61dd9a651715ca","./app.js?v=ab61dd9a651715ca","./core/calendar.js?v=ab61dd9a651715ca","./core/date.js?v=ab61dd9a651715ca","./core/excelParser.js?v=ab61dd9a651715ca","./core/filter.js?v=ab61dd9a651715ca","./core/htmlTableParser.js?v=ab61dd9a651715ca","./core/normalize.js?v=ab61dd9a651715ca","./core/practiceCycles.js?v=ab61dd9a651715ca","./core/time.js?v=ab61dd9a651715ca","./core/types.js?v=ab61dd9a651715ca","./core/validate.js?v=ab61dd9a651715ca","./data/addresses.js?v=ab61dd9a651715ca","./data/catalog.js?v=ab61dd9a651715ca","./data/roster.js?v=ab61dd9a651715ca","./main.js?v=ab61dd9a651715ca","./runtime-config.js?v=ab61dd9a651715ca","./services/cache.js?v=ab61dd9a651715ca","./services/eventService.js?v=ab61dd9a651715ca","./services/materialStore.js?v=ab61dd9a651715ca","./services/personalizationStore.js?v=ab61dd9a651715ca","./services/practiceScheduleImport.js?v=ab61dd9a651715ca","./services/scheduleService.js?v=ab61dd9a651715ca","./services/supportService.js?v=ab61dd9a651715ca","./services/taskService.js?v=ab61dd9a651715ca","./telemetry.js?v=ab61dd9a651715ca","./ui/customControls.js?v=ab61dd9a651715ca","./ui/faq.js?v=ab61dd9a651715ca","./ui/theme.js?v=ab61dd9a651715ca"];
 const OFFLINE_URL=new URL(`./offline.html?v=${BUILD_ID}`,self.registration.scope).href;
 
 self.addEventListener('install',event=>event.waitUntil((async()=>{
@@ -27,7 +27,10 @@ self.addEventListener('activate',event=>event.waitUntil((async()=>{
 })()));
 
 async function fetchFresh(request){
-  return fetch(new Request(request,{cache:'no-store'}));
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),10000);
+  try{return await fetch(new Request(request,{cache:'no-store',signal:controller.signal}));}
+  finally{clearTimeout(timer);}
 }
 
 async function cacheVersioned(request){
@@ -39,9 +42,7 @@ async function cacheVersioned(request){
     if(response.ok)await cache.put(request,response.clone());
     return response;
   }catch{
-    const offline=await cache.match(OFFLINE_URL);
-    if(offline)return offline;
-    throw new Error('offline');
+    return new Response('Ресурс недоступен офлайн.',{status:503,headers:{'content-type':'text/plain;charset=utf-8'}});
   }
 }
 
@@ -59,9 +60,9 @@ async function networkFirst(request){
     }
     return response;
   }catch{
-    const hit=await caches.match(request)||await caches.match(new URL('./index.html',self.registration.scope).href);
+    const hit=await cache.match(request)||((request.mode==='navigate'||request.destination==='document')?await cache.match(new URL('./index.html',self.registration.scope).href):null);
     if(hit)return hit;
-    const offline=await caches.match(OFFLINE_URL);
+    const offline=(request.mode==='navigate'||request.destination==='document')?await cache.match(OFFLINE_URL):null;
     if(offline)return offline;
     return new Response('Офлайн: приложение пока не было сохранено на этом устройстве.',{
       status:503,headers:{'content-type':'text/plain;charset=utf-8'}

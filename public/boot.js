@@ -24,13 +24,18 @@
 
   // Verify the deployed build on every page load. The unique query and no-store
   // bypass both the browser HTTP cache and stale service-worker entries.
+  let updateCheckRunning=false;
   async function checkForNewBuild(showStatus=false){
+    if(updateCheckRunning)return;
+    updateCheckRunning=true;
+    const abort=new AbortController();
+    const timeout=setTimeout(()=>abort.abort(),10000);
     const status=document.getElementById('appUpdateStatus');
     if(showStatus&&status)status.textContent='Проверяем опубликованную версию…';
     try{
       const url=new URL('./version.json',window.location.href);
       url.searchParams.set('check',String(Date.now()));
-      const response=await fetch(url,{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
+      const response=await fetch(url,{cache:'no-store',signal:abort.signal,headers:{'Cache-Control':'no-cache'}});
       if(!response.ok){if(showStatus&&status)status.textContent=`Не удалось проверить релиз (HTTP ${response.status}).`;return;}
       const release=await response.json();
       if(!release?.buildId){if(showStatus&&status)status.textContent='Опубликованный version.json не содержит идентификатор сборки.';return;}
@@ -39,18 +44,20 @@
         let cleanUrl=false;
         for(const key of ['__app_build','__root_refresh']){if(pageUrl.searchParams.has(key)){pageUrl.searchParams.delete(key);cleanUrl=true;}}
         if(cleanUrl)history.replaceState(history.state,'',pageUrl.href);
+        if(showStatus&&window.Capacitor?.isNativePlatform?.()){if(status)status.textContent='Проверена встроенная версия APK. Обновления Android устанавливаются отдельным APK; веб-версия обновляется на сайте.';return;}
         if(showStatus){const status=document.getElementById('appUpdateStatus');if(status)status.textContent=`Приложение обновлено: ${BUILD_ID}`;}
         return;
       }
       // One cache-busting navigation per newly discovered build; never reload-loop.
-      let previous='';
-      try{previous=sessionStorage.getItem('almazov:last-build-refresh')||'';}catch{}
-      if(previous===release.buildId){if(showStatus&&status)status.textContent=`Обнаружен релиз ${release.buildId}; обновите страницу ещё раз, если интерфейс не изменился.`;return;}
-      try{sessionStorage.setItem('almazov:last-build-refresh',release.buildId);}catch{}
+      let previous='',lastAttempt=0;
+      try{previous=sessionStorage.getItem('almazov:last-build-refresh')||'';lastAttempt=Number(sessionStorage.getItem('almazov:last-build-refresh-at')||0);}catch{}
+      if(previous===release.buildId&&Date.now()-lastAttempt<60000){if(showStatus&&status)status.textContent=`Обнаружен релиз ${release.buildId}; обновите страницу ещё раз, если интерфейс не изменился.`;return;}
+      try{sessionStorage.setItem('almazov:last-build-refresh',release.buildId);sessionStorage.setItem('almazov:last-build-refresh-at',String(Date.now()));}catch{}
       pageUrl.searchParams.set('__app_build',release.buildId);
       if(showStatus&&status)status.textContent=`Новая версия ${release.buildId} найдена. Перезагружаем приложение…`;
       window.location.replace(pageUrl.href);
     }catch{if(showStatus&&status)status.textContent='Не удалось проверить обновление. Проверьте интернет и повторите попытку.';}
+    finally{clearTimeout(timeout);updateCheckRunning=false;}
   }
 
   if('serviceWorker' in navigator){
@@ -64,6 +71,12 @@
     await checkForNewBuild(true);
   });
   void checkForNewBuild();
+  // Resume from background / back-forward cache and recover after going online.
+  function resumeUpdateCheck(){if(document.visibilityState==='hidden')return;void checkForNewBuild();navigator.serviceWorker?.getRegistration().then(r=>r?.update()).catch(()=>{});}
+  window.addEventListener('pageshow',resumeUpdateCheck);
+  window.addEventListener('online',resumeUpdateCheck);
+  document.addEventListener('visibilitychange',resumeUpdateCheck);
+  setInterval(resumeUpdateCheck,5*60*1000);
 
   // Native install prompt (Chrome/Android) plus accurate Safari/iOS guidance.
   var deferredInstallPrompt = null;

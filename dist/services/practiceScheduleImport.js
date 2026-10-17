@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { parseHtmlTable } from '../core/htmlTableParser.js?v=7519bba90fa36986';
+import { parseHtmlTable } from '../core/htmlTableParser.js?v=ab61dd9a651715ca';
 const DB_NAME = 'almazov-imported-practices';
 const STORE = 'practice-events';
 const DB_VERSION = 1;

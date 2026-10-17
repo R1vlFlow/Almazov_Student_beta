@@ -26,3 +26,8 @@ check(html.includes(`?v=${version.buildId}`),'built HTML must version its assets
 check(rootIndex.includes("current.pathname+='dist/'"),'branch-root index must route to canonical dist app');
 check(rootWorker.includes("cache:'no-store'"),'legacy root worker must check network before cache');
 console.log(`PASS cache invalidation: build ${version.buildId}; selective schedule-cache purge; versioned schedule fetch; no-store JSON/manifest; network-first navigation`);
+
+check(sourceBoot.includes("window.addEventListener('pageshow',resumeUpdateCheck)")&&sourceBoot.includes("window.addEventListener('online',resumeUpdateCheck)")&&sourceBoot.includes("document.addEventListener('visibilitychange',resumeUpdateCheck)"),'resumed and reconnected pages must check for updates');
+check(sourceBoot.includes('Date.now()-lastAttempt<60000'),'failed refresh may retry after a bounded cooldown');
+check(workerSource.includes("request.mode==='navigate'||request.destination==='document'"),'HTML fallback must be restricted to documents');
+check(sourceBoot.includes('isNativePlatform'),'APK update status must distinguish bundled web assets');

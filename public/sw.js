@@ -27,7 +27,10 @@ self.addEventListener('activate',event=>event.waitUntil((async()=>{
 })()));
 
 async function fetchFresh(request){
-  return fetch(new Request(request,{cache:'no-store'}));
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),10000);
+  try{return await fetch(new Request(request,{cache:'no-store',signal:controller.signal}));}
+  finally{clearTimeout(timer);}
 }
 
 async function cacheVersioned(request){
@@ -39,9 +42,7 @@ async function cacheVersioned(request){
     if(response.ok)await cache.put(request,response.clone());
     return response;
   }catch{
-    const offline=await cache.match(OFFLINE_URL);
-    if(offline)return offline;
-    throw new Error('offline');
+    return new Response('Ресурс недоступен офлайн.',{status:503,headers:{'content-type':'text/plain;charset=utf-8'}});
   }
 }
 
@@ -59,9 +60,9 @@ async function networkFirst(request){
     }
     return response;
   }catch{
-    const hit=await caches.match(request)||await caches.match(new URL('./index.html',self.registration.scope).href);
+    const hit=await cache.match(request)||((request.mode==='navigate'||request.destination==='document')?await cache.match(new URL('./index.html',self.registration.scope).href):null);
     if(hit)return hit;
-    const offline=await caches.match(OFFLINE_URL);
+    const offline=(request.mode==='navigate'||request.destination==='document')?await cache.match(OFFLINE_URL):null;
     if(offline)return offline;
     return new Response('Офлайн: приложение пока не было сохранено на этом устройстве.',{
       status:503,headers:{'content-type':'text/plain;charset=utf-8'}
