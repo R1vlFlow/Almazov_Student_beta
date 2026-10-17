@@ -100,6 +100,11 @@ jobs:
           }
           EOF
       - name: Assemble signed APK and app bundle
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/almazov-release.p12
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: almazov-student-release
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           chmod +x android/gradlew
           cd android
