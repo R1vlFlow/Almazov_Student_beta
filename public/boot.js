@@ -81,8 +81,8 @@
     event.preventDefault();
     deferredInstallPrompt = event;
     document.querySelectorAll('[data-install-pwa]').forEach(function (button) {
-      button.textContent = 'Установить приложение';
-      button.setAttribute('aria-label', 'Установить Almazov Schedule Hub');
+      button.textContent = 'Добавить на главный экран';
+      button.setAttribute('aria-label', 'Добавить веб-приложение на главный экран');
     });
   });
   window.addEventListener('appinstalled', function () {
@@ -98,24 +98,41 @@
       if (dialog && typeof dialog.close === 'function') dialog.close();
       return;
     }
+    if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true) {
+      installDialog('Веб-приложение уже открыто в установленном режиме. Повторная установка не нужна.');
+      return;
+    }
+    if (target.disabled) return;
     if (deferredInstallPrompt) {
       try {
         var promptEvent = deferredInstallPrompt;
         deferredInstallPrompt = null;
-        await promptEvent.prompt();
-        var result = await promptEvent.userChoice;
-        var status = document.getElementById('appUpdateStatus');
+        target.disabled = true;
+        target.textContent = 'Открываем окно браузера…';
+        var status = document.getElementById('pwaInstallStatus');
+        if (status) status.textContent = 'Подтвердите установку в окне браузера. APK не скачивается.';
+        var promptTimer;
+        var result = await Promise.race([Promise.resolve(promptEvent.prompt()).then(function () { return promptEvent.userChoice; }), new Promise(function (resolve) { promptTimer = setTimeout(function () { resolve({outcome:'timeout'}); }, 12000); })]);
+        clearTimeout(promptTimer);
+        if (result && result.outcome === 'timeout') {
+          if (status) status.textContent = 'Окно браузера не ответило. Откройте меню браузера → Установить приложение / На главный экран.';
+          return;
+        }
         if (status) status.textContent = result && result.outcome === 'accepted' ? 'Установка запущена.' : 'Установка отменена. Её можно повторить из меню браузера.';
         if (window.zalmaTrack) window.zalmaTrack(result && result.outcome === 'accepted' ? 'pwa_install_accepted' : 'pwa_install_dismissed');
       } catch (_) { installDialog('Браузер не смог открыть системное окно установки. Используйте меню браузера или инструкцию ниже.'); }
+      finally { clearTimeout(promptTimer); target.disabled = false; target.textContent = 'Добавить на главный экран'; }
       return;
     }
     var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    installDialog(isIOS ? 'Для установки на iPhone или iPad откройте этот сайт в Safari.' : 'Системный запрос установки сейчас недоступен. Откройте меню браузера и выберите установку приложения либо используйте APK для Android.');
+    installDialog(isIOS ? 'Для установки на iPhone или iPad откройте этот сайт в Safari.' : 'Системный запрос установки сейчас недоступен. Откройте меню браузера и выберите установку приложения. Для этого не нужно скачивать APK.');
   });
   document.addEventListener('click', function (event) {
     var target = event.target instanceof Element ? event.target.closest('[data-download-apk]') : null;
-    if (target && window.zalmaTrack) window.zalmaTrack('apk_download_clicked');
+    if (!target) return;
+    var status = document.getElementById('apkDownloadStatus');
+    if (status) status.textContent = navigator.onLine === false ? 'Нет подключения. Подключитесь к интернету и повторите скачивание.' : 'Запрос на скачивание отправлен в GitHub. Проверьте загрузки браузера; если файл не появился, используйте резервную ссылку ниже.';
+    if (window.zalmaTrack) window.zalmaTrack('apk_download_clicked');
   });
   function initStartupNotice(){
     const splash=document.getElementById('appSplash'),app=document.querySelector('.app');if(splash&&app)app.inert=true;
