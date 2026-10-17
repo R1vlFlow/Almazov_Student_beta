@@ -16,6 +16,38 @@ jobs:
     timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
+      - name: Load permanent signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: almazov-student-release
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$ANDROID_KEYSTORE_PASSWORD"
+          test -n "$ANDROID_KEY_PASSWORD"
+          python3 - <<'PY'
+          import base64, os, pathlib, string
+          value = ''.join(os.environ['ANDROID_KEYSTORE_BASE64'].lstrip('\ufeff').split())
+          try:
+              decoded = base64.b64decode(value, validate=True)
+          except (ValueError, base64.binascii.Error):
+              allowed = set(string.ascii_letters + string.digits + '+/=')
+              invalid = [c for c in value if c not in allowed]
+              if any(ord(c) > 127 for c in invalid):
+                  reason = 'non-ASCII characters present'
+              elif invalid:
+                  reason = 'characters outside the Base64 alphabet present'
+              elif len(value) % 4:
+                  reason = 'length is not divisible by four (possibly incomplete copy)'
+              else:
+                  reason = 'invalid Base64 padding'
+              raise SystemExit('Signing secret format error: ' + reason + '. Secret contents are not logged.')
+          if not decoded:
+              raise SystemExit('Signing keystore is empty.')
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'almazov-release.p12').write_bytes(decoded)
+          PY
+          test -s "$RUNNER_TEMP/almazov-release.p12"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -52,28 +84,6 @@ jobs:
         run: |
           sed -i -E 's/versionCode [0-9]+/versionCode 33/' android/app/build.gradle
           sed -i -E 's/versionName ".*"/versionName "3.2.0"/' android/app/build.gradle
-      - name: Load permanent signing key
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: almazov-student-release
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          test -n "$ANDROID_KEYSTORE_BASE64"
-          test -n "$ANDROID_KEYSTORE_PASSWORD"
-          test -n "$ANDROID_KEY_PASSWORD"
-          python3 - <<'PY'
-          import base64, os, pathlib
-          value = ''.join(os.environ['ANDROID_KEYSTORE_BASE64'].lstrip('\ufeff').split())
-          try:
-              decoded = base64.b64decode(value, validate=True)
-          except (ValueError, base64.binascii.Error):
-              raise SystemExit('ANDROID_KEYSTORE_BASE64 must contain the Base64 file contents, without a path, quotes or code fences.')
-          if not decoded:
-              raise SystemExit('Signing keystore is empty.')
-          pathlib.Path(os.environ['RUNNER_TEMP'], 'almazov-release.p12').write_bytes(decoded)
-          PY
-          test -s "$RUNNER_TEMP/almazov-release.p12"
       - name: Configure Android release signing
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/almazov-release.p12
