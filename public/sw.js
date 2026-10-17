@@ -42,9 +42,7 @@ async function cacheVersioned(request){
     if(response.ok)await cache.put(request,response.clone());
     return response;
   }catch{
-    const offline=await cache.match(OFFLINE_URL);
-    if(offline)return offline;
-    throw new Error('offline');
+    return new Response('Ресурс недоступен офлайн.',{status:503,headers:{'content-type':'text/plain;charset=utf-8'}});
   }
 }
 

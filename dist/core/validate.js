@@ -1,4 +1,4 @@
-import { cleanLocation, cleanSubject, cleanTeacher, isoDate, normalizeCourse, normalizeGroup, normalizeHalf, normalizeStream, normalizeTime, normalizeTimeRange, normalizeType } from './normalize.js?v=6e21c642c40ca089';
+import { cleanLocation, cleanSubject, cleanTeacher, isoDate, normalizeCourse, normalizeGroup, normalizeHalf, normalizeStream, normalizeTime, normalizeTimeRange, normalizeType } from './normalize.js?v=ab61dd9a651715ca';
 const VALID_PROGRAMS = new Set(['31.05.01', '31.05.02', '37.05.01']);
 export function validateScheduleIndex(payload) {
     const issues = [];

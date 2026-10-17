@@ -1,4 +1,4 @@
-import { cleanText } from './normalize.js?v=6e21c642c40ca089';
+import { cleanText } from './normalize.js?v=ab61dd9a651715ca';
 function attrInt(tag, name) { const m = tag.match(new RegExp(`${name}\\s*=\\s*["']?(\\d+)`, 'i')); return Math.max(1, Number(m?.[1] ?? 1)); }
 function cellText(html) { return cleanText(html.replace(/<br\s*\/?\s*>/gi, ' ').replace(/<[^>]+>/g, ' ')); }
 export function parseHtmlTable(html) {

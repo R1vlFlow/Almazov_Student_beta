@@ -1,7 +1,7 @@
 /* Build-time values are injected by scripts/copy-public.mjs. */
-const BUILD_ID='6e21c642c40ca089';
+const BUILD_ID='ab61dd9a651715ca';
 const CACHE_NAME=`almazov-hub-${BUILD_ID}`;
-const VERSIONED_SHELL=["./styles.css?v=6e21c642c40ca089","./splash.css?v=6e21c642c40ca089","./boot.js?v=6e21c642c40ca089","./manifest.webmanifest?v=6e21c642c40ca089","./offline.html?v=6e21c642c40ca089","./app.js?v=6e21c642c40ca089","./core/calendar.js?v=6e21c642c40ca089","./core/date.js?v=6e21c642c40ca089","./core/excelParser.js?v=6e21c642c40ca089","./core/filter.js?v=6e21c642c40ca089","./core/htmlTableParser.js?v=6e21c642c40ca089","./core/normalize.js?v=6e21c642c40ca089","./core/practiceCycles.js?v=6e21c642c40ca089","./core/time.js?v=6e21c642c40ca089","./core/types.js?v=6e21c642c40ca089","./core/validate.js?v=6e21c642c40ca089","./data/addresses.js?v=6e21c642c40ca089","./data/catalog.js?v=6e21c642c40ca089","./data/roster.js?v=6e21c642c40ca089","./main.js?v=6e21c642c40ca089","./runtime-config.js?v=6e21c642c40ca089","./services/cache.js?v=6e21c642c40ca089","./services/eventService.js?v=6e21c642c40ca089","./services/materialStore.js?v=6e21c642c40ca089","./services/personalizationStore.js?v=6e21c642c40ca089","./services/practiceScheduleImport.js?v=6e21c642c40ca089","./services/scheduleService.js?v=6e21c642c40ca089","./services/supportService.js?v=6e21c642c40ca089","./services/taskService.js?v=6e21c642c40ca089","./telemetry.js?v=6e21c642c40ca089","./ui/customControls.js?v=6e21c642c40ca089","./ui/faq.js?v=6e21c642c40ca089","./ui/theme.js?v=6e21c642c40ca089"];
+const VERSIONED_SHELL=["./styles.css?v=ab61dd9a651715ca","./splash.css?v=ab61dd9a651715ca","./boot.js?v=ab61dd9a651715ca","./manifest.webmanifest?v=ab61dd9a651715ca","./offline.html?v=ab61dd9a651715ca","./app.js?v=ab61dd9a651715ca","./core/calendar.js?v=ab61dd9a651715ca","./core/date.js?v=ab61dd9a651715ca","./core/excelParser.js?v=ab61dd9a651715ca","./core/filter.js?v=ab61dd9a651715ca","./core/htmlTableParser.js?v=ab61dd9a651715ca","./core/normalize.js?v=ab61dd9a651715ca","./core/practiceCycles.js?v=ab61dd9a651715ca","./core/time.js?v=ab61dd9a651715ca","./core/types.js?v=ab61dd9a651715ca","./core/validate.js?v=ab61dd9a651715ca","./data/addresses.js?v=ab61dd9a651715ca","./data/catalog.js?v=ab61dd9a651715ca","./data/roster.js?v=ab61dd9a651715ca","./main.js?v=ab61dd9a651715ca","./runtime-config.js?v=ab61dd9a651715ca","./services/cache.js?v=ab61dd9a651715ca","./services/eventService.js?v=ab61dd9a651715ca","./services/materialStore.js?v=ab61dd9a651715ca","./services/personalizationStore.js?v=ab61dd9a651715ca","./services/practiceScheduleImport.js?v=ab61dd9a651715ca","./services/scheduleService.js?v=ab61dd9a651715ca","./services/supportService.js?v=ab61dd9a651715ca","./services/taskService.js?v=ab61dd9a651715ca","./telemetry.js?v=ab61dd9a651715ca","./ui/customControls.js?v=ab61dd9a651715ca","./ui/faq.js?v=ab61dd9a651715ca","./ui/theme.js?v=ab61dd9a651715ca"];
 const OFFLINE_URL=new URL(`./offline.html?v=${BUILD_ID}`,self.registration.scope).href;
 
 self.addEventListener('install',event=>event.waitUntil((async()=>{
@@ -42,9 +42,7 @@ async function cacheVersioned(request){
     if(response.ok)await cache.put(request,response.clone());
     return response;
   }catch{
-    const offline=await cache.match(OFFLINE_URL);
-    if(offline)return offline;
-    throw new Error('offline');
+    return new Response('Ресурс недоступен офлайн.',{status:503,headers:{'content-type':'text/plain;charset=utf-8'}});
   }
 }
 
