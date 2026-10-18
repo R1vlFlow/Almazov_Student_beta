@@ -1,23 +1,24 @@
-import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=ab61dd9a651715ca';
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=ab61dd9a651715ca';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=ab61dd9a651715ca';
-import { groupsFor, streamForGroup } from './data/roster.js?v=ab61dd9a651715ca';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=ab61dd9a651715ca';
-import { eventAppliesToGroup } from './core/filter.js?v=ab61dd9a651715ca';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=ab61dd9a651715ca';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=ab61dd9a651715ca';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=ab61dd9a651715ca';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=ab61dd9a651715ca';
-import { FAQ } from './ui/faq.js?v=ab61dd9a651715ca';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=ab61dd9a651715ca';
-import { fileToAttachment } from './services/supportService.js?v=ab61dd9a651715ca';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=ab61dd9a651715ca';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=ab61dd9a651715ca';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=ab61dd9a651715ca';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=ab61dd9a651715ca';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=ab61dd9a651715ca';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=ab61dd9a651715ca';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=ab61dd9a651715ca';
+import { matchCourseAddresses } from './core/courseAddresses.js?v=2bdeb6c5485141cc';
+import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=2bdeb6c5485141cc';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=2bdeb6c5485141cc';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=2bdeb6c5485141cc';
+import { groupsFor, streamForGroup } from './data/roster.js?v=2bdeb6c5485141cc';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=2bdeb6c5485141cc';
+import { eventAppliesToGroup } from './core/filter.js?v=2bdeb6c5485141cc';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=2bdeb6c5485141cc';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=2bdeb6c5485141cc';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=2bdeb6c5485141cc';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=2bdeb6c5485141cc';
+import { FAQ } from './ui/faq.js?v=2bdeb6c5485141cc';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=2bdeb6c5485141cc';
+import { fileToAttachment } from './services/supportService.js?v=2bdeb6c5485141cc';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=2bdeb6c5485141cc';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=2bdeb6c5485141cc';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=2bdeb6c5485141cc';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=2bdeb6c5485141cc';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=2bdeb6c5485141cc';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=2bdeb6c5485141cc';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=2bdeb6c5485141cc';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -172,6 +173,8 @@ async function reloadEvents() {
         return;
     renderShell();
     renderSchedule();
+    if (state.page === 'addresses')
+        renderAddresses();
 }
 export async function boot() { await ensureScheduleCacheVersion(document.documentElement.dataset.buildId ?? 'dev'); initTheme(); loadAppearance(); applyAppearance(); ensureProfile(); enhanceControls(); renderShell(); bind(); render(); void loadKugData(); await reloadEvents(); await refreshHomePersonal(); await refreshUploadedMaterials(); render(); window.dispatchEvent(new Event('app:ready')); window.setInterval(() => { if (state.page === 'home')
     renderHome(); }, 30000); startScheduleRefresh(); }
@@ -545,8 +548,30 @@ function renderKug() {
     periodsEl.innerHTML = periods.length ? periods.map(x => `<article class="kug-period kug-${esc(x.kind)}"><div class="kug-period-mark">${x.kind === 'assessment' ? 'А' : x.kind === 'vacation' ? 'К' : x.kind === 'practice' ? 'П' : 'У'}</div><div class="kug-period-main"><b>${esc(x.label || 'Учебный период')}</b><span>${esc(kugDay(x.start))} — ${esc(kugDay(x.end))}${x.semester ? ` · семестр ${x.semester}` : ''}</span></div>${x.sourceUrl ? `<a class="btn small" href="${esc(x.sourceUrl)}" target="_blank" rel="noopener noreferrer">Источник ↗</a>` : ''}</article>`).join('') : '<div class="empty-state compact"><h3>Периоды не опубликованы</h3><p>В доступном официальном источнике пока нет подтверждённых периодов для выбранного курса. Проверьте PDF по ссылке справа.</p></div>';
     sourcesEl.innerHTML = sources.length ? sources.map(x => `<article class="kug-source"><div><b>${esc(x.title)}</b><small>${esc(kugSourceStatus(x.status))} · периодов в данных: ${x.periods}</small></div><a class="btn small" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${x.status === 'verified-bootstrap' ? 'Все документы ↗' : 'Открыть источник ↗'}</a></article>`).join('') : '<div class="empty-state compact"><h3>Источник не найден</h3><p>Для выбранного курса не найден отдельный PDF в текущем snapshot.</p><a class="btn" href="https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/" target="_blank" rel="noopener noreferrer">Все официальные документы ↗</a></div>';
 }
-function renderAddresses() { const container = $('addressList'); if (!container)
-    return; container.innerHTML = ALMAZOV_ADDRESSES.filter(item => { const q = $('addressSearch')?.value.trim().toLocaleLowerCase('ru') ?? ''; return !q || (item.name + ' ' + item.address + ' ' + item.category).toLocaleLowerCase('ru').includes(q); }).map(item => { const map = 'https://yandex.ru/maps/?text=' + encodeURIComponent(item.address); return '<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">' + esc(item.category) + '</p><h2>' + esc(item.name) + '</h2><p>' + esc(item.address) + '</p><a class="address-source" href="' + esc(item.sourceUrl) + '" target="_blank" rel="noopener noreferrer">Официальный источник ↗</a></div><a class="btn primary address-map-link" href="' + esc(map) + '" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах ↗</a></article>'; }).join(''); }
+let addressScope = 'course';
+function renderAddresses() {
+    const container = $('addressList');
+    if (!container)
+        return;
+    const profile = state.profile;
+    const label = $('addressScopeStatus');
+    const rows = [...state.official, ...state.weeklyBlocks].filter(e => e.program === profile.program && e.course === profile.course);
+    const result = matchCourseAddresses(ALMAZOV_ADDRESSES, rows.map(e => e.location || ''));
+    const loading = state.status === 'loading';
+    if (label)
+        label.textContent = addressScope === 'all' ? 'Полный справочник учебных адресов' : `${PROGRAMS.find(x => x.code === profile.program)?.shortTitle ?? profile.program} · ${profile.course} курс · все группы · ${loading ? 'загружаем расписание…' : result.addresses.length + ' подтверждённых адресов'}`;
+    document.querySelectorAll('[data-address-scope]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.addressScope === addressScope)));
+    const q = $('addressSearch')?.value.trim().toLocaleLowerCase('ru') ?? '';
+    const selected = (addressScope === 'all' ? ALMAZOV_ADDRESSES : loading ? [] : result.addresses).filter(item => !q || (item.name + ' ' + item.address + ' ' + item.category).toLocaleLowerCase('ru').includes(q));
+    container.innerHTML = selected.map(item => { const map = 'https://yandex.ru/maps/?text=' + encodeURIComponent(item.address); return '<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">' + esc(item.category) + '</p><h2>' + esc(item.name) + '</h2><p>' + esc(item.address) + '</p><a class="address-source" href="' + esc(item.sourceUrl) + '" target="_blank" rel="noopener noreferrer">Официальный источник ↗</a></div><a class="btn primary address-map-link" href="' + esc(map) + '" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах ↗</a></article>'; }).join('');
+    if (!selected.length)
+        container.innerHTML = '<p class="card">' + (loading && addressScope === 'course' ? 'Загружаем места занятий…' : q ? 'По этому запросу адресов не найдено.' : addressScope === 'course' ? 'В расписании пока нет однозначно определённых адресов. Посмотрите места занятий ниже или откройте весь справочник.' : 'Адресов не найдено.') + '</p>';
+    const unresolved = $('addressUnresolved');
+    if (unresolved) {
+        unresolved.hidden = addressScope === 'all' || loading || !result.unresolved.length;
+        unresolved.innerHTML = '<summary>Места из расписания, требующие уточнения (' + result.unresolved.length + ')</summary><p>Сокращение или номер аудитории нельзя уверенно связать с одним корпусом. Уточните адрес на кафедре.</p><ul>' + result.unresolved.filter(x => !q || x.toLocaleLowerCase('ru').includes(q)).map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>';
+    }
+}
 async function loadKugData() {
     state.kugStatus = 'loading';
     renderKug();
@@ -1537,3 +1562,4 @@ function exportICS() { const events = getDisplayEvents(); const tz = state.timez
 } lines.push('END:VCALENDAR'); const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `almazov-${state.profile.group || 'group'}-${state.focusDate}-${tz.replaceAll('/', '_')}.ics`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
 function escapeICS(v) { return v.replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n'); }
 $('addressSearch')?.addEventListener('input', renderAddresses);
+document.querySelectorAll('[data-address-scope]').forEach(button => button.addEventListener('click', () => { addressScope = button.dataset.addressScope === 'all' ? 'all' : 'course'; renderAddresses(); }));

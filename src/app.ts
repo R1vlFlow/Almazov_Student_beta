@@ -1,3 +1,4 @@
+import {matchCourseAddresses} from './core/courseAddresses.js';
 import {expandPracticeCycles,hasImportedPracticeOverlap} from './core/practiceCycles.js';
 import type {Course,EventStatus,ProgramCode,ScheduleEvent,ScheduleWeeklyBlock,Task,UserProfile} from './core/types.js';
 import {PROGRAMS,sourceFor,sourcesFor} from './data/catalog.js';
@@ -110,7 +111,7 @@ async function reloadEvents(){
     state.message+=` Импортированные ПЗ не загружены: ${error instanceof Error?error.message:'ошибка'}`;
   }
   if(sequence!==reloadSequence)return;
-  renderShell();renderSchedule();
+  renderShell();renderSchedule();if(state.page==='addresses')renderAddresses();
 }
 export async function boot(){await ensureScheduleCacheVersion(document.documentElement.dataset.buildId??'dev');initTheme();loadAppearance();applyAppearance();ensureProfile();enhanceControls();renderShell();bind();render();void loadKugData();await reloadEvents();await refreshHomePersonal();await refreshUploadedMaterials();render();window.dispatchEvent(new Event('app:ready'));window.setInterval(()=>{if(state.page==='home')renderHome();},30000);startScheduleRefresh();}
 function startScheduleRefresh(){
@@ -340,7 +341,23 @@ function renderKug(){
   periodsEl.innerHTML=periods.length?periods.map(x=>`<article class="kug-period kug-${esc(x.kind)}"><div class="kug-period-mark">${x.kind==='assessment'?'А':x.kind==='vacation'?'К':x.kind==='practice'?'П':'У'}</div><div class="kug-period-main"><b>${esc(x.label||'Учебный период')}</b><span>${esc(kugDay(x.start))} — ${esc(kugDay(x.end))}${x.semester?` · семестр ${x.semester}`:''}</span></div>${x.sourceUrl?`<a class="btn small" href="${esc(x.sourceUrl)}" target="_blank" rel="noopener noreferrer">Источник ↗</a>`:''}</article>`).join(''):'<div class="empty-state compact"><h3>Периоды не опубликованы</h3><p>В доступном официальном источнике пока нет подтверждённых периодов для выбранного курса. Проверьте PDF по ссылке справа.</p></div>';
   sourcesEl.innerHTML=sources.length?sources.map(x=>`<article class="kug-source"><div><b>${esc(x.title)}</b><small>${esc(kugSourceStatus(x.status))} · периодов в данных: ${x.periods}</small></div><a class="btn small" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${x.status==='verified-bootstrap'?'Все документы ↗':'Открыть источник ↗'}</a></article>`).join(''):'<div class="empty-state compact"><h3>Источник не найден</h3><p>Для выбранного курса не найден отдельный PDF в текущем snapshot.</p><a class="btn" href="https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/" target="_blank" rel="noopener noreferrer">Все официальные документы ↗</a></div>';
 }
-function renderAddresses(){const container=$('addressList');if(!container)return;container.innerHTML=ALMAZOV_ADDRESSES.filter(item=>{const q=($('addressSearch') as HTMLInputElement)?.value.trim().toLocaleLowerCase('ru')??'';return !q||(item.name+' '+item.address+' '+item.category).toLocaleLowerCase('ru').includes(q);}).map(item=>{const map='https://yandex.ru/maps/?text='+encodeURIComponent(item.address);return '<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">'+esc(item.category)+'</p><h2>'+esc(item.name)+'</h2><p>'+esc(item.address)+'</p><a class="address-source" href="'+esc(item.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Официальный источник ↗</a></div><a class="btn primary address-map-link" href="'+esc(map)+'" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах ↗</a></article>';}).join('');}
+let addressScope:'course'|'all'='course';
+function renderAddresses(){
+  const container=$('addressList');if(!container)return;
+  const profile=state.profile;
+  const label=$('addressScopeStatus');
+  const rows=[...state.official,...state.weeklyBlocks].filter(e=>e.program===profile.program&&e.course===profile.course);
+  const result=matchCourseAddresses(ALMAZOV_ADDRESSES,rows.map(e=>e.location||''));
+  const loading=state.status==='loading';
+  if(label)label.textContent=addressScope==='all'?'Полный справочник учебных адресов':`${PROGRAMS.find(x=>x.code===profile.program)?.shortTitle??profile.program} · ${profile.course} курс · все группы · ${loading?'загружаем расписание…':result.addresses.length+' подтверждённых адресов'}`;
+  document.querySelectorAll<HTMLButtonElement>('[data-address-scope]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.addressScope===addressScope)));
+  const q=($('addressSearch') as HTMLInputElement)?.value.trim().toLocaleLowerCase('ru')??'';
+  const selected=(addressScope==='all'?ALMAZOV_ADDRESSES:loading?[]:result.addresses).filter(item=>!q||(item.name+' '+item.address+' '+item.category).toLocaleLowerCase('ru').includes(q));
+  container.innerHTML=selected.map(item=>{const map='https://yandex.ru/maps/?text='+encodeURIComponent(item.address);return '<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">'+esc(item.category)+'</p><h2>'+esc(item.name)+'</h2><p>'+esc(item.address)+'</p><a class="address-source" href="'+esc(item.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Официальный источник ↗</a></div><a class="btn primary address-map-link" href="'+esc(map)+'" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах ↗</a></article>';}).join('');
+  if(!selected.length)container.innerHTML='<p class="card">'+(loading&&addressScope==='course'?'Загружаем места занятий…':q?'По этому запросу адресов не найдено.':addressScope==='course'?'В расписании пока нет однозначно определённых адресов. Посмотрите места занятий ниже или откройте весь справочник.':'Адресов не найдено.')+'</p>';
+  const unresolved=$('addressUnresolved');
+  if(unresolved){unresolved.hidden=addressScope==='all'||loading||!result.unresolved.length;unresolved.innerHTML='<summary>Места из расписания, требующие уточнения ('+result.unresolved.length+')</summary><p>Сокращение или номер аудитории нельзя уверенно связать с одним корпусом. Уточните адрес на кафедре.</p><ul>'+result.unresolved.filter(x=>!q||x.toLocaleLowerCase('ru').includes(q)).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';}
+}
 async function loadKugData(){
   state.kugStatus='loading';renderKug();
   try{
@@ -523,3 +540,5 @@ function exportICS(){const events=getDisplayEvents();const tz=state.timezone;con
 function escapeICS(v:string){return v.replace(/([,;\\])/g,'\\$1').replace(/\n/g,'\\n');}
 
 $('addressSearch')?.addEventListener('input',renderAddresses);
+
+document.querySelectorAll<HTMLButtonElement>('[data-address-scope]').forEach(button=>button.addEventListener('click',()=>{addressScope=button.dataset.addressScope==='all'?'all':'course';renderAddresses();}));
