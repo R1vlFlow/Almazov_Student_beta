@@ -31,3 +31,5 @@ test('maps only resolve an unambiguous official address',()=>{const one={name:'Ð
 test('updates require explicit acceptance and never navigate clients from service worker',async()=>{const boot=await readFile('public/boot.js','utf8'),sw=await readFile('public/sw.js','utf8');assert.ok(boot.includes('window.confirm'));assert.ok(boot.includes("button.addEventListener('click',async()=>"));assert.ok(!sw.includes('client.navigate'));assert.ok(sw.includes("event.data?.type==='SKIP_WAITING'"));});
 
 test('Android release metadata is shipped with the web build',async()=>{const source=JSON.parse(await readFile('public/android-release.json','utf8'));const built=JSON.parse(await readFile('dist/android-release.json','utf8'));assert.deepEqual(built,source);assert.equal(source.versionCode,33);assert.match(source.apkUrl,/^https:\/\/github\.com\/R1vlFlow\/Almazov_Student_beta\/releases\/download\//);});
+
+test('offline initial HTML is cached only when it matches the worker build',async()=>{const sw=await readFile('public/sw.js','utf8');assert.ok(sw.includes('data-build-id="${BUILD_ID}"'));assert.ok(sw.includes('await cache.put(indexUrl,response)'));});

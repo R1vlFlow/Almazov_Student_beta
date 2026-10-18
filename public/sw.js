@@ -9,6 +9,9 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
   // Only content-versioned files are pre-cached. Never install a potentially
   // stale index.html through the currently active worker.
   await cache.addAll(VERSIONED_SHELL);
+  // Offline first reopen: only save HTML whose fingerprint matches this worker.
+  const indexUrl=new URL('./index.html',self.registration.scope).href;
+  try{const response=await fetchFresh(new Request(indexUrl,{cache:'no-store'}));if(response.ok&&(await response.clone().text()).includes(`data-build-id="${BUILD_ID}"`))await cache.put(indexUrl,response);}catch{/* The explicit offline page remains available. */}
   // Wait for explicit acceptance or for all previous tabs to close.
 })()));
 
