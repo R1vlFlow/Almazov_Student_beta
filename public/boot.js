@@ -33,6 +33,19 @@
     const status=document.getElementById('appUpdateStatus');
     if(showStatus&&status)status.textContent='Проверяем опубликованную версию…';
     try{
+      if(window.Capacitor?.isNativePlatform?.()){
+        const current=await fetch('./android-release.json',{signal:abort.signal}).then(r=>{if(!r.ok)throw Error('metadata');return r.json();});
+        const remote=await fetch('https://r1vlflow.github.io/Almazov_Student_beta/android-release.json?check='+Date.now(),{cache:'no-store',signal:abort.signal}).then(r=>{if(!r.ok)throw Error('metadata');return r.json();});
+        if(!Number.isInteger(current.versionCode)||!Number.isInteger(remote.versionCode))throw Error('metadata');
+        if(remote.versionCode>current.versionCode){
+          if(status)status.textContent='Доступна новая версия Android. Сохраните резервную копию перед установкой.';
+          const href=new URL(remote.apkUrl);
+          if(href.origin==='https://github.com'&&href.pathname.startsWith('/R1vlFlow/Almazov_Student_beta/releases/download/')&&href.pathname.endsWith('.apk')&&document.body&&!document.getElementById('availableAndroidUpdate')){
+            const banner=document.createElement('aside');banner.id='availableAndroidUpdate';banner.className='card update-offer';banner.setAttribute('role','status');const text=document.createElement('p');text.textContent='Доступно обновление Android '+String(remote.version)+'. Сначала сохраните резервную копию в настройках.';const link=document.createElement('a');link.className='btn primary';link.href=href.href;link.textContent='Скачать обновление APK';banner.append(text,link);document.body.append(banner);
+          }
+        }else if(showStatus&&status)status.textContent='Установлена актуальная опубликованная версия Android '+current.version+'.';
+        return;
+      }
       const url=new URL('./version.json',window.location.href);
       url.searchParams.set('check',String(Date.now()));
       const response=await fetch(url,{cache:'no-store',signal:abort.signal,headers:{'Cache-Control':'no-cache'}});
@@ -55,7 +68,23 @@
       try{sessionStorage.setItem('almazov:last-build-refresh',release.buildId);sessionStorage.setItem('almazov:last-build-refresh-at',String(Date.now()));}catch{}
       pageUrl.searchParams.set('__app_build',release.buildId);
       if(showStatus&&status)status.textContent=`Новая версия ${release.buildId} найдена. Перезагружаем приложение…`;
-      window.location.replace(pageUrl.href);
+      const offer=()=>{
+        let banner=document.getElementById('availableUpdate');
+        if(!banner){
+          banner=document.createElement('aside');banner.id='availableUpdate';banner.className='card update-offer';banner.setAttribute('role','status');
+          const message=document.createElement('p');message.textContent='Доступна новая версия. Сохраните изменения перед обновлением.';
+          const button=document.createElement('button');button.type='button';button.className='btn primary';button.textContent='Обновить сейчас';
+          button.addEventListener('click',async()=>{
+            if(!window.confirm('Сохранены ли ваши изменения? Страница будет перезагружена.'))return;
+            button.disabled=true;
+            try{const registration=await navigator.serviceWorker?.getRegistration();if(registration?.waiting){await new Promise(resolve=>{const timer=setTimeout(resolve,5000);navigator.serviceWorker.addEventListener('controllerchange',()=>{clearTimeout(timer);resolve();},{once:true});registration.waiting.postMessage({type:'SKIP_WAITING'});});}}catch{}
+            window.location.replace(pageUrl.href);
+          });
+          banner.append(message,button);document.body.append(banner);
+        }
+      };
+      if(document.body)offer();else document.addEventListener('DOMContentLoaded',offer,{once:true});
+      if(status)status.textContent='Доступно обновление. Нажмите «Обновить сейчас», когда сохраните изменения.';
     }catch{if(showStatus&&status)status.textContent='Не удалось проверить обновление. Проверьте интернет и повторите попытку.';}
     finally{clearTimeout(timeout);updateCheckRunning=false;}
   }
@@ -70,6 +99,7 @@
     try{sessionStorage.removeItem('almazov:last-build-refresh');}catch{}
     await checkForNewBuild(true);
   });
+  navigator.serviceWorker?.addEventListener('message',event=>{if(event.data?.type==='APP_UPDATE_AVAILABLE')void checkForNewBuild();});
   void checkForNewBuild();
   // Resume from background / back-forward cache and recover after going online.
   function resumeUpdateCheck(){if(document.visibilityState==='hidden')return;void checkForNewBuild();navigator.serviceWorker?.getRegistration().then(r=>r?.update()).catch(()=>{});}

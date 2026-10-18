@@ -1,6 +1,6 @@
 const DB_NAME='almazov-hub-cache';const STORE='schedule';const VERSION=1;
 let activeCacheNamespace='unversioned';
-const storageKey=(key:string)=>`${activeCacheNamespace}:${key}`;
+const storageKey=(key:string)=>key.startsWith('last-good:')?key:`${activeCacheNamespace}:${key}`;
 export interface CachedPayload{key:string;savedAt:number;payload:unknown;}
 const memory=new Map<string,CachedPayload>();
 function openDb():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{if(typeof indexedDB==='undefined'){reject(new Error('IndexedDB unavailable'));return;}const req=indexedDB.open(DB_NAME,VERSION);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(STORE))req.result.createObjectStore(STORE,{keyPath:'key'});};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
@@ -27,7 +27,8 @@ export async function ensureScheduleCacheVersion(buildId:string):Promise<boolean
     db=await openDb();
     await new Promise<void>((resolve,reject)=>{
       const tx=db!.transaction(STORE,'readwrite');
-      tx.objectStore(STORE).clear();
+      const cursor=tx.objectStore(STORE).openCursor();
+      cursor.onsuccess=()=>{const item=cursor.result;if(!item)return;if(!String(item.key).startsWith('last-good:'))item.delete();item.continue();};
       tx.oncomplete=()=>resolve();
       tx.onerror=()=>reject(tx.error??new Error('Failed to invalidate schedule cache'));
       tx.onabort=()=>reject(tx.error??new Error('Schedule cache invalidation aborted'));

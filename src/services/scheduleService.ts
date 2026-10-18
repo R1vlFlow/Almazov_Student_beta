@@ -1,3 +1,4 @@
+import {recordScheduleCheck} from './scheduleHistory.js';
 import { LIVE_LD_JSON, PROGRAMS, sourceFor, sourcesFor } from '../data/catalog.js';
 import type { Course, ProgramCode, ScheduleEvent, ScheduleIndex, ScheduleLoadResult, ScheduleWeeklyBlock } from '../core/types.js';
 import { validateScheduleIndex, normalizeLiveEvents, normalizeWeeklyBlocks } from '../core/validate.js';
@@ -18,10 +19,22 @@ export async function loadSchedule(program:ProgramCode,course:Course):Promise<Sc
   // and local static hosting never wait for a backend timeout.
   const staticResult=await loadStaticSnapshot(program,course);
   if(staticResult&&(staticResult.events.length>0||(staticResult.weeklyBlocks?.length??0)>0||staticResult.status==='unavailable')){
+    if(staticResult.events.length||(staticResult.weeklyBlocks?.length??0)){
+      const saved=await readCache<ScheduleLoadResult>('last-good:'+key);
+      const previous=saved&&'payload' in saved?saved.payload as ScheduleLoadResult:saved as ScheduleLoadResult|null;
+      recordScheduleCheck(key,previous,staticResult);
+      await saveCache('last-good:'+key,staticResult);
+    }
     memory.set(key,staticResult);
     return staticResult;
   }
-  if(isStaticRuntime()){
+  const saved=await readCache<ScheduleLoadResult>('last-good:'+key);
+  const lastGood=saved&&'payload' in saved?saved.payload as ScheduleLoadResult:saved as ScheduleLoadResult|null;
+  if(lastGood&&(lastGood.events?.length||lastGood.weeklyBlocks?.length)){
+    const result:ScheduleLoadResult={...lastGood,status:'cache',message:'Не удалось получить свежий снимок. Показано последнее сохранённое расписание; изменения могли ещё не загрузиться.'};
+    memory.set(key,result);return result;
+  }
+  if(isStaticRuntime()){ 
     const result:ScheduleLoadResult={status:'unavailable',events:[],weeklyBlocks:[],sourceUrl:sourceFor(program,course),issues:['STATIC_SNAPSHOT_MISSING'],message:'Локальный снимок этого расписания отсутствует. Сервер и сетевой источник в статическом режиме не используются.'};
     memory.set(key,result);return result;
   }

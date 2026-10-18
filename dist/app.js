@@ -1,24 +1,26 @@
-import { matchCourseAddresses } from './core/courseAddresses.js?v=2bdeb6c5485141cc';
-import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=2bdeb6c5485141cc';
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=2bdeb6c5485141cc';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=2bdeb6c5485141cc';
-import { groupsFor, streamForGroup } from './data/roster.js?v=2bdeb6c5485141cc';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=2bdeb6c5485141cc';
-import { eventAppliesToGroup } from './core/filter.js?v=2bdeb6c5485141cc';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=2bdeb6c5485141cc';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=2bdeb6c5485141cc';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=2bdeb6c5485141cc';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=2bdeb6c5485141cc';
-import { FAQ } from './ui/faq.js?v=2bdeb6c5485141cc';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=2bdeb6c5485141cc';
-import { fileToAttachment } from './services/supportService.js?v=2bdeb6c5485141cc';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=2bdeb6c5485141cc';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=2bdeb6c5485141cc';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=2bdeb6c5485141cc';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=2bdeb6c5485141cc';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=2bdeb6c5485141cc';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=2bdeb6c5485141cc';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=2bdeb6c5485141cc';
+import { readScheduleHistory } from './services/scheduleHistory.js?v=1beaeb5e1965fdb3';
+import { bindPersonalBackup } from './services/personalBackup.js?v=1beaeb5e1965fdb3';
+import { matchCourseAddresses } from './core/courseAddresses.js?v=1beaeb5e1965fdb3';
+import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=1beaeb5e1965fdb3';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=1beaeb5e1965fdb3';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=1beaeb5e1965fdb3';
+import { groupsFor, streamForGroup } from './data/roster.js?v=1beaeb5e1965fdb3';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=1beaeb5e1965fdb3';
+import { eventAppliesToGroup } from './core/filter.js?v=1beaeb5e1965fdb3';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=1beaeb5e1965fdb3';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=1beaeb5e1965fdb3';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=1beaeb5e1965fdb3';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=1beaeb5e1965fdb3';
+import { FAQ } from './ui/faq.js?v=1beaeb5e1965fdb3';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=1beaeb5e1965fdb3';
+import { fileToAttachment } from './services/supportService.js?v=1beaeb5e1965fdb3';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=1beaeb5e1965fdb3';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=1beaeb5e1965fdb3';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=1beaeb5e1965fdb3';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=1beaeb5e1965fdb3';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=1beaeb5e1965fdb3';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=1beaeb5e1965fdb3';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=1beaeb5e1965fdb3';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -176,8 +178,36 @@ async function reloadEvents() {
     if (state.page === 'addresses')
         renderAddresses();
 }
-export async function boot() { await ensureScheduleCacheVersion(document.documentElement.dataset.buildId ?? 'dev'); initTheme(); loadAppearance(); applyAppearance(); ensureProfile(); enhanceControls(); renderShell(); bind(); render(); void loadKugData(); await reloadEvents(); await refreshHomePersonal(); await refreshUploadedMaterials(); render(); window.dispatchEvent(new Event('app:ready')); window.setInterval(() => { if (state.page === 'home')
-    renderHome(); }, 30000); startScheduleRefresh(); }
+export async function boot() {
+    bindPersonalBackup();
+    try {
+        const saved = JSON.parse(sessionStorage.getItem('almazov.calendar-position') || 'null');
+        if (saved && saved.profile === JSON.stringify(state.profile) && Object.hasOwn(VIEW_LABEL, saved.view) && /^\d{4}-\d{2}-\d{2}$/.test(saved.date) && Number.isFinite(Date.parse(saved.date))) {
+            state.view = saved.view;
+            state.focusDate = saved.date;
+            state.week = mondayOf(saved.date);
+        }
+    }
+    catch { }
+    await ensureScheduleCacheVersion(document.documentElement.dataset.buildId ?? 'dev');
+    initTheme();
+    loadAppearance();
+    applyAppearance();
+    ensureProfile();
+    enhanceControls();
+    renderShell();
+    bind();
+    render();
+    void loadKugData();
+    await reloadEvents();
+    await refreshHomePersonal();
+    await refreshUploadedMaterials();
+    render();
+    window.dispatchEvent(new Event('app:ready'));
+    window.setInterval(() => { if (state.page === 'home')
+        renderHome(); }, 30000);
+    startScheduleRefresh();
+}
 function startScheduleRefresh() {
     const interval = 40 * 60 * 1000;
     let lastRefresh = Date.now(), refreshing = false;
@@ -278,7 +308,7 @@ function renderHome() {
     const focusTitle = focus ? String(focus.title ?? (('subject' in focus) ? focus.subject : '')) : '';
     $('homeContext').textContent = state.profile.group ? `${PROGRAMS.find(p => p.code === state.profile.program)?.title} · ${state.profile.course} курс · группа ${state.profile.group}` : 'Выберите группу';
     $('homeStats').innerHTML = [['Занятий сегодня', String(todayEvents.length)], ['На неделе', String(weekEvents.length)], ['Активных ДЗ', String(state.tasks.filter(t => (t.status ?? (t.done ? 'done' : 'todo')) !== 'done').length)], ['Источник', state.status === 'live' ? 'LIVE' : state.status === 'cache' ? 'CACHE' : state.status === 'partial' ? 'PARTIAL' : 'OFFLINE']].map(([a, b]) => `<div class="stat-card"><span>${a}</span><b>${b}</b></div>`).join('');
-    $('homeHero').innerHTML = focus ? `<div class="home-hero-copy"><span class="eyebrow">${active ? 'Сейчас идёт пара' : 'Следующая пара'}</span><h2>${esc(focusTitle)}</h2><p>${esc(focus.location || 'Аудитория не указана')} · ${esc(focus.kind === 'schedule' ? (focus.teacher || 'Преподаватель не указан') : 'Личное событие')}</p><div class="home-hero-chips"><span>${esc(focus.kind === 'schedule' ? String(focus.type ?? 'Занятие') : 'Личное')}</span><span>${esc(localTime(focus.startAt, state.timezone))}–${esc(localTime(focus.endAt, state.timezone))}</span><span>${esc(state.timezone)}</span></div></div><div class="home-countdown"><span>${active ? 'До конца' : 'До начала'}</span><strong id="homeCountdownValue">${countdownLabel((active ? Date.parse(focus.endAt) : Date.parse(focus.startAt)) - now)}</strong><small>${esc(longDateRu(focus ? localDate(focus.startAt, state.timezone) : today))}</small></div>` : `<div class="home-hero-copy"><span class="eyebrow">Сегодня</span><h2>${todayCycles.length ? 'Практический цикл этой недели' : 'Ближайших пар нет'}</h2><p>${todayCycles.length ? 'Период, время и предметы цикла указаны ниже.' : 'В опубликованном расписании не найдено будущих пар.'}</p></div><div class="home-countdown"><span>${todayCycles.length ? 'Смотрите цикл ниже' : 'Расписание'}</span><strong>—</strong><small>${esc(longDateRu(today))}</small></div>`;
+    $('homeHero').innerHTML = focus ? `<div class="home-hero-copy"><span class="eyebrow">${active ? 'Сейчас идёт пара' : 'Следующая пара'}</span><h2>${esc(focusTitle)}</h2><p>${esc(focus.location || 'Аудитория не указана')} · ${esc(focus.kind === 'schedule' ? (focus.teacher || 'Преподаватель не указан') : 'Личное событие')}</p>${lessonMap(focus.location)}<div class="home-hero-chips"><span>${esc(focus.kind === 'schedule' ? String(focus.type ?? 'Занятие') : 'Личное')}</span><span>${esc(localTime(focus.startAt, state.timezone))}–${esc(localTime(focus.endAt, state.timezone))}</span><span>${esc(state.timezone)}</span></div></div><div class="home-countdown"><span>${active ? 'До конца' : 'До начала'}</span><strong id="homeCountdownValue">${countdownLabel((active ? Date.parse(focus.endAt) : Date.parse(focus.startAt)) - now)}</strong><small>${esc(longDateRu(focus ? localDate(focus.startAt, state.timezone) : today))}</small></div>` : `<div class="home-hero-copy"><span class="eyebrow">Сегодня</span><h2>${todayCycles.length ? 'Практический цикл этой недели' : 'Ближайших пар нет'}</h2><p>${todayCycles.length ? 'Период, время и предметы цикла указаны ниже.' : 'В опубликованном расписании не найдено будущих пар.'}</p></div><div class="home-countdown"><span>${todayCycles.length ? 'Смотрите цикл ниже' : 'Расписание'}</span><strong>—</strong><small>${esc(longDateRu(today))}</small></div>`;
     $('homeTodayTimeline').innerHTML = todayEvents.length ? todayEvents.map(e => `<article class="home-timeline-item"><span class="home-timeline-time">${e.allDay ? 'Весь день' : esc(localTime(e.startAt, state.timezone))}</span><div class="home-timeline-content"><b>${esc(String(e.title ?? (('subject' in e) ? e.subject : '')))}</b><small>${esc(e.location || 'Место не указано')}${e.kind === 'schedule' && e.teacher ? ` · ${esc(e.teacher)}` : ''}</small></div><div class="home-timeline-actions"><button class="btn small ghost" data-open-event="${esc(e.id)}">Открыть</button>${e.kind === 'schedule' ? `<button class="btn small" data-homework-from-event="${esc(e.id)}">Записать ДЗ</button>` : ''}</div></article>`).join('') : `<div class="empty-state compact"><p>${todayCycles.length ? 'Практика этой недели показана ниже.' : 'На сегодня занятий нет или источник пока не содержит данных.'}</p><button class="btn" data-page="schedule">Открыть расписание</button></div>`;
     if (!importsPracticeSchedule())
         $('homeTodayTimeline').insertAdjacentHTML('beforeend', renderWeeklyBlocks(visibleWeeklyBlocks(today, today)));
@@ -287,6 +317,10 @@ function renderHome() {
     $('homeUpcoming').innerHTML = weekEvents.filter(e => localDate(e.startAt, state.timezone) >= today).slice(0, 5).map(e => `<article class="next-item"><div><span>${longDateRu(localDate(e.startAt, state.timezone))} · ${localTime(e.startAt, state.timezone)}</span><b>${esc(String(e.title ?? (('subject' in e) ? e.subject : '')))}</b><small>${esc(e.location || 'Без места')}</small></div><button class="btn small" data-open-event="${esc(e.id)}">Открыть</button></article>`).join('') || `<div class="empty-state compact card"><p>Ближайших событий на неделе нет.</p></div>`;
 }
 function renderSchedule() {
+    try {
+        sessionStorage.setItem('almazov.calendar-position', JSON.stringify({ profile: JSON.stringify(state.profile), view: state.view, date: state.focusDate }));
+    }
+    catch { }
     state.tasks = readTasks();
     document.querySelectorAll('[data-action="import-practices"]').forEach(button => { button.hidden = !canImportPracticeSchedule(); });
     // Empty state is rendered dynamically, so its absence on first render is normal.
@@ -548,24 +582,39 @@ function renderKug() {
     periodsEl.innerHTML = periods.length ? periods.map(x => `<article class="kug-period kug-${esc(x.kind)}"><div class="kug-period-mark">${x.kind === 'assessment' ? 'А' : x.kind === 'vacation' ? 'К' : x.kind === 'practice' ? 'П' : 'У'}</div><div class="kug-period-main"><b>${esc(x.label || 'Учебный период')}</b><span>${esc(kugDay(x.start))} — ${esc(kugDay(x.end))}${x.semester ? ` · семестр ${x.semester}` : ''}</span></div>${x.sourceUrl ? `<a class="btn small" href="${esc(x.sourceUrl)}" target="_blank" rel="noopener noreferrer">Источник ↗</a>` : ''}</article>`).join('') : '<div class="empty-state compact"><h3>Периоды не опубликованы</h3><p>В доступном официальном источнике пока нет подтверждённых периодов для выбранного курса. Проверьте PDF по ссылке справа.</p></div>';
     sourcesEl.innerHTML = sources.length ? sources.map(x => `<article class="kug-source"><div><b>${esc(x.title)}</b><small>${esc(kugSourceStatus(x.status))} · периодов в данных: ${x.periods}</small></div><a class="btn small" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${x.status === 'verified-bootstrap' ? 'Все документы ↗' : 'Открыть источник ↗'}</a></article>`).join('') : '<div class="empty-state compact"><h3>Источник не найден</h3><p>Для выбранного курса не найден отдельный PDF в текущем snapshot.</p><a class="btn" href="https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/" target="_blank" rel="noopener noreferrer">Все официальные документы ↗</a></div>';
 }
-let addressScope = 'course';
+let addressScope = 'group';
 function renderAddresses() {
     const container = $('addressList');
     if (!container)
         return;
     const profile = state.profile;
     const label = $('addressScopeStatus');
-    const rows = [...state.official, ...state.weeklyBlocks].filter(e => e.program === profile.program && e.course === profile.course);
+    const rows = [...state.official, ...state.weeklyBlocks].filter(e => e.program === profile.program && e.course === profile.course && (addressScope !== 'group' || ('date' in e ? eventAppliesToGroup(e, { ...profile, stream: streamForGroup(profile.program, profile.group) }) : e.group === profile.group)));
     const result = matchCourseAddresses(ALMAZOV_ADDRESSES, rows.map(e => e.location || ''));
+    const subjectsByAddress = new Map();
+    const byLocation = new Map();
+    for (const row of rows) {
+        const location = row.location || '';
+        let addresses = byLocation.get(location);
+        if (!addresses) {
+            addresses = matchCourseAddresses(ALMAZOV_ADDRESSES, [location]).addresses.map(x => x.address);
+            byLocation.set(location, addresses);
+        }
+        for (const address of addresses) {
+            const subjects = subjectsByAddress.get(address) ?? new Set();
+            subjects.add(row.subject);
+            subjectsByAddress.set(address, subjects);
+        }
+    }
     const loading = state.status === 'loading';
     if (label)
-        label.textContent = addressScope === 'all' ? 'Полный справочник учебных адресов' : `${PROGRAMS.find(x => x.code === profile.program)?.shortTitle ?? profile.program} · ${profile.course} курс · все группы · ${loading ? 'загружаем расписание…' : result.addresses.length + ' подтверждённых адресов'}`;
+        label.textContent = addressScope === 'all' ? 'Полный справочник учебных адресов' : `${PROGRAMS.find(x => x.code === profile.program)?.shortTitle ?? profile.program} · ${profile.course} курс · ${addressScope === 'group' ? 'группа ' + profile.group : 'все группы'} · ${loading ? 'загружаем расписание…' : result.addresses.length + ' подтверждённых адресов'}`;
     document.querySelectorAll('[data-address-scope]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.addressScope === addressScope)));
     const q = $('addressSearch')?.value.trim().toLocaleLowerCase('ru') ?? '';
     const selected = (addressScope === 'all' ? ALMAZOV_ADDRESSES : loading ? [] : result.addresses).filter(item => !q || (item.name + ' ' + item.address + ' ' + item.category).toLocaleLowerCase('ru').includes(q));
-    container.innerHTML = selected.map(item => { const map = 'https://yandex.ru/maps/?text=' + encodeURIComponent(item.address); return '<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">' + esc(item.category) + '</p><h2>' + esc(item.name) + '</h2><p>' + esc(item.address) + '</p><a class="address-source" href="' + esc(item.sourceUrl) + '" target="_blank" rel="noopener noreferrer">Официальный источник ↗</a></div><a class="btn primary address-map-link" href="' + esc(map) + '" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах ↗</a></article>'; }).join('');
+    container.innerHTML = selected.map(item => { const map = 'https://yandex.ru/maps/?text=' + encodeURIComponent(item.address); return '<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">' + esc(item.category) + '</p><h2>' + esc(item.name) + '</h2><p>' + esc(item.address) + '</p>' + (subjectsByAddress.has(item.address) ? '<details><summary>Предметы в расписании</summary><ul>' + [...subjectsByAddress.get(item.address)].sort().map(subject => '<li>' + esc(subject) + '</li>').join('') + '</ul></details>' : '') + '<a class="address-source" href="' + esc(item.sourceUrl) + '" target="_blank" rel="noopener noreferrer">Официальный источник ↗</a></div><a class="btn primary address-map-link" href="' + esc(map) + '" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах ↗</a></article>'; }).join('');
     if (!selected.length)
-        container.innerHTML = '<p class="card">' + (loading && addressScope === 'course' ? 'Загружаем места занятий…' : q ? 'По этому запросу адресов не найдено.' : addressScope === 'course' ? 'В расписании пока нет однозначно определённых адресов. Посмотрите места занятий ниже или откройте весь справочник.' : 'Адресов не найдено.') + '</p>';
+        container.innerHTML = '<p class="card">' + (loading && addressScope !== 'all' ? 'Загружаем места занятий…' : q ? 'По этому запросу адресов не найдено.' : addressScope !== 'all' ? 'В расписании пока нет однозначно определённых адресов. Посмотрите места занятий ниже или откройте весь справочник.' : 'Адресов не найдено.') + '</p>';
     const unresolved = $('addressUnresolved');
     if (unresolved) {
         unresolved.hidden = addressScope === 'all' || loading || !result.unresolved.length;
@@ -594,6 +643,12 @@ function renderFaq(filter = '') { const q = filter.trim().toLowerCase(); const i
 function renderTeacherSettings() { const box = $('subjectTeacherSettings'); if (!box)
     return; const subjects = Array.from(new Set(state.official.filter(e => eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).map(e => e.subject))).sort((a, b) => a.localeCompare(b, 'ru')); box.innerHTML = subjects.length ? subjects.map(subject => { const key = subjectColorKey(subject), value = state.personalization.subjectTeachers[key] || ''; return '<label class="teacher-setting-row"><span><b>' + esc(subject) + '</b><small>Имя преподавателя появится в расписании</small></span><input type="text" data-subject-teacher="' + esc(key) + '" value="' + esc(value) + '" maxlength="120" autocomplete="off" placeholder="ФИО преподавателя" aria-label="Преподаватель: ' + esc(subject) + '"></label>'; }).join('') : '<p class="muted">Загрузите расписание выбранной группы, чтобы добавить преподавателей.</p>'; }
 function renderSettings() {
+    const history = readScheduleHistory(`${state.profile.program}:${state.profile.course}`);
+    const historyNode = $('scheduleHistory');
+    if (historyNode) {
+        const date = (x) => x ? new Date(x).toLocaleString('ru-RU') : 'ещё не зафиксировано';
+        historyNode.textContent = history ? `Снимок загружен на устройство: ${date(history.checkedAt)}. Дата данных источника: ${date(history.generatedAt)}. Последнее обнаруженное изменение: ${date(history.changedAt)}. ` + history.history.map(x => `${date(x.at)}: добавлено ${x.added}, удалено ${x.removed}.`).join(' ') : 'История появится после загрузки расписания. Здесь фиксируются изменения загруженных снимков, а не проверка официального сайта.';
+    }
     renderTeacherSettings();
     renderTeacherSettings();
     const tz = $('settingsTimezone');
@@ -1081,7 +1136,9 @@ function openEventById(id) { const e = state.events.find(x => x.id === id); if (
 else {
     openEventDetail(e);
 } }
-function openEventDetail(e) { $('detailTitle').textContent = String(e.title ?? (('subject' in e) ? e.subject : '')); $('detailBody').innerHTML = `<div class="detail-grid"><span>Дата</span><b>${esc(longDateRu(localDate(e.startAt, state.timezone)))}</b><span>Время</span><b>${esc(e.allDay ? 'Весь день' : `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`)}</b><span>Часовой пояс</span><b>${esc(state.timezone)}</b><span>Тип</span><b>${esc(e.kind === 'personal' ? 'Личное' : String(e.type ?? 'Занятие'))}</b><span>Место</span><b>${esc(e.location || '—')}</b><span>Статус</span><b>${esc(STATUS_LABEL[e.status ?? 'planned'])}</b><span>Описание</span><p>${esc(e.description || '—')}</p></div>${e.kind === 'personal' ? '<div class="detail-actions"><button class="btn primary" data-action="edit-opened">Изменить</button><button class="btn danger" data-action="delete-opened">Удалить</button></div>' : `<div class="detail-actions"><button class="btn primary" data-homework-from-event="${esc(e.id)}">＋ Записать ДЗ</button></div>`}`; state.editingId = e.kind === 'personal' ? e.id : ''; openModal('eventDetailModal'); }
+function lessonMap(location) { const match = matchCourseAddresses(ALMAZOV_ADDRESSES, [location || '']).addresses; if (match.length !== 1)
+    return ''; return `<a class="btn" href="https://yandex.ru/maps/?text=${encodeURIComponent(match[0].address)}" target="_blank" rel="noopener noreferrer">Адрес на карте ↗</a>`; }
+function openEventDetail(e) { $('detailTitle').textContent = String(e.title ?? (('subject' in e) ? e.subject : '')); $('detailBody').innerHTML = `<div class="detail-grid"><span>Дата</span><b>${esc(longDateRu(localDate(e.startAt, state.timezone)))}</b><span>Время</span><b>${esc(e.allDay ? 'Весь день' : `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`)}</b><span>Часовой пояс</span><b>${esc(state.timezone)}</b><span>Тип</span><b>${esc(e.kind === 'personal' ? 'Личное' : String(e.type ?? 'Занятие'))}</b><span>Место</span><b>${esc(e.location || '—')} ${lessonMap(e.location)}</b><span>Статус</span><b>${esc(STATUS_LABEL[e.status ?? 'planned'])}</b><span>Описание</span><p>${esc(e.description || '—')}</p></div>${e.kind === 'personal' ? '<div class="detail-actions"><button class="btn primary" data-action="edit-opened">Изменить</button><button class="btn danger" data-action="delete-opened">Удалить</button></div>' : `<div class="detail-actions"><button class="btn primary" data-homework-from-event="${esc(e.id)}">＋ Записать ДЗ</button><button class="btn" data-materials-subject="${esc(e.subject || e.title)}">Материалы предмета</button></div><details><summary>Сообщить об ошибке</summary><p>Скопируйте сведения, добавьте описание ошибки и отправьте в поддержку. Автоматически ничего не отправляется.</p><textarea id="scheduleErrorDraft" readonly aria-label="Сведения об ошибке расписания">${esc([e.title, `Группа ${state.profile.group}`, longDateRu(localDate(e.startAt, state.timezone)), `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`, e.location || '', e.sourceUrl || sourceFor(state.profile.program, state.profile.course), `Сборка ${document.documentElement.dataset.buildId || 'неизвестна'}`, 'Ошибка: '].join('\n'))}</textarea><button class="btn" data-copy-schedule-error>Скопировать сведения</button></details>`}`; state.editingId = e.kind === 'personal' ? e.id : ''; openModal('eventDetailModal'); }
 async function handleSupportSubmit(form) { const subject = $('ticketSubject').value.trim(), description = $('ticketDescription').value.trim(); if (subject.length < 3 || description.length < 5) {
     $('ticketNotice').textContent = 'Заполните тему и подробное описание.';
     return;
@@ -1562,4 +1619,27 @@ function exportICS() { const events = getDisplayEvents(); const tz = state.timez
 } lines.push('END:VCALENDAR'); const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `almazov-${state.profile.group || 'group'}-${state.focusDate}-${tz.replaceAll('/', '_')}.ics`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
 function escapeICS(v) { return v.replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n'); }
 $('addressSearch')?.addEventListener('input', renderAddresses);
-document.querySelectorAll('[data-address-scope]').forEach(button => button.addEventListener('click', () => { addressScope = button.dataset.addressScope === 'all' ? 'all' : 'course'; renderAddresses(); }));
+document.querySelectorAll('[data-address-scope]').forEach(button => button.addEventListener('click', () => { addressScope = button.dataset.addressScope === 'all' ? 'all' : button.dataset.addressScope === 'group' ? 'group' : 'course'; renderAddresses(); }));
+document.addEventListener('click', async (event) => {
+    const target = event.target;
+    const material = target.closest('[data-materials-subject]');
+    if (material) {
+        state.resourceSubject = material.dataset.materialsSubject || 'all';
+        closeModal('eventDetailModal');
+        nav('resources');
+    }
+    if (target.closest('[data-copy-schedule-error]')) {
+        const field = $('scheduleErrorDraft');
+        if (!field)
+            return;
+        try {
+            await navigator.clipboard.writeText(field.value);
+            toast('Сведения скопированы. Добавьте описание ошибки перед отправкой.');
+        }
+        catch {
+            field.focus();
+            field.select();
+            toast('Выделены сведения — скопируйте их вручную.');
+        }
+    }
+});

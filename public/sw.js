@@ -9,8 +9,10 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
   // Only content-versioned files are pre-cached. Never install a potentially
   // stale index.html through the currently active worker.
   await cache.addAll(VERSIONED_SHELL);
-  await self.skipWaiting();
+  // Wait for explicit acceptance or for all previous tabs to close.
 })()));
+
+self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')event.waitUntil(self.skipWaiting());});
 
 self.addEventListener('activate',event=>event.waitUntil((async()=>{
   const keys=await caches.keys();
@@ -18,12 +20,9 @@ self.addEventListener('activate',event=>event.waitUntil((async()=>{
     key.startsWith('almazov-hub-')||key.startsWith('almazov-schedule-')
   )).map(key=>caches.delete(key)));
   await self.clients.claim();
-  // Reload existing tabs too; users may still be running an older boot.js
-  // that has no client-side update listener.
+  // The page offers an update; never discard an open form by navigating it.
   const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
-  // Start navigation without waiting on it inside activate; waiting here can
-  // deadlock activation on browsers that dispatch navigation after activation.
-  for(const client of windows)client.navigate(client.url).catch(()=>null);
+  for(const client of windows)client.postMessage({type:'APP_UPDATE_AVAILABLE',buildId:BUILD_ID});
 })()));
 
 async function fetchFresh(request){

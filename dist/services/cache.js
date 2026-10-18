@@ -2,7 +2,7 @@ const DB_NAME = 'almazov-hub-cache';
 const STORE = 'schedule';
 const VERSION = 1;
 let activeCacheNamespace = 'unversioned';
-const storageKey = (key) => `${activeCacheNamespace}:${key}`;
+const storageKey = (key) => key.startsWith('last-good:') ? key : `${activeCacheNamespace}:${key}`;
 const memory = new Map();
 function openDb() { return new Promise((resolve, reject) => { if (typeof indexedDB === 'undefined') {
     reject(new Error('IndexedDB unavailable'));
@@ -64,7 +64,10 @@ export async function ensureScheduleCacheVersion(buildId) {
         db = await openDb();
         await new Promise((resolve, reject) => {
             const tx = db.transaction(STORE, 'readwrite');
-            tx.objectStore(STORE).clear();
+            const cursor = tx.objectStore(STORE).openCursor();
+            cursor.onsuccess = () => { const item = cursor.result; if (!item)
+                return; if (!String(item.key).startsWith('last-good:'))
+                item.delete(); item.continue(); };
             tx.oncomplete = () => resolve();
             tx.onerror = () => reject(tx.error ?? new Error('Failed to invalidate schedule cache'));
             tx.onabort = () => reject(tx.error ?? new Error('Schedule cache invalidation aborted'));

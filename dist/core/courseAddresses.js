@@ -1,4 +1,4 @@
-const normalize = (s) => s.toLocaleLowerCase('ru').replace(/ё/g, 'е').replace(/[«»"']/g, '').replace(/\s+/g, ' ').trim();
+const normalize = (s) => s.toLocaleLowerCase('ru').replace(/ё/g, 'е').replace(/ли\.\s*т(?=[.\s])/gu, 'лит').replace(/[«»"']/g, '').replace(/\s+/g, ' ').trim();
 export function matchCourseAddresses(directory, locations) {
     const matched = new Set();
     const unresolved = [];

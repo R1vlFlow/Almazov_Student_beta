@@ -1,7 +1,7 @@
 /* Build-time values are injected by scripts/copy-public.mjs. */
-const BUILD_ID='2bdeb6c5485141cc';
+const BUILD_ID='1beaeb5e1965fdb3';
 const CACHE_NAME=`almazov-hub-${BUILD_ID}`;
-const VERSIONED_SHELL=["./styles.css?v=2bdeb6c5485141cc","./splash.css?v=2bdeb6c5485141cc","./boot.js?v=2bdeb6c5485141cc","./manifest.webmanifest?v=2bdeb6c5485141cc","./offline.html?v=2bdeb6c5485141cc","./app.js?v=2bdeb6c5485141cc","./core/calendar.js?v=2bdeb6c5485141cc","./core/courseAddresses.js?v=2bdeb6c5485141cc","./core/date.js?v=2bdeb6c5485141cc","./core/excelParser.js?v=2bdeb6c5485141cc","./core/filter.js?v=2bdeb6c5485141cc","./core/htmlTableParser.js?v=2bdeb6c5485141cc","./core/normalize.js?v=2bdeb6c5485141cc","./core/practiceCycles.js?v=2bdeb6c5485141cc","./core/time.js?v=2bdeb6c5485141cc","./core/types.js?v=2bdeb6c5485141cc","./core/validate.js?v=2bdeb6c5485141cc","./data/addresses.js?v=2bdeb6c5485141cc","./data/catalog.js?v=2bdeb6c5485141cc","./data/roster.js?v=2bdeb6c5485141cc","./main.js?v=2bdeb6c5485141cc","./runtime-config.js?v=2bdeb6c5485141cc","./services/cache.js?v=2bdeb6c5485141cc","./services/eventService.js?v=2bdeb6c5485141cc","./services/materialStore.js?v=2bdeb6c5485141cc","./services/personalizationStore.js?v=2bdeb6c5485141cc","./services/practiceScheduleImport.js?v=2bdeb6c5485141cc","./services/scheduleService.js?v=2bdeb6c5485141cc","./services/supportService.js?v=2bdeb6c5485141cc","./services/taskService.js?v=2bdeb6c5485141cc","./telemetry.js?v=2bdeb6c5485141cc","./ui/customControls.js?v=2bdeb6c5485141cc","./ui/faq.js?v=2bdeb6c5485141cc","./ui/theme.js?v=2bdeb6c5485141cc"];
+const VERSIONED_SHELL=["./styles.css?v=1beaeb5e1965fdb3","./splash.css?v=1beaeb5e1965fdb3","./boot.js?v=1beaeb5e1965fdb3","./manifest.webmanifest?v=1beaeb5e1965fdb3","./offline.html?v=1beaeb5e1965fdb3","./app.js?v=1beaeb5e1965fdb3","./core/calendar.js?v=1beaeb5e1965fdb3","./core/courseAddresses.js?v=1beaeb5e1965fdb3","./core/date.js?v=1beaeb5e1965fdb3","./core/excelParser.js?v=1beaeb5e1965fdb3","./core/filter.js?v=1beaeb5e1965fdb3","./core/htmlTableParser.js?v=1beaeb5e1965fdb3","./core/normalize.js?v=1beaeb5e1965fdb3","./core/practiceCycles.js?v=1beaeb5e1965fdb3","./core/time.js?v=1beaeb5e1965fdb3","./core/types.js?v=1beaeb5e1965fdb3","./core/validate.js?v=1beaeb5e1965fdb3","./data/addresses.js?v=1beaeb5e1965fdb3","./data/catalog.js?v=1beaeb5e1965fdb3","./data/roster.js?v=1beaeb5e1965fdb3","./main.js?v=1beaeb5e1965fdb3","./runtime-config.js?v=1beaeb5e1965fdb3","./services/cache.js?v=1beaeb5e1965fdb3","./services/eventService.js?v=1beaeb5e1965fdb3","./services/materialStore.js?v=1beaeb5e1965fdb3","./services/personalBackup.js?v=1beaeb5e1965fdb3","./services/personalizationStore.js?v=1beaeb5e1965fdb3","./services/practiceScheduleImport.js?v=1beaeb5e1965fdb3","./services/scheduleHistory.js?v=1beaeb5e1965fdb3","./services/scheduleService.js?v=1beaeb5e1965fdb3","./services/supportService.js?v=1beaeb5e1965fdb3","./services/taskService.js?v=1beaeb5e1965fdb3","./telemetry.js?v=1beaeb5e1965fdb3","./ui/customControls.js?v=1beaeb5e1965fdb3","./ui/faq.js?v=1beaeb5e1965fdb3","./ui/theme.js?v=1beaeb5e1965fdb3"];
 const OFFLINE_URL=new URL(`./offline.html?v=${BUILD_ID}`,self.registration.scope).href;
 
 self.addEventListener('install',event=>event.waitUntil((async()=>{
@@ -9,8 +9,10 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
   // Only content-versioned files are pre-cached. Never install a potentially
   // stale index.html through the currently active worker.
   await cache.addAll(VERSIONED_SHELL);
-  await self.skipWaiting();
+  // Wait for explicit acceptance or for all previous tabs to close.
 })()));
+
+self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')event.waitUntil(self.skipWaiting());});
 
 self.addEventListener('activate',event=>event.waitUntil((async()=>{
   const keys=await caches.keys();
@@ -18,12 +20,9 @@ self.addEventListener('activate',event=>event.waitUntil((async()=>{
     key.startsWith('almazov-hub-')||key.startsWith('almazov-schedule-')
   )).map(key=>caches.delete(key)));
   await self.clients.claim();
-  // Reload existing tabs too; users may still be running an older boot.js
-  // that has no client-side update listener.
+  // The page offers an update; never discard an open form by navigating it.
   const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
-  // Start navigation without waiting on it inside activate; waiting here can
-  // deadlock activation on browsers that dispatch navigation after activation.
-  for(const client of windows)client.navigate(client.url).catch(()=>null);
+  for(const client of windows)client.postMessage({type:'APP_UPDATE_AVAILABLE',buildId:BUILD_ID});
 })()));
 
 async function fetchFresh(request){
