@@ -53,7 +53,8 @@
       const release=await response.json();
       if(!release?.buildId){if(showStatus&&status)status.textContent='Опубликованный version.json не содержит идентификатор сборки.';return;}
       const pageUrl=new URL(window.location.href);
-      if(release.buildId===BUILD_ID){
+      const waitingWorker=(await navigator.serviceWorker?.getRegistration())?.waiting;
+      if(release.buildId===BUILD_ID&&!waitingWorker){
         let cleanUrl=false;
         for(const key of ['__app_build','__root_refresh']){if(pageUrl.searchParams.has(key)){pageUrl.searchParams.delete(key);cleanUrl=true;}}
         if(cleanUrl)history.replaceState(history.state,'',pageUrl.href);
@@ -91,7 +92,11 @@
 
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'})
-      .then(registration=>registration.update().catch(()=>{}))
+      .then(registration=>{
+        const watch=()=>{const worker=registration.installing;if(worker)worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&registration.waiting)void checkForNewBuild();});};
+        registration.addEventListener('updatefound',watch);watch();
+        return registration.update().catch(()=>{});
+      })
       .catch(()=>{});
   }
   window.addEventListener('app:check-update',async()=>{

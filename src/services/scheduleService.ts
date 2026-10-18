@@ -22,7 +22,7 @@ export async function loadSchedule(program:ProgramCode,course:Course):Promise<Sc
     if(staticResult.events.length||(staticResult.weeklyBlocks?.length??0)){
       const saved=await readCache<ScheduleLoadResult>('last-good:'+key);
       const previous=saved&&'payload' in saved?saved.payload as ScheduleLoadResult:saved as ScheduleLoadResult|null;
-      recordScheduleCheck(key,previous,staticResult);
+      if(!staticResult.issues?.includes('SCHEDULE_OFFLINE_CACHE'))recordScheduleCheck(key,previous,staticResult);
       await saveCache('last-good:'+key,staticResult);
     }
     memory.set(key,staticResult);
@@ -86,10 +86,12 @@ async function loadStaticSnapshot(program:ProgramCode,course:Course):Promise<Sch
     }
     const status=(payload.status==='partial'||payload.status==='cache'?'cache'===payload.status?'cache':'partial':'live') as ScheduleLoadResult['status'];
     const stale=payload.generatedAt&&Date.now()-Date.parse(payload.generatedAt)>7*24*60*60*1000;
-    const finalStatus=stale?'cache':status;
+    const offline=res.headers.get('X-Almazov-Cache')==='offline';
+    const finalStatus=stale||offline?'cache':status;
     const issues=Array.isArray(payload.issues)?[...payload.issues]:[];
     if(stale)issues.push('SCHEDULE_SNAPSHOT_STALE');
-    return {status:finalStatus,events:payload.events,weeklyBlocks,generatedAt:payload.generatedAt,sourceUrl:payload.sourceUrl,sourceName:payload.sourceName,issues,coverage:payload.coverage,message:payload.message??`${stale?'Последний сохранённый snapshot':'Static snapshot'} · ${payload.events.length} событий, ${weeklyBlocks.length} назначений по неделям`};
+    if(offline)issues.push('SCHEDULE_OFFLINE_CACHE');
+    return {status:finalStatus,events:payload.events,weeklyBlocks,generatedAt:payload.generatedAt,sourceUrl:payload.sourceUrl,sourceName:payload.sourceName,issues,coverage:payload.coverage,message:offline?'Нет соединения: показано сохранённое расписание. Изменения источника пока не проверены.':payload.message??`${stale?'Последний сохранённый snapshot':'Static snapshot'} · ${payload.events.length} событий, ${weeklyBlocks.length} назначений по неделям`};
   }catch{return null;}
 }
 

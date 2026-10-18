@@ -1,7 +1,7 @@
 /* Build-time values are injected by scripts/copy-public.mjs. */
-const BUILD_ID='2381f69750024cff';
+const BUILD_ID='d450e8ff148f8e96';
 const CACHE_NAME=`almazov-hub-${BUILD_ID}`;
-const VERSIONED_SHELL=["./styles.css?v=2381f69750024cff","./splash.css?v=2381f69750024cff","./boot.js?v=2381f69750024cff","./manifest.webmanifest?v=2381f69750024cff","./offline.html?v=2381f69750024cff","./app.js?v=2381f69750024cff","./core/calendar.js?v=2381f69750024cff","./core/courseAddresses.js?v=2381f69750024cff","./core/date.js?v=2381f69750024cff","./core/excelParser.js?v=2381f69750024cff","./core/filter.js?v=2381f69750024cff","./core/htmlTableParser.js?v=2381f69750024cff","./core/normalize.js?v=2381f69750024cff","./core/practiceCycles.js?v=2381f69750024cff","./core/time.js?v=2381f69750024cff","./core/types.js?v=2381f69750024cff","./core/validate.js?v=2381f69750024cff","./data/addresses.js?v=2381f69750024cff","./data/catalog.js?v=2381f69750024cff","./data/roster.js?v=2381f69750024cff","./main.js?v=2381f69750024cff","./runtime-config.js?v=2381f69750024cff","./services/cache.js?v=2381f69750024cff","./services/eventService.js?v=2381f69750024cff","./services/materialStore.js?v=2381f69750024cff","./services/personalBackup.js?v=2381f69750024cff","./services/personalizationStore.js?v=2381f69750024cff","./services/practiceScheduleImport.js?v=2381f69750024cff","./services/scheduleHistory.js?v=2381f69750024cff","./services/scheduleService.js?v=2381f69750024cff","./services/supportService.js?v=2381f69750024cff","./services/taskService.js?v=2381f69750024cff","./telemetry.js?v=2381f69750024cff","./ui/customControls.js?v=2381f69750024cff","./ui/faq.js?v=2381f69750024cff","./ui/theme.js?v=2381f69750024cff"];
+const VERSIONED_SHELL=["./styles.css?v=d450e8ff148f8e96","./splash.css?v=d450e8ff148f8e96","./boot.js?v=d450e8ff148f8e96","./manifest.webmanifest?v=d450e8ff148f8e96","./offline.html?v=d450e8ff148f8e96","./app.js?v=d450e8ff148f8e96","./core/calendar.js?v=d450e8ff148f8e96","./core/courseAddresses.js?v=d450e8ff148f8e96","./core/date.js?v=d450e8ff148f8e96","./core/excelParser.js?v=d450e8ff148f8e96","./core/filter.js?v=d450e8ff148f8e96","./core/htmlTableParser.js?v=d450e8ff148f8e96","./core/normalize.js?v=d450e8ff148f8e96","./core/practiceCycles.js?v=d450e8ff148f8e96","./core/time.js?v=d450e8ff148f8e96","./core/types.js?v=d450e8ff148f8e96","./core/validate.js?v=d450e8ff148f8e96","./data/addresses.js?v=d450e8ff148f8e96","./data/catalog.js?v=d450e8ff148f8e96","./data/roster.js?v=d450e8ff148f8e96","./main.js?v=d450e8ff148f8e96","./runtime-config.js?v=d450e8ff148f8e96","./services/cache.js?v=d450e8ff148f8e96","./services/eventService.js?v=d450e8ff148f8e96","./services/materialStore.js?v=d450e8ff148f8e96","./services/personalBackup.js?v=d450e8ff148f8e96","./services/personalizationStore.js?v=d450e8ff148f8e96","./services/practiceScheduleImport.js?v=d450e8ff148f8e96","./services/scheduleHistory.js?v=d450e8ff148f8e96","./services/scheduleService.js?v=d450e8ff148f8e96","./services/supportService.js?v=d450e8ff148f8e96","./services/taskService.js?v=d450e8ff148f8e96","./telemetry.js?v=d450e8ff148f8e96","./ui/customControls.js?v=d450e8ff148f8e96","./ui/faq.js?v=d450e8ff148f8e96","./ui/theme.js?v=d450e8ff148f8e96"];
 const OFFLINE_URL=new URL(`./offline.html?v=${BUILD_ID}`,self.registration.scope).href;
 
 self.addEventListener('install',event=>event.waitUntil((async()=>{
@@ -63,7 +63,7 @@ async function networkFirst(request){
     return response;
   }catch{
     const hit=await cache.match(request)||((request.mode==='navigate'||request.destination==='document')?await cache.match(new URL('./index.html',self.registration.scope).href):null);
-    if(hit)return hit;
+    if(hit){const headers=new Headers(hit.headers);headers.set('X-Almazov-Cache','offline');return new Response(hit.body,{status:hit.status,statusText:hit.statusText,headers});}
     const offline=(request.mode==='navigate'||request.destination==='document')?await cache.match(OFFLINE_URL):null;
     if(offline)return offline;
     return new Response('Офлайн: приложение пока не было сохранено на этом устройстве.',{
@@ -96,6 +96,9 @@ self.addEventListener('fetch',event=>{
     event.respondWith(networkFirst(request));
     return;
   }
+
+  // Schedule refresh must reach the network even while an app update is deferred.
+  if(url.pathname.includes('/data/')&&url.pathname.endsWith('.json')){event.respondWith(networkFirst(request));return;}
 
   // Cache-first is safe only for files whose URL carries this exact build ID.
   if(url.searchParams.get('v')===BUILD_ID){

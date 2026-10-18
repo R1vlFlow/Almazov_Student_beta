@@ -63,7 +63,7 @@ async function networkFirst(request){
     return response;
   }catch{
     const hit=await cache.match(request)||((request.mode==='navigate'||request.destination==='document')?await cache.match(new URL('./index.html',self.registration.scope).href):null);
-    if(hit)return hit;
+    if(hit){const headers=new Headers(hit.headers);headers.set('X-Almazov-Cache','offline');return new Response(hit.body,{status:hit.status,statusText:hit.statusText,headers});}
     const offline=(request.mode==='navigate'||request.destination==='document')?await cache.match(OFFLINE_URL):null;
     if(offline)return offline;
     return new Response('Офлайн: приложение пока не было сохранено на этом устройстве.',{
@@ -96,6 +96,9 @@ self.addEventListener('fetch',event=>{
     event.respondWith(networkFirst(request));
     return;
   }
+
+  // Schedule refresh must reach the network even while an app update is deferred.
+  if(url.pathname.includes('/data/')&&url.pathname.endsWith('.json')){event.respondWith(networkFirst(request));return;}
 
   // Cache-first is safe only for files whose URL carries this exact build ID.
   if(url.searchParams.get('v')===BUILD_ID){
