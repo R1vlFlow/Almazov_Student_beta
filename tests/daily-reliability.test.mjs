@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {compareSchedules} from '../dist/services/scheduleHistory.js';
-import {validatePersonalBackup,restorePersonalBackup,createPersonalBackup} from '../dist/services/personalBackup.js';
+import {validatePersonalBackup,restorePersonalBackup,createPersonalBackup,mergeBackupRecords,validBackupFileEncoding,decodeBackupFile} from '../dist/services/personalBackup.js';
 import {matchCourseAddresses} from '../dist/core/courseAddresses.js';
 const event={program:'31.05.01',course:4,group:'423',subject:'Терапия',date:'2026-10-19',start:'09:00',end:'12:30',location:'КПК'};
 const snapshot=(events,weeklyBlocks=[])=>({status:'live',events,weeklyBlocks});
@@ -39,4 +39,31 @@ test('versioned schedule JSON still checks network and marks offline fallback',a
  const source=(await readFile('public/sw.js','utf8')).replaceAll('__BUILD_ID__','test-build').replace('__VERSIONED_SHELL__','[]');
  runInNewContext(source,{self:{registration:{scope:'https://example.org/app/'},location:{origin:'https://example.org'},addEventListener:(name,fn)=>handlers[name]=fn},caches:{open:async()=>({match:async()=>cached.clone(),put:async()=>{}})},fetch:async()=>{calls++;throw Error('offline');},URL,Request,Response,Headers,AbortController,setTimeout,clearTimeout});
  let pending;handlers.fetch({request:new Request('https://example.org/app/data/schedules/31.05.01/4.json?v=test-build'),respondWith:p=>pending=p});const response=await pending;assert.equal(calls,1);assert.equal(response.headers.get('X-Almazov-Cache'),'offline');assert.equal(response.status,200);
+});
+
+test('backup merge preserves existing data and deduplicates repeated incoming IDs',()=>{
+ const current=[{id:'a',title:'Текущее'}];const incoming=[{id:'a',title:'Из копии'},{id:'b',title:'Первое'},{id:'b',title:'Повтор'}];
+ assert.deepEqual(mergeBackupRecords(current,incoming),[current[0],incoming[1]]);
+ const many=Array.from({length:30000},(_,i)=>({id:String(i)}));assert.equal(mergeBackupRecords(many,many).length,30000);
+});
+test('backup rejects impossible cycle dates, reversed times and wrong group scope',()=>{
+ const row={id:'pz',program:'31.05.01',course:6,group:'601',scope:'31.05.01:6:601',date:'2026-10-19',start:'09:00',end:'12:30',subject:'Терапия',location:'',teacher:'',sourceFile:'test.pdf',createdAt:new Date().toISOString()};
+ const make=patch=>{const b=blank();b.stores['practice-events']=[{...row,...patch}];return b;};
+ validatePersonalBackup(make({}));
+ for(const patch of [{date:'2026-02-30'},{start:'25:00'},{end:'08:00'},{scope:'31.05.01:6:602'}])assert.throws(()=>validatePersonalBackup(make(patch)));
+});
+
+test('backup validates a 25 MB file without regexp stack overflow or redundant decoding',()=>{
+ const size=25*1024*1024;const encoded='A'.repeat(Math.ceil(size/3)*4-2)+'==';
+ assert.equal(validBackupFileEncoding(encoded,size),true);
+ for(const [text,length] of [['AA=A',2],['AAAA=',3],['!AAA',3],['AAA',2],['AA==',2]])assert.equal(validBackupFileEncoding(text,length),false);
+ assert.equal(validBackupFileEncoding('JVBERi0=',5),true);
+});
+
+test('chunked attachment restore preserves every byte and yields to the interface',async()=>{
+ const bytes=Buffer.alloc(1024*1024+7);for(let i=0;i<bytes.length;i++)bytes[i]=i%251;
+ let yielded=false;setTimeout(()=>yielded=true,0);
+ const blob=await decodeBackupFile(bytes.toString('base64'),bytes.length,'application/pdf');
+ assert.equal(yielded,true);assert.equal(blob.type,'application/pdf');assert.deepEqual(Buffer.from(await blob.arrayBuffer()),bytes);
+ await assert.rejects(decodeBackupFile('!!!!',3,'application/pdf'));
 });
