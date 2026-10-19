@@ -1,26 +1,26 @@
-import { readScheduleHistory } from './services/scheduleHistory.js?v=390d0bc0e716898d';
-import { bindPersonalBackup } from './services/personalBackup.js?v=390d0bc0e716898d';
-import { matchCourseAddresses } from './core/courseAddresses.js?v=390d0bc0e716898d';
-import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=390d0bc0e716898d';
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=390d0bc0e716898d';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=390d0bc0e716898d';
-import { groupsFor, streamForGroup } from './data/roster.js?v=390d0bc0e716898d';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=390d0bc0e716898d';
-import { eventAppliesToGroup } from './core/filter.js?v=390d0bc0e716898d';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=390d0bc0e716898d';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=390d0bc0e716898d';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=390d0bc0e716898d';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=390d0bc0e716898d';
-import { FAQ } from './ui/faq.js?v=390d0bc0e716898d';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=390d0bc0e716898d';
-import { fileToAttachment } from './services/supportService.js?v=390d0bc0e716898d';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=390d0bc0e716898d';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=390d0bc0e716898d';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=390d0bc0e716898d';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=390d0bc0e716898d';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=390d0bc0e716898d';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=390d0bc0e716898d';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=390d0bc0e716898d';
+import { readScheduleHistory } from './services/scheduleHistory.js?v=bd46296c0cf0f1ee';
+import { bindPersonalBackup } from './services/personalBackup.js?v=bd46296c0cf0f1ee';
+import { matchCourseAddresses, groupAddressPlaces } from './core/courseAddresses.js?v=bd46296c0cf0f1ee';
+import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=bd46296c0cf0f1ee';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=bd46296c0cf0f1ee';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=bd46296c0cf0f1ee';
+import { groupsFor, streamForGroup } from './data/roster.js?v=bd46296c0cf0f1ee';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=bd46296c0cf0f1ee';
+import { eventAppliesToGroup } from './core/filter.js?v=bd46296c0cf0f1ee';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=bd46296c0cf0f1ee';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=bd46296c0cf0f1ee';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=bd46296c0cf0f1ee';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=bd46296c0cf0f1ee';
+import { FAQ } from './ui/faq.js?v=bd46296c0cf0f1ee';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=bd46296c0cf0f1ee';
+import { fileToAttachment } from './services/supportService.js?v=bd46296c0cf0f1ee';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=bd46296c0cf0f1ee';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=bd46296c0cf0f1ee';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=bd46296c0cf0f1ee';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=bd46296c0cf0f1ee';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=bd46296c0cf0f1ee';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=bd46296c0cf0f1ee';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=bd46296c0cf0f1ee';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -590,35 +590,22 @@ function renderAddresses() {
     const profile = state.profile;
     const label = $('addressScopeStatus');
     const rows = [...state.official, ...state.weeklyBlocks].filter(e => e.program === profile.program && e.course === profile.course && (addressScope !== 'group' || ('date' in e ? eventAppliesToGroup(e, { ...profile, stream: streamForGroup(profile.program, profile.group) }) : e.group === profile.group)));
-    const result = matchCourseAddresses(ALMAZOV_ADDRESSES, rows.map(e => e.location || ''));
-    const subjectsByAddress = new Map();
-    const byLocation = new Map();
-    for (const row of rows) {
-        const location = row.location || '';
-        let addresses = byLocation.get(location);
-        if (!addresses) {
-            addresses = matchCourseAddresses(ALMAZOV_ADDRESSES, [location]).addresses.map(x => x.address);
-            byLocation.set(location, addresses);
-        }
-        for (const address of addresses) {
-            const subjects = subjectsByAddress.get(address) ?? new Set();
-            subjects.add(row.subject);
-            subjectsByAddress.set(address, subjects);
-        }
-    }
+    const result = groupAddressPlaces(ALMAZOV_ADDRESSES, rows);
     const loading = state.status === 'loading';
+    const available = addressScope === 'all' ? result.places : loading ? [] : result.places.filter(x => x.locations.length);
     if (label)
-        label.textContent = addressScope === 'all' ? 'Полный справочник учебных адресов' : `${PROGRAMS.find(x => x.code === profile.program)?.shortTitle ?? profile.program} · ${profile.course} курс · ${addressScope === 'group' ? 'группа ' + profile.group : 'все группы'} · ${loading ? 'загружаем расписание…' : result.addresses.length + ' подтверждённых адресов'}`;
+        label.textContent = addressScope === 'all' ? `Все учебные площадки · ${available.length}` : `${PROGRAMS.find(x => x.code === profile.program)?.shortTitle ?? profile.program} · ${profile.course} курс · ${addressScope === 'group' ? 'группа ' + profile.group : 'все группы'} · ${loading ? 'загружаем…' : 'мест занятий: ' + available.length}`;
     document.querySelectorAll('[data-address-scope]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.addressScope === addressScope)));
     const q = $('addressSearch')?.value.trim().toLocaleLowerCase('ru') ?? '';
-    const selected = (addressScope === 'all' ? ALMAZOV_ADDRESSES : loading ? [] : result.addresses).filter(item => !q || (item.name + ' ' + item.address + ' ' + item.category).toLocaleLowerCase('ru').includes(q));
-    container.innerHTML = selected.map(item => { const map = 'https://yandex.ru/maps/?text=' + encodeURIComponent(item.address); return '<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">' + esc(item.category) + '</p><h2>' + esc(item.name) + '</h2><p>' + esc(item.address) + '</p>' + (subjectsByAddress.has(item.address) ? '<details><summary>Предметы в расписании</summary><ul>' + [...subjectsByAddress.get(item.address)].sort().map(subject => '<li>' + esc(subject) + '</li>').join('') + '</ul></details>' : '') + '<a class="address-source" href="' + esc(item.sourceUrl) + '" target="_blank" rel="noopener noreferrer">Официальный источник ↗</a></div><a class="btn primary address-map-link" href="' + esc(map) + '" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах ↗</a></article>'; }).join('');
+    const selected = available.filter(item => !q || [item.name, item.address, ...item.members.map(x => x.name + ' ' + x.address), ...item.locations, ...item.subjects].join(' ').toLocaleLowerCase('ru').includes(q));
+    container.innerHTML = selected.map(item => `<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">${esc(item.members[0].category)}</p><h2>${esc(item.name)}</h2><p>${esc(item.address)}</p></div><div class="address-footer"><a class="btn primary address-map-link" href="${esc('https://yandex.ru/maps/?text=' + encodeURIComponent(item.address))}" target="_blank" rel="noopener noreferrer" aria-label="${esc(item.name)} — Яндекс Карты">На карте ↗</a><a class="address-source" href="${esc(item.members[0].sourceUrl)}" target="_blank" rel="noopener noreferrer">Источник ↗</a></div><details class="address-details"><summary>Корпуса и занятия${item.subjects.length ? ' · ' + item.subjects.length + ' предм.' : ''}</summary><div><h3>Корпуса</h3><ul>${[...new Set(item.members.map(x => x.name + ' — ' + x.address))].map(x => `<li>${esc(x)}</li>`).join('')}</ul>${item.locations.length ? `<h3>Места в расписании</h3><ul>${item.locations.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}${item.subjects.length ? `<h3>Предметы</h3><ul>${item.subjects.sort().map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</div></details></article>`).join('');
     if (!selected.length)
-        container.innerHTML = '<p class="card">' + (loading && addressScope !== 'all' ? 'Загружаем места занятий…' : q ? 'По этому запросу адресов не найдено.' : addressScope !== 'all' ? 'В расписании пока нет однозначно определённых адресов. Посмотрите места занятий ниже или откройте весь справочник.' : 'Адресов не найдено.') + '</p>';
+        container.innerHTML = '<p class="card address-empty">' + (loading && addressScope !== 'all' ? 'Загружаем места занятий…' : q ? 'Ничего не найдено. Попробуйте название площадки или улицы.' : 'В расписании пока нет подтверждённых адресов. Откройте все площадки или посмотрите уточнения ниже.') + '</p>';
     const unresolved = $('addressUnresolved');
+    const missing = result.unresolved.filter(x => !q || [x.name, ...x.details].join(' ').toLocaleLowerCase('ru').includes(q));
     if (unresolved) {
-        unresolved.hidden = addressScope === 'all' || loading || !result.unresolved.length;
-        unresolved.innerHTML = '<summary>Места из расписания, требующие уточнения (' + result.unresolved.length + ')</summary><p>Сокращение или номер аудитории нельзя уверенно связать с одним корпусом. Уточните адрес на кафедре.</p><ul>' + result.unresolved.filter(x => !q || x.toLocaleLowerCase('ru').includes(q)).map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>';
+        unresolved.hidden = addressScope === 'all' || loading || !missing.length;
+        unresolved.innerHTML = '<summary>Уточнить место занятия · ' + missing.length + '</summary><p>Для этих мест в расписании не указан однозначный адрес. Уточните его на кафедре.</p>' + missing.map(x => '<details><summary>' + esc(x.name) + '</summary><ul>' + x.details.map(d => '<li>' + esc(d) + '</li>').join('') + '</ul></details>').join('');
     }
 }
 async function loadKugData() {

@@ -9,7 +9,8 @@ const child = spawn(process.execPath, ['server/server.mjs'], {
 
 let startupPollTimer;
 let exited = false;
-let completed = false;
+child.stdout.resume();
+child.stderr.resume();
 child.once('exit', () => { exited = true; });
 
 function waitForExit() {
@@ -30,6 +31,7 @@ const started = new Promise((resolve, reject) => {
     }
     try {
       const response = await fetch(`http://127.0.0.1:${port}/api/health`, { signal: AbortSignal.timeout(1000) });
+      await response.arrayBuffer();
       if (response.ok) {
         resolve();
         return;
@@ -51,13 +53,15 @@ try {
   if (!health.ok) throw new Error('Health endpoint returned non-ok');
 
   const bad = await fetch(`http://127.0.0.1:${port}/api/schedule?program=bad&course=0`, { signal: AbortSignal.timeout(2000) });
+  await bad.arrayBuffer();
   if (bad.status !== 400) throw new Error(`Expected 400 for invalid schedule query, got ${bad.status}`);
 
   const index = await fetch(`http://127.0.0.1:${port}/`, { signal: AbortSignal.timeout(2000) });
+  await index.arrayBuffer();
   if (!index.ok) throw new Error(`Static index failed: ${index.status}`);
 
   writeSync(1, JSON.stringify({ ok: true, health: 200, invalidSchedule: bad.status, index: index.status }, null, 2) + '\n');
-  completed = true;
+
 } finally {
   if (startupPollTimer) clearTimeout(startupPollTimer);
 
@@ -74,6 +78,5 @@ try {
   }
 }
 
-// The smoke process must not keep the QA runner alive because of idle fetch sockets.
-// This is only reached after all assertions pass and the child server teardown ran.
-if (completed) process.exit(0);
+// Let Node close fetch sockets and child pipe handles naturally. Calling
+// process.exit() here can race libuv handle cleanup on Windows.

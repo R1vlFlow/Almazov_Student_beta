@@ -1,6 +1,6 @@
 import {readScheduleHistory} from './services/scheduleHistory.js';
 import {bindPersonalBackup} from './services/personalBackup.js';
-import {matchCourseAddresses} from './core/courseAddresses.js';
+import {matchCourseAddresses,groupAddressPlaces} from './core/courseAddresses.js';
 import {expandPracticeCycles,hasImportedPracticeOverlap} from './core/practiceCycles.js';
 import type {Course,EventStatus,ProgramCode,ScheduleEvent,ScheduleWeeklyBlock,Task,UserProfile} from './core/types.js';
 import {PROGRAMS,sourceFor,sourcesFor} from './data/catalog.js';
@@ -353,19 +353,18 @@ function renderAddresses(){
   const profile=state.profile;
   const label=$('addressScopeStatus');
   const rows=[...state.official,...state.weeklyBlocks].filter(e=>e.program===profile.program&&e.course===profile.course&&(addressScope!=='group'||('date' in e?eventAppliesToGroup(e,{...profile,stream:streamForGroup(profile.program,profile.group)}):e.group===profile.group)));
-  const result=matchCourseAddresses(ALMAZOV_ADDRESSES,rows.map(e=>e.location||''));
-  const subjectsByAddress=new Map<string,Set<string>>();const byLocation=new Map<string,string[]>();
-  for(const row of rows){const location=row.location||'';let addresses=byLocation.get(location);if(!addresses){addresses=matchCourseAddresses(ALMAZOV_ADDRESSES,[location]).addresses.map(x=>x.address);byLocation.set(location,addresses);}for(const address of addresses){const subjects=subjectsByAddress.get(address)??new Set<string>();subjects.add(row.subject);subjectsByAddress.set(address,subjects);}}
-
+  const result=groupAddressPlaces(ALMAZOV_ADDRESSES,rows);
   const loading=state.status==='loading';
-  if(label)label.textContent=addressScope==='all'?'Полный справочник учебных адресов':`${PROGRAMS.find(x=>x.code===profile.program)?.shortTitle??profile.program} · ${profile.course} курс · ${addressScope==='group'?'группа '+profile.group:'все группы'} · ${loading?'загружаем расписание…':result.addresses.length+' подтверждённых адресов'}`;
+  const available=addressScope==='all'?result.places:loading?[]:result.places.filter(x=>x.locations.length);
+  if(label)label.textContent=addressScope==='all'?`Все учебные площадки · ${available.length}`:`${PROGRAMS.find(x=>x.code===profile.program)?.shortTitle??profile.program} · ${profile.course} курс · ${addressScope==='group'?'группа '+profile.group:'все группы'} · ${loading?'загружаем…':'мест занятий: '+available.length}`;
   document.querySelectorAll<HTMLButtonElement>('[data-address-scope]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.addressScope===addressScope)));
   const q=($('addressSearch') as HTMLInputElement)?.value.trim().toLocaleLowerCase('ru')??'';
-  const selected=(addressScope==='all'?ALMAZOV_ADDRESSES:loading?[]:result.addresses).filter(item=>!q||(item.name+' '+item.address+' '+item.category).toLocaleLowerCase('ru').includes(q));
-  container.innerHTML=selected.map(item=>{const map='https://yandex.ru/maps/?text='+encodeURIComponent(item.address);return '<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">'+esc(item.category)+'</p><h2>'+esc(item.name)+'</h2><p>'+esc(item.address)+'</p>'+(subjectsByAddress.has(item.address)?'<details><summary>Предметы в расписании</summary><ul>'+[...subjectsByAddress.get(item.address)!].sort().map(subject=>'<li>'+esc(subject)+'</li>').join('')+'</ul></details>':'')+'<a class="address-source" href="'+esc(item.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Официальный источник ↗</a></div><a class="btn primary address-map-link" href="'+esc(map)+'" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах ↗</a></article>';}).join('');
-  if(!selected.length)container.innerHTML='<p class="card">'+(loading&&addressScope!=='all'?'Загружаем места занятий…':q?'По этому запросу адресов не найдено.':addressScope!=='all'?'В расписании пока нет однозначно определённых адресов. Посмотрите места занятий ниже или откройте весь справочник.':'Адресов не найдено.')+'</p>';
+  const selected=available.filter(item=>!q||[item.name,item.address,...item.members.map(x=>x.name+' '+x.address),...item.locations,...item.subjects].join(' ').toLocaleLowerCase('ru').includes(q));
+  container.innerHTML=selected.map(item=>`<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">${esc(item.members[0]!.category)}</p><h2>${esc(item.name)}</h2><p>${esc(item.address)}</p></div><div class="address-footer"><a class="btn primary address-map-link" href="${esc('https://yandex.ru/maps/?text='+encodeURIComponent(item.address))}" target="_blank" rel="noopener noreferrer" aria-label="${esc(item.name)} — Яндекс Карты">На карте ↗</a><a class="address-source" href="${esc(item.members[0]!.sourceUrl)}" target="_blank" rel="noopener noreferrer">Источник ↗</a></div><details class="address-details"><summary>Корпуса и занятия${item.subjects.length?' · '+item.subjects.length+' предм.':''}</summary><div><h3>Корпуса</h3><ul>${[...new Set(item.members.map(x=>x.name+' — '+x.address))].map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${item.locations.length?`<h3>Места в расписании</h3><ul>${item.locations.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}${item.subjects.length?`<h3>Предметы</h3><ul>${item.subjects.sort().map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}</div></details></article>`).join('');
+  if(!selected.length)container.innerHTML='<p class="card address-empty">'+(loading&&addressScope!=='all'?'Загружаем места занятий…':q?'Ничего не найдено. Попробуйте название площадки или улицы.':'В расписании пока нет подтверждённых адресов. Откройте все площадки или посмотрите уточнения ниже.')+'</p>';
   const unresolved=$('addressUnresolved');
-  if(unresolved){unresolved.hidden=addressScope==='all'||loading||!result.unresolved.length;unresolved.innerHTML='<summary>Места из расписания, требующие уточнения ('+result.unresolved.length+')</summary><p>Сокращение или номер аудитории нельзя уверенно связать с одним корпусом. Уточните адрес на кафедре.</p><ul>'+result.unresolved.filter(x=>!q||x.toLocaleLowerCase('ru').includes(q)).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';}
+  const missing=result.unresolved.filter(x=>!q||[x.name,...x.details].join(' ').toLocaleLowerCase('ru').includes(q));
+  if(unresolved){unresolved.hidden=addressScope==='all'||loading||!missing.length;unresolved.innerHTML='<summary>Уточнить место занятия · '+missing.length+'</summary><p>Для этих мест в расписании не указан однозначный адрес. Уточните его на кафедре.</p>'+missing.map(x=>'<details><summary>'+esc(x.name)+'</summary><ul>'+x.details.map(d=>'<li>'+esc(d)+'</li>').join('')+'</ul></details>').join('');}
 }
 async function loadKugData(){
   state.kugStatus='loading';renderKug();
