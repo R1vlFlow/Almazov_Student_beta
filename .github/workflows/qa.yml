@@ -20,3 +20,14 @@ jobs:
         run: npm run qa
         env:
           REQUIRE_MINIFICATION: "1"
+
+      - name: Package verified web preview
+        run: |
+          mkdir -p preview
+          tar -czf preview/almazov-web-preview.tar.gz -C dist .
+          sha256sum preview/almazov-web-preview.tar.gz > preview/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-preview-${{ github.sha }}
+          path: preview/
+          retention-days: 14

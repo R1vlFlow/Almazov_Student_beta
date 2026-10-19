@@ -30,6 +30,12 @@ test('static schedule loading reads the bundled snapshot and never calls an API'
     assert.ok(result.weeklyBlocks.length>0);
     assert.equal(staticCalls,1);
     assert.equal(apiCalls,0);
+    globalThis.fetch=async()=>{throw new Error('offline');};
+    service.clearScheduleMemory();
+    const offline=await service.loadSchedule('31.05.01',4);
+    assert.equal(offline.status,'cache');
+    assert.equal(offline.events.length,result.events.length);
+    assert.equal(offline.weeklyBlocks.length,result.weeklyBlocks.length);
   }finally{globalThis.document=oldDocument;globalThis.fetch=oldFetch;}
 });
 

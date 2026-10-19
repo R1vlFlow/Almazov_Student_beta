@@ -1,6 +1,7 @@
-import { LIVE_LD_JSON, PROGRAMS, sourceFor, sourcesFor } from '../data/catalog.js?v=2bdeb6c5485141cc';
-import { validateScheduleIndex, normalizeLiveEvents, normalizeWeeklyBlocks } from '../core/validate.js?v=2bdeb6c5485141cc';
-import { saveCache, readCache } from './cache.js?v=2bdeb6c5485141cc';
+import { recordScheduleCheck } from './scheduleHistory.js?v=bd46296c0cf0f1ee';
+import { LIVE_LD_JSON, PROGRAMS, sourceFor, sourcesFor } from '../data/catalog.js?v=bd46296c0cf0f1ee';
+import { validateScheduleIndex, normalizeLiveEvents, normalizeWeeklyBlocks } from '../core/validate.js?v=bd46296c0cf0f1ee';
+import { saveCache, readCache } from './cache.js?v=bd46296c0cf0f1ee';
 const API_BASE = './api/schedule';
 const memory = new Map();
 function isStaticRuntime() { return typeof document !== 'undefined' && document.documentElement.dataset.runtimeMode === 'static'; }
@@ -16,8 +17,22 @@ export async function loadSchedule(program, course) {
     // and local static hosting never wait for a backend timeout.
     const staticResult = await loadStaticSnapshot(program, course);
     if (staticResult && (staticResult.events.length > 0 || (staticResult.weeklyBlocks?.length ?? 0) > 0 || staticResult.status === 'unavailable')) {
+        if (staticResult.events.length || (staticResult.weeklyBlocks?.length ?? 0)) {
+            const saved = await readCache('last-good:' + key);
+            const previous = saved && 'payload' in saved ? saved.payload : saved;
+            if (!staticResult.issues?.includes('SCHEDULE_OFFLINE_CACHE'))
+                recordScheduleCheck(key, previous, staticResult);
+            await saveCache('last-good:' + key, staticResult);
+        }
         memory.set(key, staticResult);
         return staticResult;
+    }
+    const saved = await readCache('last-good:' + key);
+    const lastGood = saved && 'payload' in saved ? saved.payload : saved;
+    if (lastGood && (lastGood.events?.length || lastGood.weeklyBlocks?.length)) {
+        const result = { ...lastGood, status: 'cache', message: 'Не удалось получить свежий снимок. Показано последнее сохранённое расписание; изменения могли ещё не загрузиться.' };
+        memory.set(key, result);
+        return result;
     }
     if (isStaticRuntime()) {
         const result = { status: 'unavailable', events: [], weeklyBlocks: [], sourceUrl: sourceFor(program, course), issues: ['STATIC_SNAPSHOT_MISSING'], message: 'Локальный снимок этого расписания отсутствует. Сервер и сетевой источник в статическом режиме не используются.' };
@@ -83,11 +98,14 @@ async function loadStaticSnapshot(program, course) {
         }
         const status = (payload.status === 'partial' || payload.status === 'cache' ? 'cache' === payload.status ? 'cache' : 'partial' : 'live');
         const stale = payload.generatedAt && Date.now() - Date.parse(payload.generatedAt) > 7 * 24 * 60 * 60 * 1000;
-        const finalStatus = stale ? 'cache' : status;
+        const offline = res.headers.get('X-Almazov-Cache') === 'offline';
+        const finalStatus = stale || offline ? 'cache' : status;
         const issues = Array.isArray(payload.issues) ? [...payload.issues] : [];
         if (stale)
             issues.push('SCHEDULE_SNAPSHOT_STALE');
-        return { status: finalStatus, events: payload.events, weeklyBlocks, generatedAt: payload.generatedAt, sourceUrl: payload.sourceUrl, sourceName: payload.sourceName, issues, coverage: payload.coverage, message: payload.message ?? `${stale ? 'Последний сохранённый snapshot' : 'Static snapshot'} · ${payload.events.length} событий, ${weeklyBlocks.length} назначений по неделям` };
+        if (offline)
+            issues.push('SCHEDULE_OFFLINE_CACHE');
+        return { status: finalStatus, events: payload.events, weeklyBlocks, generatedAt: payload.generatedAt, sourceUrl: payload.sourceUrl, sourceName: payload.sourceName, issues, coverage: payload.coverage, message: offline ? 'Нет соединения: показано сохранённое расписание. Изменения источника пока не проверены.' : payload.message ?? `${stale ? 'Последний сохранённый snapshot' : 'Static snapshot'} · ${payload.events.length} событий, ${weeklyBlocks.length} назначений по неделям` };
     }
     catch {
         return null;

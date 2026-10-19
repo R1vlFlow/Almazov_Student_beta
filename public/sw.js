@@ -9,8 +9,13 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
   // Only content-versioned files are pre-cached. Never install a potentially
   // stale index.html through the currently active worker.
   await cache.addAll(VERSIONED_SHELL);
-  await self.skipWaiting();
+  // Offline first reopen: only save HTML whose fingerprint matches this worker.
+  const indexUrl=new URL('./index.html',self.registration.scope).href;
+  try{const response=await fetchFresh(new Request(indexUrl,{cache:'no-store'}));if(response.ok&&(await response.clone().text()).includes(`data-build-id="${BUILD_ID}"`))await cache.put(indexUrl,response);}catch{/* The explicit offline page remains available. */}
+  // Wait for explicit acceptance or for all previous tabs to close.
 })()));
+
+self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')event.waitUntil(self.skipWaiting());});
 
 self.addEventListener('activate',event=>event.waitUntil((async()=>{
   const keys=await caches.keys();
@@ -18,12 +23,9 @@ self.addEventListener('activate',event=>event.waitUntil((async()=>{
     key.startsWith('almazov-hub-')||key.startsWith('almazov-schedule-')
   )).map(key=>caches.delete(key)));
   await self.clients.claim();
-  // Reload existing tabs too; users may still be running an older boot.js
-  // that has no client-side update listener.
+  // The page offers an update; never discard an open form by navigating it.
   const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
-  // Start navigation without waiting on it inside activate; waiting here can
-  // deadlock activation on browsers that dispatch navigation after activation.
-  for(const client of windows)client.navigate(client.url).catch(()=>null);
+  for(const client of windows)client.postMessage({type:'APP_UPDATE_AVAILABLE',buildId:BUILD_ID});
 })()));
 
 async function fetchFresh(request){
@@ -61,7 +63,7 @@ async function networkFirst(request){
     return response;
   }catch{
     const hit=await cache.match(request)||((request.mode==='navigate'||request.destination==='document')?await cache.match(new URL('./index.html',self.registration.scope).href):null);
-    if(hit)return hit;
+    if(hit){const headers=new Headers(hit.headers);headers.set('X-Almazov-Cache','offline');return new Response(hit.body,{status:hit.status,statusText:hit.statusText,headers});}
     const offline=(request.mode==='navigate'||request.destination==='document')?await cache.match(OFFLINE_URL):null;
     if(offline)return offline;
     return new Response('Офлайн: приложение пока не было сохранено на этом устройстве.',{
@@ -94,6 +96,9 @@ self.addEventListener('fetch',event=>{
     event.respondWith(networkFirst(request));
     return;
   }
+
+  // Schedule refresh must reach the network even while an app update is deferred.
+  if(url.pathname.includes('/data/')&&url.pathname.endsWith('.json')){event.respondWith(networkFirst(request));return;}
 
   // Cache-first is safe only for files whose URL carries this exact build ID.
   if(url.searchParams.get('v')===BUILD_ID){

@@ -169,8 +169,9 @@ export function readPersonalization(): PersonalizationState {
 }
 export function savePersonalization(next: PersonalizationState): PersonalizationState {
   if (!migrationWriteSafe) throw new Error('Данные старого профиля сохранены без изменений: не удалось создать резервную копию. Освободите место в хранилище браузера и перезагрузите страницу.');
-  cache = normalize(next);
-  try { localStorage.setItem(KEY, JSON.stringify(cache)); localStorage.setItem(MIGRATION_KEY, '2'); } catch (error) { throw new Error('Не удалось сохранить персонализацию. Уменьшите размер вложения или аватара.'); }
+  const normalized = normalize(next);
+  try { localStorage.setItem(KEY, JSON.stringify(normalized)); localStorage.setItem(MIGRATION_KEY, '2'); } catch (error) { throw new Error('Не удалось сохранить персонализацию. Уменьшите размер вложения или аватара.'); }
+  cache = normalized;
   return cache;
 }
 export function updatePersonalization(patch: Partial<PersonalizationState>): PersonalizationState {
