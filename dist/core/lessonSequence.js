@@ -1,9 +1,9 @@
-import { localDate } from './time.js?v=61c50f4f35086b1b';
+import { localDate } from './time.js?v=b4a6ea399b52157f';
 /** Ordinals describe the loaded timetable, not attendance or a department topic plan. */
 export function numberLessons(events, selectedGroup) {
     const result = events.map(e => ({ ...e, lessonNumber: undefined }));
     const counters = new Map();
-    const ordered = result.filter(e => e.kind === 'schedule' && e.status !== 'cancelled').sort((a, b) => a.startAt.localeCompare(b.startAt) || a.id.localeCompare(b.id));
+    const ordered = result.filter(e => e.kind === 'schedule' && e.type === 'practice' && e.status !== 'cancelled').sort((a, b) => a.startAt.localeCompare(b.startAt) || a.id.localeCompare(b.id));
     for (const e of ordered) {
         const date = localDate(e.startAt, 'Europe/Moscow'), year = Number(date.slice(0, 4)), month = Number(date.slice(5, 7));
         const term = month >= 9 ? `${year}-autumn` : month === 1 ? `${year - 1}-autumn` : `${year}-spring`;

@@ -1,27 +1,27 @@
-import { numberLessons } from './core/lessonSequence.js?v=61c50f4f35086b1b';
-import { readScheduleHistory } from './services/scheduleHistory.js?v=61c50f4f35086b1b';
-import { bindPersonalBackup } from './services/personalBackup.js?v=61c50f4f35086b1b';
-import { matchCourseAddresses, groupAddressPlaces } from './core/courseAddresses.js?v=61c50f4f35086b1b';
-import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=61c50f4f35086b1b';
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=61c50f4f35086b1b';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=61c50f4f35086b1b';
-import { groupsFor, streamForGroup } from './data/roster.js?v=61c50f4f35086b1b';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=61c50f4f35086b1b';
-import { eventAppliesToGroup } from './core/filter.js?v=61c50f4f35086b1b';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=61c50f4f35086b1b';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=61c50f4f35086b1b';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=61c50f4f35086b1b';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=61c50f4f35086b1b';
-import { FAQ } from './ui/faq.js?v=61c50f4f35086b1b';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=61c50f4f35086b1b';
-import { fileToAttachment } from './services/supportService.js?v=61c50f4f35086b1b';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=61c50f4f35086b1b';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=61c50f4f35086b1b';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=61c50f4f35086b1b';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=61c50f4f35086b1b';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=61c50f4f35086b1b';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=61c50f4f35086b1b';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=61c50f4f35086b1b';
+import { numberLessons } from './core/lessonSequence.js?v=b4a6ea399b52157f';
+import { readScheduleHistory } from './services/scheduleHistory.js?v=b4a6ea399b52157f';
+import { bindPersonalBackup } from './services/personalBackup.js?v=b4a6ea399b52157f';
+import { matchCourseAddresses, groupAddressPlaces } from './core/courseAddresses.js?v=b4a6ea399b52157f';
+import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=b4a6ea399b52157f';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=b4a6ea399b52157f';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=b4a6ea399b52157f';
+import { groupsFor, streamForGroup } from './data/roster.js?v=b4a6ea399b52157f';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=b4a6ea399b52157f';
+import { eventAppliesToGroup } from './core/filter.js?v=b4a6ea399b52157f';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=b4a6ea399b52157f';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=b4a6ea399b52157f';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=b4a6ea399b52157f';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=b4a6ea399b52157f';
+import { FAQ } from './ui/faq.js?v=b4a6ea399b52157f';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=b4a6ea399b52157f';
+import { fileToAttachment } from './services/supportService.js?v=b4a6ea399b52157f';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=b4a6ea399b52157f';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=b4a6ea399b52157f';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=b4a6ea399b52157f';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=b4a6ea399b52157f';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=b4a6ea399b52157f';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=b4a6ea399b52157f';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=b4a6ea399b52157f';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -474,7 +474,7 @@ function eventHalfLabel(e) {
         return '2/2';
     return '';
 }
-function lessonNumberMarkup(e) { return e.lessonNumber ? `<span class="lesson-number" title="Номер по доступному расписанию за семестр; лекции и ПЗ считаются отдельно">№${e.lessonNumber}</span>` : ''; }
+function lessonNumberMarkup(e) { return e.type === 'practice' && e.lessonNumber ? `<span class="lesson-number" title="Номер ПЗ по доступному расписанию за семестр">№${e.lessonNumber}</span>` : ''; }
 function eventHalfMarkup(e, compact = false) { const number = lessonNumberMarkup(e); const warning = e.sourceNotice ? '<span class="event-source-warning" title="Пересечение в официальном источнике">⚠</span>' : ''; const half = eventHalfLabel(e); if (!half)
     return number + warning; const part = half === '1/2' ? 'part-1' : 'part-2'; return `${number}${warning}<span class="event-half ${part}${compact ? ' compact' : ''}" aria-label="Часть пары ${half}">${half}</span>`; }
 function eventSubject(e) { return String(e.title ?? (('subject' in e) ? e.subject : '')); }
@@ -1127,7 +1127,7 @@ else {
 } }
 function lessonMap(location) { const match = matchCourseAddresses(ALMAZOV_ADDRESSES, [location || '']).addresses; if (match.length !== 1)
     return ''; return `<a class="btn" href="https://yandex.ru/maps/?text=${encodeURIComponent(match[0].address)}" target="_blank" rel="noopener noreferrer">Адрес на карте ↗</a>`; }
-function openEventDetail(e) { $('detailTitle').textContent = String(e.title ?? (('subject' in e) ? e.subject : '')); $('detailBody').innerHTML = `<div class="detail-grid"><span>Дата</span><b>${esc(longDateRu(localDate(e.startAt, state.timezone)))}</b><span>Время</span><b>${esc(e.allDay ? 'Весь день' : `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`)}</b><span>Часовой пояс</span><b>${esc(state.timezone)}</b><span>Тип</span><b>${esc(e.kind === 'personal' ? 'Личное' : ({ lecture: 'Лекция', practice: 'ПЗ', lab: 'Лабораторная', assessment: 'Контроль', other: 'Занятие' }[e.type ?? 'other']))}</b>${e.lessonNumber ? `<span>Номер занятия</span><b>№${e.lessonNumber}<small class="lesson-number-note">По доступному расписанию за семестр. Лекции и ПЗ считаются отдельно; сдвоенное занятие — один номер. Для неполного импорта отсчёт начинается с первого загруженного занятия.</small></b>` : ''}<span>Место</span><b>${esc(e.location || '—')} ${lessonMap(e.location)}</b><span>Статус</span><b>${esc(STATUS_LABEL[e.status ?? 'planned'])}</b><span>Описание</span><p>${esc(e.description || '—')}</p></div>${e.kind === 'personal' ? '<div class="detail-actions"><button class="btn primary" data-action="edit-opened">Изменить</button><button class="btn danger" data-action="delete-opened">Удалить</button></div>' : `<div class="detail-actions"><button class="btn primary" data-homework-from-event="${esc(e.id)}">＋ Записать ДЗ</button><button class="btn" data-materials-subject="${esc(e.subject || e.title)}">Материалы предмета</button></div><details><summary>Сообщить об ошибке</summary><p>Скопируйте сведения, добавьте описание ошибки и отправьте в поддержку. Автоматически ничего не отправляется.</p><textarea id="scheduleErrorDraft" readonly aria-label="Сведения об ошибке расписания">${esc([e.title, `Группа ${state.profile.group}`, longDateRu(localDate(e.startAt, state.timezone)), `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`, e.location || '', e.sourceUrl || sourceFor(state.profile.program, state.profile.course), `Сборка ${document.documentElement.dataset.buildId || 'неизвестна'}`, 'Ошибка: '].join('\n'))}</textarea><button class="btn" data-copy-schedule-error>Скопировать сведения</button></details>`}`; state.editingId = e.kind === 'personal' ? e.id : ''; openModal('eventDetailModal'); }
+function openEventDetail(e) { $('detailTitle').textContent = String(e.title ?? (('subject' in e) ? e.subject : '')); $('detailBody').innerHTML = `<div class="detail-grid"><span>Дата</span><b>${esc(longDateRu(localDate(e.startAt, state.timezone)))}</b><span>Время</span><b>${esc(e.allDay ? 'Весь день' : `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`)}</b><span>Часовой пояс</span><b>${esc(state.timezone)}</b><span>Тип</span><b>${esc(e.kind === 'personal' ? 'Личное' : ({ lecture: 'Лекция', practice: 'ПЗ', lab: 'Лабораторная', assessment: 'Контроль', other: 'Занятие' }[e.type ?? 'other']))}</b>${e.type === 'practice' && e.lessonNumber ? `<span>Номер ПЗ</span><b>№${e.lessonNumber}<small class="lesson-number-note">По доступному расписанию за семестр. Нумеруются только практические занятия; сдвоенное ПЗ — один номер. Для неполного импорта отсчёт начинается с первого загруженного занятия.</small></b>` : ''}<span>Место</span><b>${esc(e.location || '—')} ${lessonMap(e.location)}</b><span>Статус</span><b>${esc(STATUS_LABEL[e.status ?? 'planned'])}</b><span>Описание</span><p>${esc(e.description || '—')}</p></div>${e.kind === 'personal' ? '<div class="detail-actions"><button class="btn primary" data-action="edit-opened">Изменить</button><button class="btn danger" data-action="delete-opened">Удалить</button></div>' : `<div class="detail-actions"><button class="btn primary" data-homework-from-event="${esc(e.id)}">＋ Записать ДЗ</button><button class="btn" data-materials-subject="${esc(e.subject || e.title)}">Материалы предмета</button></div><details><summary>Сообщить об ошибке</summary><p>Скопируйте сведения, добавьте описание ошибки и отправьте в поддержку. Автоматически ничего не отправляется.</p><textarea id="scheduleErrorDraft" readonly aria-label="Сведения об ошибке расписания">${esc([e.title, `Группа ${state.profile.group}`, longDateRu(localDate(e.startAt, state.timezone)), `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`, e.location || '', e.sourceUrl || sourceFor(state.profile.program, state.profile.course), `Сборка ${document.documentElement.dataset.buildId || 'неизвестна'}`, 'Ошибка: '].join('\n'))}</textarea><button class="btn" data-copy-schedule-error>Скопировать сведения</button></details>`}`; state.editingId = e.kind === 'personal' ? e.id : ''; openModal('eventDetailModal'); }
 async function handleSupportSubmit(form) { const subject = $('ticketSubject').value.trim(), description = $('ticketDescription').value.trim(); if (subject.length < 3 || description.length < 5) {
     $('ticketNotice').textContent = 'Заполните тему и подробное описание.';
     return;

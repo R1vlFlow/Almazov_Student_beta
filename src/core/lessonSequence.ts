@@ -5,7 +5,7 @@ import {localDate} from './time.js';
 export function numberLessons(events:CalendarEvent[],selectedGroup?:string):CalendarEvent[]{
   const result=events.map(e=>({...e,lessonNumber:undefined as number|undefined}));
   const counters=new Map<string,Map<string,number>>();
-  const ordered=result.filter(e=>e.kind==='schedule'&&e.status!=='cancelled').sort((a,b)=>a.startAt.localeCompare(b.startAt)||a.id.localeCompare(b.id));
+  const ordered=result.filter(e=>e.kind==='schedule'&&e.type==='practice'&&e.status!=='cancelled').sort((a,b)=>a.startAt.localeCompare(b.startAt)||a.id.localeCompare(b.id));
   for(const e of ordered){
     const date=localDate(e.startAt,'Europe/Moscow'),year=Number(date.slice(0,4)),month=Number(date.slice(5,7));
     const term=month>=9?`${year}-autumn`:month===1?`${year-1}-autumn`:`${year}-spring`;
