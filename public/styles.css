@@ -403,3 +403,7 @@ html[data-theme="light"] .weekly-rotation-item{background:#f7fafc;border-color:#
 #page-addresses .address-scopes .btn[aria-pressed="true"]{color:var(--text);box-shadow:inset 0 0 0 1px var(--border)}
 #page-addresses .address-source{color:var(--text-2);min-height:44px;display:inline-flex;align-items:center}
 #page-addresses .address-copy .eyebrow{color:var(--text-2)}
+
+.lesson-number{display:inline-block;font-size:11px;line-height:1.5;font-weight:700;padding:2px 6px;margin-right:5px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--surface-2);vertical-align:middle;white-space:nowrap}.lesson-number-note{display:block;font-weight:400;line-height:1.6;margin-top:6px;color:var(--text-2)}
+
+#detailBody .detail-grid{display:grid;grid-template-columns:130px minmax(0,1fr);gap:12px 18px;align-items:start;line-height:1.6}#detailBody .detail-grid>span{color:var(--text-2)}#detailBody .detail-grid>p{margin:0}#detailBody .detail-grid>b{min-width:0;overflow-wrap:anywhere}#detailBody .detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}@media(max-width:480px){#detailBody .detail-grid{grid-template-columns:90px minmax(0,1fr);gap:10px;font-size:13px}}

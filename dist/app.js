@@ -1,26 +1,27 @@
-import { readScheduleHistory } from './services/scheduleHistory.js?v=bd46296c0cf0f1ee';
-import { bindPersonalBackup } from './services/personalBackup.js?v=bd46296c0cf0f1ee';
-import { matchCourseAddresses, groupAddressPlaces } from './core/courseAddresses.js?v=bd46296c0cf0f1ee';
-import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=bd46296c0cf0f1ee';
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=bd46296c0cf0f1ee';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=bd46296c0cf0f1ee';
-import { groupsFor, streamForGroup } from './data/roster.js?v=bd46296c0cf0f1ee';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=bd46296c0cf0f1ee';
-import { eventAppliesToGroup } from './core/filter.js?v=bd46296c0cf0f1ee';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=bd46296c0cf0f1ee';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=bd46296c0cf0f1ee';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=bd46296c0cf0f1ee';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=bd46296c0cf0f1ee';
-import { FAQ } from './ui/faq.js?v=bd46296c0cf0f1ee';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=bd46296c0cf0f1ee';
-import { fileToAttachment } from './services/supportService.js?v=bd46296c0cf0f1ee';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=bd46296c0cf0f1ee';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=bd46296c0cf0f1ee';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=bd46296c0cf0f1ee';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=bd46296c0cf0f1ee';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=bd46296c0cf0f1ee';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=bd46296c0cf0f1ee';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=bd46296c0cf0f1ee';
+import { numberLessons } from './core/lessonSequence.js?v=61c50f4f35086b1b';
+import { readScheduleHistory } from './services/scheduleHistory.js?v=61c50f4f35086b1b';
+import { bindPersonalBackup } from './services/personalBackup.js?v=61c50f4f35086b1b';
+import { matchCourseAddresses, groupAddressPlaces } from './core/courseAddresses.js?v=61c50f4f35086b1b';
+import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=61c50f4f35086b1b';
+import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=61c50f4f35086b1b';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=61c50f4f35086b1b';
+import { groupsFor, streamForGroup } from './data/roster.js?v=61c50f4f35086b1b';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=61c50f4f35086b1b';
+import { eventAppliesToGroup } from './core/filter.js?v=61c50f4f35086b1b';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=61c50f4f35086b1b';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=61c50f4f35086b1b';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=61c50f4f35086b1b';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=61c50f4f35086b1b';
+import { FAQ } from './ui/faq.js?v=61c50f4f35086b1b';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=61c50f4f35086b1b';
+import { fileToAttachment } from './services/supportService.js?v=61c50f4f35086b1b';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=61c50f4f35086b1b';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=61c50f4f35086b1b';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=61c50f4f35086b1b';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=61c50f4f35086b1b';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=61c50f4f35086b1b';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=61c50f4f35086b1b';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=61c50f4f35086b1b';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -102,7 +103,7 @@ function getDisplayEvents() {
     const imported = (importsPracticeSchedule() ? state.importedPractices : []).flatMap(importedPracticeCalendar);
     const personal = state.personal.map(e => ({ id: e.id, kind: 'personal', title: e.title, description: e.description ?? '', category: e.category, status: e.status, startAt: e.startAt, endAt: e.endAt, timeZone: e.timeZone, allDay: e.allDay, location: e.location ?? '', meetingUrl: e.meetingUrl, attendees: e.attendees, recurrence: e.recurrence, seriesId: e.seriesId, readOnly: false }));
     const combined = [...selected, ...imported, ...personal];
-    return combined.filter(e => {
+    return numberLessons(combined, state.profile.group).filter(e => {
         if (state.search && !`${e.title ?? (('subject' in e) ? e.subject : '')} ${e.location ?? ''} ${e.teacher ?? ''} ${e.category ?? ''}`.toLowerCase().includes(state.search.toLowerCase()))
             return false;
         if (state.type !== 'all' && e.type !== state.type)
@@ -296,7 +297,7 @@ function countdownLabel(milliseconds) { const minutes = Math.max(0, Math.floor(M
 function renderHome() {
     const today = todayISO(state.timezone), now = Date.now();
     const official = [...state.official, ...expandPracticeCycles(state.weeklyBlocks.filter(e => e.group === state.profile.group))].filter(e => !hasImportedPracticeOverlap(e, importsPracticeSchedule() ? state.importedPractices : []) && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
-    const events = [...official, ...(importsPracticeSchedule() ? state.importedPractices : []).flatMap(importedPracticeCalendar), ...state.homePersonal.map(calendarPersonal)].sort((a, b) => a.startAt.localeCompare(b.startAt));
+    const events = numberLessons([...official, ...(importsPracticeSchedule() ? state.importedPractices : []).flatMap(importedPracticeCalendar), ...state.homePersonal.map(calendarPersonal)], state.profile.group).sort((a, b) => a.startAt.localeCompare(b.startAt));
     const weekEvents = events.filter(e => { const d = localDate(e.startAt, state.timezone); return d >= startOfWeek(today) && d <= addDays(startOfWeek(today), 6); });
     const todayEvents = events.filter(e => localDate(e.startAt, state.timezone) === today || localDate(e.endAt, state.timezone) === today);
     const todayCycles = visibleWeeklyBlocks(today, today);
@@ -308,7 +309,7 @@ function renderHome() {
     const focusTitle = focus ? String(focus.title ?? (('subject' in focus) ? focus.subject : '')) : '';
     $('homeContext').textContent = state.profile.group ? `${PROGRAMS.find(p => p.code === state.profile.program)?.title} · ${state.profile.course} курс · группа ${state.profile.group}` : 'Выберите группу';
     $('homeStats').innerHTML = [['Занятий сегодня', String(todayEvents.length)], ['На неделе', String(weekEvents.length)], ['Активных ДЗ', String(state.tasks.filter(t => (t.status ?? (t.done ? 'done' : 'todo')) !== 'done').length)], ['Источник', state.status === 'live' ? 'LIVE' : state.status === 'cache' ? 'CACHE' : state.status === 'partial' ? 'PARTIAL' : 'OFFLINE']].map(([a, b]) => `<div class="stat-card"><span>${a}</span><b>${b}</b></div>`).join('');
-    $('homeHero').innerHTML = focus ? `<div class="home-hero-copy"><span class="eyebrow">${active ? 'Сейчас идёт пара' : 'Следующая пара'}</span><h2>${esc(focusTitle)}</h2><p>${esc(focus.location || 'Аудитория не указана')} · ${esc(focus.kind === 'schedule' ? (focus.teacher || 'Преподаватель не указан') : 'Личное событие')}</p>${lessonMap(focus.location)}<div class="home-hero-chips"><span>${esc(focus.kind === 'schedule' ? String(focus.type ?? 'Занятие') : 'Личное')}</span><span>${esc(localTime(focus.startAt, state.timezone))}–${esc(localTime(focus.endAt, state.timezone))}</span><span>${esc(state.timezone)}</span></div></div><div class="home-countdown"><span>${active ? 'До конца' : 'До начала'}</span><strong id="homeCountdownValue">${countdownLabel((active ? Date.parse(focus.endAt) : Date.parse(focus.startAt)) - now)}</strong><small>${esc(longDateRu(focus ? localDate(focus.startAt, state.timezone) : today))}</small></div>` : `<div class="home-hero-copy"><span class="eyebrow">Сегодня</span><h2>${todayCycles.length ? 'Практический цикл этой недели' : 'Ближайших пар нет'}</h2><p>${todayCycles.length ? 'Период, время и предметы цикла указаны ниже.' : 'В опубликованном расписании не найдено будущих пар.'}</p></div><div class="home-countdown"><span>${todayCycles.length ? 'Смотрите цикл ниже' : 'Расписание'}</span><strong>—</strong><small>${esc(longDateRu(today))}</small></div>`;
+    $('homeHero').innerHTML = focus ? `<div class="home-hero-copy"><span class="eyebrow">${active ? 'Сейчас идёт пара' : 'Следующая пара'}</span><h2>${lessonNumberMarkup(focus)} ${esc(focusTitle)}</h2><p>${esc(focus.location || 'Аудитория не указана')} · ${esc(focus.kind === 'schedule' ? (focus.teacher || 'Преподаватель не указан') : 'Личное событие')}</p>${lessonMap(focus.location)}<div class="home-hero-chips"><span>${esc(focus.kind === 'schedule' ? String(focus.type ?? 'Занятие') : 'Личное')}</span><span>${esc(localTime(focus.startAt, state.timezone))}–${esc(localTime(focus.endAt, state.timezone))}</span><span>${esc(state.timezone)}</span></div></div><div class="home-countdown"><span>${active ? 'До конца' : 'До начала'}</span><strong id="homeCountdownValue">${countdownLabel((active ? Date.parse(focus.endAt) : Date.parse(focus.startAt)) - now)}</strong><small>${esc(longDateRu(focus ? localDate(focus.startAt, state.timezone) : today))}</small></div>` : `<div class="home-hero-copy"><span class="eyebrow">Сегодня</span><h2>${todayCycles.length ? 'Практический цикл этой недели' : 'Ближайших пар нет'}</h2><p>${todayCycles.length ? 'Период, время и предметы цикла указаны ниже.' : 'В опубликованном расписании не найдено будущих пар.'}</p></div><div class="home-countdown"><span>${todayCycles.length ? 'Смотрите цикл ниже' : 'Расписание'}</span><strong>—</strong><small>${esc(longDateRu(today))}</small></div>`;
     $('homeTodayTimeline').innerHTML = todayEvents.length ? todayEvents.map(e => `<article class="home-timeline-item"><span class="home-timeline-time">${e.allDay ? 'Весь день' : esc(localTime(e.startAt, state.timezone))}</span><div class="home-timeline-content"><b>${esc(String(e.title ?? (('subject' in e) ? e.subject : '')))}</b><small>${esc(e.location || 'Место не указано')}${e.kind === 'schedule' && e.teacher ? ` · ${esc(e.teacher)}` : ''}</small></div><div class="home-timeline-actions"><button class="btn small ghost" data-open-event="${esc(e.id)}">Открыть</button>${e.kind === 'schedule' ? `<button class="btn small" data-homework-from-event="${esc(e.id)}">Записать ДЗ</button>` : ''}</div></article>`).join('') : `<div class="empty-state compact"><p>${todayCycles.length ? 'Практика этой недели показана ниже.' : 'На сегодня занятий нет или источник пока не содержит данных.'}</p><button class="btn" data-page="schedule">Открыть расписание</button></div>`;
     if (!importsPracticeSchedule())
         $('homeTodayTimeline').insertAdjacentHTML('beforeend', renderWeeklyBlocks(visibleWeeklyBlocks(today, today)));
@@ -473,8 +474,9 @@ function eventHalfLabel(e) {
         return '2/2';
     return '';
 }
-function eventHalfMarkup(e, compact = false) { const warning = e.sourceNotice ? '<span class="event-source-warning" title="Пересечение в официальном источнике">⚠</span>' : ''; const half = eventHalfLabel(e); if (!half)
-    return warning; const part = half === '1/2' ? 'part-1' : 'part-2'; return `${warning}<span class="event-half ${part}${compact ? ' compact' : ''}" aria-label="Часть пары ${half}">${half}</span>`; }
+function lessonNumberMarkup(e) { return e.lessonNumber ? `<span class="lesson-number" title="Номер по доступному расписанию за семестр; лекции и ПЗ считаются отдельно">№${e.lessonNumber}</span>` : ''; }
+function eventHalfMarkup(e, compact = false) { const number = lessonNumberMarkup(e); const warning = e.sourceNotice ? '<span class="event-source-warning" title="Пересечение в официальном источнике">⚠</span>' : ''; const half = eventHalfLabel(e); if (!half)
+    return number + warning; const part = half === '1/2' ? 'part-1' : 'part-2'; return `${number}${warning}<span class="event-half ${part}${compact ? ' compact' : ''}" aria-label="Часть пары ${half}">${half}</span>`; }
 function eventSubject(e) { return String(e.title ?? (('subject' in e) ? e.subject : '')); }
 function subjectColor(e) { return state.personalization.subjectColors[subjectColorKey(eventSubject(e))] || ''; }
 function subjectColorControl(e) { if (e.kind !== 'schedule')
@@ -1125,7 +1127,7 @@ else {
 } }
 function lessonMap(location) { const match = matchCourseAddresses(ALMAZOV_ADDRESSES, [location || '']).addresses; if (match.length !== 1)
     return ''; return `<a class="btn" href="https://yandex.ru/maps/?text=${encodeURIComponent(match[0].address)}" target="_blank" rel="noopener noreferrer">Адрес на карте ↗</a>`; }
-function openEventDetail(e) { $('detailTitle').textContent = String(e.title ?? (('subject' in e) ? e.subject : '')); $('detailBody').innerHTML = `<div class="detail-grid"><span>Дата</span><b>${esc(longDateRu(localDate(e.startAt, state.timezone)))}</b><span>Время</span><b>${esc(e.allDay ? 'Весь день' : `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`)}</b><span>Часовой пояс</span><b>${esc(state.timezone)}</b><span>Тип</span><b>${esc(e.kind === 'personal' ? 'Личное' : String(e.type ?? 'Занятие'))}</b><span>Место</span><b>${esc(e.location || '—')} ${lessonMap(e.location)}</b><span>Статус</span><b>${esc(STATUS_LABEL[e.status ?? 'planned'])}</b><span>Описание</span><p>${esc(e.description || '—')}</p></div>${e.kind === 'personal' ? '<div class="detail-actions"><button class="btn primary" data-action="edit-opened">Изменить</button><button class="btn danger" data-action="delete-opened">Удалить</button></div>' : `<div class="detail-actions"><button class="btn primary" data-homework-from-event="${esc(e.id)}">＋ Записать ДЗ</button><button class="btn" data-materials-subject="${esc(e.subject || e.title)}">Материалы предмета</button></div><details><summary>Сообщить об ошибке</summary><p>Скопируйте сведения, добавьте описание ошибки и отправьте в поддержку. Автоматически ничего не отправляется.</p><textarea id="scheduleErrorDraft" readonly aria-label="Сведения об ошибке расписания">${esc([e.title, `Группа ${state.profile.group}`, longDateRu(localDate(e.startAt, state.timezone)), `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`, e.location || '', e.sourceUrl || sourceFor(state.profile.program, state.profile.course), `Сборка ${document.documentElement.dataset.buildId || 'неизвестна'}`, 'Ошибка: '].join('\n'))}</textarea><button class="btn" data-copy-schedule-error>Скопировать сведения</button></details>`}`; state.editingId = e.kind === 'personal' ? e.id : ''; openModal('eventDetailModal'); }
+function openEventDetail(e) { $('detailTitle').textContent = String(e.title ?? (('subject' in e) ? e.subject : '')); $('detailBody').innerHTML = `<div class="detail-grid"><span>Дата</span><b>${esc(longDateRu(localDate(e.startAt, state.timezone)))}</b><span>Время</span><b>${esc(e.allDay ? 'Весь день' : `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`)}</b><span>Часовой пояс</span><b>${esc(state.timezone)}</b><span>Тип</span><b>${esc(e.kind === 'personal' ? 'Личное' : ({ lecture: 'Лекция', practice: 'ПЗ', lab: 'Лабораторная', assessment: 'Контроль', other: 'Занятие' }[e.type ?? 'other']))}</b>${e.lessonNumber ? `<span>Номер занятия</span><b>№${e.lessonNumber}<small class="lesson-number-note">По доступному расписанию за семестр. Лекции и ПЗ считаются отдельно; сдвоенное занятие — один номер. Для неполного импорта отсчёт начинается с первого загруженного занятия.</small></b>` : ''}<span>Место</span><b>${esc(e.location || '—')} ${lessonMap(e.location)}</b><span>Статус</span><b>${esc(STATUS_LABEL[e.status ?? 'planned'])}</b><span>Описание</span><p>${esc(e.description || '—')}</p></div>${e.kind === 'personal' ? '<div class="detail-actions"><button class="btn primary" data-action="edit-opened">Изменить</button><button class="btn danger" data-action="delete-opened">Удалить</button></div>' : `<div class="detail-actions"><button class="btn primary" data-homework-from-event="${esc(e.id)}">＋ Записать ДЗ</button><button class="btn" data-materials-subject="${esc(e.subject || e.title)}">Материалы предмета</button></div><details><summary>Сообщить об ошибке</summary><p>Скопируйте сведения, добавьте описание ошибки и отправьте в поддержку. Автоматически ничего не отправляется.</p><textarea id="scheduleErrorDraft" readonly aria-label="Сведения об ошибке расписания">${esc([e.title, `Группа ${state.profile.group}`, longDateRu(localDate(e.startAt, state.timezone)), `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`, e.location || '', e.sourceUrl || sourceFor(state.profile.program, state.profile.course), `Сборка ${document.documentElement.dataset.buildId || 'неизвестна'}`, 'Ошибка: '].join('\n'))}</textarea><button class="btn" data-copy-schedule-error>Скопировать сведения</button></details>`}`; state.editingId = e.kind === 'personal' ? e.id : ''; openModal('eventDetailModal'); }
 async function handleSupportSubmit(form) { const subject = $('ticketSubject').value.trim(), description = $('ticketDescription').value.trim(); if (subject.length < 3 || description.length < 5) {
     $('ticketNotice').textContent = 'Заполните тему и подробное описание.';
     return;
