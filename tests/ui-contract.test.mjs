@@ -21,6 +21,11 @@ const css=await readFile(new URL('../public/styles.css',import.meta.url),'utf8')
 const boot=await readFile(new URL('../public/boot.js',import.meta.url),'utf8');
 
 const app=await readFile(new URL('../src/app.ts',import.meta.url),'utf8');
+test('library buttons are reachable through delegated click selection',()=>{
+ const selector=app.match(/origin\?\.closest<HTMLElement>\('([^']+)'\)/)?.[1];
+ assert.ok(selector);
+ for(const attr of ['data-library-more','data-library-retry','data-material-favorite'])assert.ok(selector.includes(`[${attr}]`),attr);
+});
 const validator=await readFile(new URL('../scripts/validate-dist.mjs',import.meta.url),'utf8');
 const awaitSource=async(path)=>readFile(new URL(path,import.meta.url),'utf8');
 

@@ -1,5 +1,5 @@
-import { cleanText, normalizeGroup, normalizeStream } from './normalize.js?v=df0451745786acc4';
-import { addDays } from './date.js?v=df0451745786acc4';
+import { cleanText, normalizeGroup, normalizeStream } from './normalize.js?v=908d3bef38a0a281';
+import { addDays } from './date.js?v=908d3bef38a0a281';
 export function eventAppliesToGroup(event, group) {
     if (event.program !== group.program || event.course !== group.course)
         return false;

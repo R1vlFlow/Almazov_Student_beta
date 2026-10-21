@@ -1,27 +1,27 @@
-import { numberLessons } from './core/lessonSequence.js?v=df0451745786acc4';
-import { readScheduleHistory } from './services/scheduleHistory.js?v=df0451745786acc4';
-import { bindPersonalBackup } from './services/personalBackup.js?v=df0451745786acc4';
-import { matchCourseAddresses, groupAddressPlaces } from './core/courseAddresses.js?v=df0451745786acc4';
-import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=df0451745786acc4';
-import { PROGRAMS, sourceFor } from './data/catalog.js?v=df0451745786acc4';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=df0451745786acc4';
-import { groupsFor, streamForGroup } from './data/roster.js?v=df0451745786acc4';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=df0451745786acc4';
-import { eventAppliesToGroup } from './core/filter.js?v=df0451745786acc4';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=df0451745786acc4';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=df0451745786acc4';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=df0451745786acc4';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=df0451745786acc4';
-import { FAQ } from './ui/faq.js?v=df0451745786acc4';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=df0451745786acc4';
-import { fileToAttachment } from './services/supportService.js?v=df0451745786acc4';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=df0451745786acc4';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=df0451745786acc4';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=df0451745786acc4';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=df0451745786acc4';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=df0451745786acc4';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=df0451745786acc4';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=df0451745786acc4';
+import { numberLessons } from './core/lessonSequence.js?v=908d3bef38a0a281';
+import { readScheduleHistory } from './services/scheduleHistory.js?v=908d3bef38a0a281';
+import { bindPersonalBackup } from './services/personalBackup.js?v=908d3bef38a0a281';
+import { matchCourseAddresses, groupAddressPlaces } from './core/courseAddresses.js?v=908d3bef38a0a281';
+import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=908d3bef38a0a281';
+import { PROGRAMS, sourceFor } from './data/catalog.js?v=908d3bef38a0a281';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=908d3bef38a0a281';
+import { groupsFor, streamForGroup } from './data/roster.js?v=908d3bef38a0a281';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=908d3bef38a0a281';
+import { eventAppliesToGroup } from './core/filter.js?v=908d3bef38a0a281';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=908d3bef38a0a281';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=908d3bef38a0a281';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=908d3bef38a0a281';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=908d3bef38a0a281';
+import { FAQ } from './ui/faq.js?v=908d3bef38a0a281';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=908d3bef38a0a281';
+import { fileToAttachment } from './services/supportService.js?v=908d3bef38a0a281';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=908d3bef38a0a281';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=908d3bef38a0a281';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=908d3bef38a0a281';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=908d3bef38a0a281';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=908d3bef38a0a281';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=908d3bef38a0a281';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=908d3bef38a0a281';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -555,7 +555,7 @@ async function loadFirstCourseLibrary() {
         return;
     libraryStatus = 'loading';
     try {
-        const { FIRST_COURSE_LIBRARY } = await import('./data/firstCourseLibrary.js?v=df0451745786acc4');
+        const { FIRST_COURSE_LIBRARY } = await import('./data/firstCourseLibrary.js?v=908d3bef38a0a281');
         firstCourseLibrary = FIRST_COURSE_LIBRARY.map(x => ({ ...x, tags: [...x.tags] }));
         libraryStatus = 'ready';
     }
@@ -1199,7 +1199,7 @@ function bind() {
                 closeModal(backdrop.id);
             return;
         }
-        const target = origin?.closest('[data-action],[data-page],[data-view],[data-schedule-mode],[data-theme-choice],[data-pick-program],[data-task-delete],[data-task-toggle],[data-task-status],[data-task-attachment],[data-jump-date],[data-open-event],[data-homework-from-event],[data-ticket],[data-faq-category],[data-faq-open],[data-subject-color-trigger],[data-duration-adjust],[data-avatar-preset],[data-material-delete],[data-material-open],[data-material-download]');
+        const target = origin?.closest('[data-action],[data-page],[data-view],[data-schedule-mode],[data-theme-choice],[data-pick-program],[data-task-delete],[data-task-toggle],[data-task-status],[data-task-attachment],[data-jump-date],[data-open-event],[data-homework-from-event],[data-ticket],[data-faq-category],[data-faq-open],[data-subject-color-trigger],[data-duration-adjust],[data-avatar-preset],[data-material-delete],[data-material-open],[data-material-download],[data-library-more],[data-library-retry],[data-material-favorite]');
         if (!target)
             return;
         const action = target.dataset.action;

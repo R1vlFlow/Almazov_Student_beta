@@ -1,4 +1,4 @@
-import { localDate } from './time.js?v=df0451745786acc4';
+import { localDate } from './time.js?v=908d3bef38a0a281';
 /** Ordinals describe the loaded timetable, not attendance or a department topic plan. */
 export function numberLessons(events, selectedGroup) {
     const result = events.map(e => ({ ...e, lessonNumber: undefined }));
