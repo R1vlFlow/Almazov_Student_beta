@@ -1,4 +1,4 @@
-import { readPersonalization, savePersonalization } from './personalizationStore.js?v=b4a6ea399b52157f';
+import { readPersonalization, savePersonalization } from './personalizationStore.js?v=df0451745786acc4';
 const databases = [['almazov-materials', 'files', ['scope', 'createdAt']], ['almazov-imported-practices', 'practice-events', ['scope', 'date']], ['almazov-local-support', 'tickets', []]];
 const keys = ['almazov.profile', 'almazov.appearance', 'almazov.theme', 'almazov.timezone', 'almazov.event.draft', 'almazov.personal.events.v3'];
 const MAX_BYTES = 80 * 1024 * 1024;
