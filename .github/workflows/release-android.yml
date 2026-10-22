@@ -84,8 +84,8 @@ jobs:
           fi
       - name: Set Android release version
         run: |
-          sed -i -E 's/versionCode [0-9]+/versionCode 33/' android/app/build.gradle
-          sed -i -E 's/versionName ".*"/versionName "3.2.0"/' android/app/build.gradle
+          sed -i -E 's/versionCode [0-9]+/versionCode 34/' android/app/build.gradle
+          sed -i -E 's/versionName ".*"/versionName "3.2.1"/' android/app/build.gradle
       - name: Configure Android release signing
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/almazov-release.p12
@@ -123,20 +123,20 @@ jobs:
           ./gradlew --no-daemon --stacktrace assembleRelease bundleRelease
           cd ..
           mkdir -p release
-          cp android/app/build/outputs/apk/release/app-release.apk release/Almazov-Student-3.2.0.apk
-          cp android/app/build/outputs/bundle/release/app-release.aab release/Almazov-Student-3.2.0.aab
-          sha256sum release/Almazov-Student-3.2.0.apk release/Almazov-Student-3.2.0.aab | tee release/SHA256SUMS.txt
+          cp android/app/build/outputs/apk/release/app-release.apk release/Almazov-Student-3.2.1.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab release/Almazov-Student-3.2.1.aab
+          sha256sum release/Almazov-Student-3.2.1.apk release/Almazov-Student-3.2.1.aab | tee release/SHA256SUMS.txt
       - name: Verify APK signature and record certificate
         run: |
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs release/Almazov-Student-3.2.0.apk > release/signature-verification.txt
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs release/Almazov-Student-3.2.1.apk > release/signature-verification.txt
           cat release/signature-verification.txt
       - name: Upload signed release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Almazov-Student-3.2.0-signed-${{ github.run_number }}
+          name: Almazov-Student-3.2.1-signed-${{ github.run_number }}
           path: |
-            release/Almazov-Student-3.2.0.apk
-            release/Almazov-Student-3.2.0.aab
+            release/Almazov-Student-3.2.1.apk
+            release/Almazov-Student-3.2.1.aab
             release/SHA256SUMS.txt
             release/signature-verification.txt
           if-no-files-found: error

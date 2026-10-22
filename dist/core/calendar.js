@@ -1,10 +1,10 @@
-import { localDate, localTime, localDateTimeInput, localDateTimeToUtc } from './time.js?v=bd46296c0cf0f1ee';
+import { localDate, localTime, localDateTimeInput, localDateTimeToUtc } from './time.js?v=908d3bef38a0a281';
 export function displayScheduleParts(e) {
     if (!(e.orgMerged || e.mergedConsecutive) || e.doublePart)
         return [e];
     const parts = e.lessonParts;
     if (parts?.length === 2 && parts[0].start === e.start && parts[1].end === e.end && parts.every(p => /^\d{2}:\d{2}$/.test(p.start) && /^\d{2}:\d{2}$/.test(p.end) && p.start < p.end) && parts[0].end <= parts[1].start) {
-        return parts.map((p, i) => ({ ...e, ...p, id: `${e.id}-part-${i + 1}`, doublePart: (i + 1) }));
+        return parts.map((p, i) => ({ ...e, ...p, doubleOf: e.doubleOf || e.id, id: `${e.id}-part-${i + 1}`, doublePart: (i + 1) }));
     }
     const start = Number(e.start.slice(0, 2)) * 60 + Number(e.start.slice(3));
     const end = Number(e.end.slice(0, 2)) * 60 + Number(e.end.slice(3));
@@ -16,11 +16,11 @@ export function displayScheduleParts(e) {
     const firstEnd = start + partMinutes;
     const secondStart = firstEnd + 15;
     return [
-        { ...e, id: `${e.id}-1`, end: format(firstEnd), double: true, doublePart: 1, mergedConsecutive: undefined, durationMinutes: partMinutes },
-        { ...e, id: `${e.id}-2`, start: format(secondStart), double: true, doublePart: 2, mergedConsecutive: undefined, durationMinutes: partMinutes }
+        { ...e, doubleOf: e.doubleOf || e.id, id: `${e.id}-1`, end: format(firstEnd), double: true, doublePart: 1, mergedConsecutive: undefined, durationMinutes: partMinutes },
+        { ...e, doubleOf: e.doubleOf || e.id, id: `${e.id}-2`, start: format(secondStart), double: true, doublePart: 2, mergedConsecutive: undefined, durationMinutes: partMinutes }
     ];
 }
-export function scheduleToCalendarEvent(e, _displayTimeZone) { const startAt = localDateTimeToUtc(`${e.date}T${e.start}`, 'Europe/Moscow'); const endAt = localDateTimeToUtc(`${e.date}T${e.end}`, 'Europe/Moscow'); return { id: e.id, kind: 'schedule', title: e.subject, sourceNotice: e.sourceNotice, sourceUrl: e.sourceUrl, description: e.sourceNotice ?? e.description ?? '', category: e.type, status: 'planned', startAt, endAt, timeZone: 'Europe/Moscow', allDay: false, location: e.location, program: e.program, course: e.course, group: e.group, stream: e.stream, type: e.type, teacher: e.teacher, half: e.half, doublePart: e.doublePart, weeks: e.weeks, readOnly: true }; }
+export function scheduleToCalendarEvent(e, _displayTimeZone) { const startAt = localDateTimeToUtc(`${e.date}T${e.start}`, 'Europe/Moscow'); const endAt = localDateTimeToUtc(`${e.date}T${e.end}`, 'Europe/Moscow'); return { id: e.id, kind: 'schedule', title: e.subject, sourceNotice: e.sourceNotice, sourceUrl: e.sourceUrl, description: e.sourceNotice ?? e.description ?? '', category: e.type, status: 'planned', startAt, endAt, timeZone: 'Europe/Moscow', allDay: false, location: e.location, program: e.program, course: e.course, group: e.group, stream: e.stream, type: e.type, teacher: e.teacher, half: e.half, doublePart: e.doublePart, doubleOf: e.doubleOf, weeks: e.weeks, readOnly: true }; }
 export function decorateEvent(e, timeZone) { return { event: e, date: localDate(e.startAt, timeZone), start: localTime(e.startAt, timeZone), end: localTime(e.endAt, timeZone), startInput: localDateTimeInput(e.startAt, timeZone), endInput: localDateTimeInput(e.endAt, timeZone) }; }
 export function eventDates(e, timeZone) { const first = localDate(e.startAt, timeZone), last = localDate(e.endAt, timeZone), out = []; let cursor = first; while (cursor <= last && out.length < 370) {
     out.push(cursor);

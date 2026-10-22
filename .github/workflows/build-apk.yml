@@ -64,8 +64,8 @@ jobs:
           from pathlib import Path
           p = Path('android/app/build.gradle')
           s = p.read_text()
-          s = re.sub(r'versionCode\s+\d+', 'versionCode 33', s, count=1)
-          s = re.sub(r'versionName\s+["\'].*?["\']', 'versionName \"3.2.0\"', s, count=1)
+          s = re.sub(r'versionCode\s+\d+', 'versionCode 34', s, count=1)
+          s = re.sub(r'versionName\s+["\'].*?["\']', 'versionName \"3.2.1\"', s, count=1)
           p.write_text(s)
           PY
       - name: Assemble QA-only APK

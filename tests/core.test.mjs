@@ -112,7 +112,7 @@ test('static snapshot loads without making an API request',async()=>{
   globalThis.fetch=async (input)=>{
     const url=String(input);
     if(url.includes('/api/schedule')){apiCalls++;throw new Error('static release must not call API');}
-    if(url.includes('/data/schedules/31.05.02/1.json')){staticCalls++;return new Response(JSON.stringify({status:'live',events:[{id:'p1',program:'31.05.02',course:1,group:'101П',stream:null,date:'2026-10-06',start:'09:00',end:'10:35',subject:'Химия',location:'ауд. 2.11',teacher:'',type:'lecture'}],generatedAt:'2026-10-13T00:00:00Z',message:'static'}),{status:200,headers:{'content-type':'application/json'}});}
+    if(url.includes('/data/schedules/31.05.02/1.json')){staticCalls++;return new Response(JSON.stringify({status:'live',events:[{id:'p1',program:'31.05.02',course:1,group:'101П',stream:null,date:'2026-10-06',start:'09:00',end:'10:35',subject:'Химия',location:'ауд. 2.11',teacher:'',type:'lecture'}],generatedAt:new Date().toISOString(),message:'static'}),{status:200,headers:{'content-type':'application/json'}});}
     throw new Error(`unexpected fetch ${url}`);
   };
   try{

@@ -1,26 +1,27 @@
-import { readScheduleHistory } from './services/scheduleHistory.js?v=bd46296c0cf0f1ee';
-import { bindPersonalBackup } from './services/personalBackup.js?v=bd46296c0cf0f1ee';
-import { matchCourseAddresses, groupAddressPlaces } from './core/courseAddresses.js?v=bd46296c0cf0f1ee';
-import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=bd46296c0cf0f1ee';
-import { PROGRAMS, sourceFor, sourcesFor } from './data/catalog.js?v=bd46296c0cf0f1ee';
-import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=bd46296c0cf0f1ee';
-import { groupsFor, streamForGroup } from './data/roster.js?v=bd46296c0cf0f1ee';
-import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=bd46296c0cf0f1ee';
-import { eventAppliesToGroup } from './core/filter.js?v=bd46296c0cf0f1ee';
-import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=bd46296c0cf0f1ee';
-import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=bd46296c0cf0f1ee';
-import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=bd46296c0cf0f1ee';
-import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=bd46296c0cf0f1ee';
-import { FAQ } from './ui/faq.js?v=bd46296c0cf0f1ee';
-import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=bd46296c0cf0f1ee';
-import { fileToAttachment } from './services/supportService.js?v=bd46296c0cf0f1ee';
-import { createTicket, listTickets, getTicket } from './services/supportService.js?v=bd46296c0cf0f1ee';
-import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=bd46296c0cf0f1ee';
-import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=bd46296c0cf0f1ee';
-import { enhanceControls, refreshControls } from './ui/customControls.js?v=bd46296c0cf0f1ee';
-import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=bd46296c0cf0f1ee';
-import { ensureScheduleCacheVersion } from './services/cache.js?v=bd46296c0cf0f1ee';
-import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=bd46296c0cf0f1ee';
+import { numberLessons } from './core/lessonSequence.js?v=908d3bef38a0a281';
+import { readScheduleHistory } from './services/scheduleHistory.js?v=908d3bef38a0a281';
+import { bindPersonalBackup } from './services/personalBackup.js?v=908d3bef38a0a281';
+import { matchCourseAddresses, groupAddressPlaces } from './core/courseAddresses.js?v=908d3bef38a0a281';
+import { expandPracticeCycles, hasImportedPracticeOverlap } from './core/practiceCycles.js?v=908d3bef38a0a281';
+import { PROGRAMS, sourceFor } from './data/catalog.js?v=908d3bef38a0a281';
+import { ALMAZOV_ADDRESSES } from './data/addresses.js?v=908d3bef38a0a281';
+import { groupsFor, streamForGroup } from './data/roster.js?v=908d3bef38a0a281';
+import { mondayOf, weekDates, formatDateRu, longDateRu, addDays, todayISO, shiftCalendarPeriod } from './core/date.js?v=908d3bef38a0a281';
+import { eventAppliesToGroup } from './core/filter.js?v=908d3bef38a0a281';
+import { loadSchedule, clearScheduleMemory } from './services/scheduleService.js?v=908d3bef38a0a281';
+import { addTask, readTasks, removeTask, updateTask } from './services/taskService.js?v=908d3bef38a0a281';
+import { readPersonalization, updatePersonalization, setAcademicProfile, subjectColorKey } from './services/personalizationStore.js?v=908d3bef38a0a281';
+import { applyTheme, cycleTheme, initTheme, themeMode } from './ui/theme.js?v=908d3bef38a0a281';
+import { FAQ } from './ui/faq.js?v=908d3bef38a0a281';
+import { createPersonalEvent, deletePersonalEvent, listPersonalEvents, updatePersonalEvent } from './services/eventService.js?v=908d3bef38a0a281';
+import { fileToAttachment } from './services/supportService.js?v=908d3bef38a0a281';
+import { createTicket, listTickets, getTicket } from './services/supportService.js?v=908d3bef38a0a281';
+import { localDate, localDateTimeToUtc, localTime, userTimeZone, localDateTimeInput } from './core/time.js?v=908d3bef38a0a281';
+import { displayScheduleParts, scheduleToCalendarEvent } from './core/calendar.js?v=908d3bef38a0a281';
+import { enhanceControls, refreshControls } from './ui/customControls.js?v=908d3bef38a0a281';
+import { deleteFileMaterial, getFileMaterial, listFileMaterials, materialScope, saveFileMaterial, MAX_MATERIAL_FILE_SIZE } from './services/materialStore.js?v=908d3bef38a0a281';
+import { ensureScheduleCacheVersion } from './services/cache.js?v=908d3bef38a0a281';
+import { countImportedPractices, listImportedPractices, parsePracticeScheduleFile, saveImportedPractices } from './services/practiceScheduleImport.js?v=908d3bef38a0a281';
 const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const STATUS_LABEL = { planned: 'Запланировано', confirmed: 'Подтверждено', in_progress: 'В процессе', completed: 'Завершено', cancelled: 'Отменено' };
 const VIEW_LABEL = { day: 'День', workweek: 'Рабочая неделя', week: 'Неделя', month: 'Месяц', agenda: 'Agenda', list: 'Список' };
@@ -102,7 +103,7 @@ function getDisplayEvents() {
     const imported = (importsPracticeSchedule() ? state.importedPractices : []).flatMap(importedPracticeCalendar);
     const personal = state.personal.map(e => ({ id: e.id, kind: 'personal', title: e.title, description: e.description ?? '', category: e.category, status: e.status, startAt: e.startAt, endAt: e.endAt, timeZone: e.timeZone, allDay: e.allDay, location: e.location ?? '', meetingUrl: e.meetingUrl, attendees: e.attendees, recurrence: e.recurrence, seriesId: e.seriesId, readOnly: false }));
     const combined = [...selected, ...imported, ...personal];
-    return combined.filter(e => {
+    return numberLessons(combined, state.profile.group).filter(e => {
         if (state.search && !`${e.title ?? (('subject' in e) ? e.subject : '')} ${e.location ?? ''} ${e.teacher ?? ''} ${e.category ?? ''}`.toLowerCase().includes(state.search.toLowerCase()))
             return false;
         if (state.type !== 'all' && e.type !== state.type)
@@ -198,6 +199,9 @@ export async function boot() {
     renderShell();
     bind();
     render();
+    const requestedPage = new URLSearchParams(location.search).get('page');
+    if (requestedPage && document.getElementById(`page-${requestedPage}`)?.classList.contains('page'))
+        nav(requestedPage);
     void loadKugData();
     await reloadEvents();
     await refreshHomePersonal();
@@ -296,7 +300,7 @@ function countdownLabel(milliseconds) { const minutes = Math.max(0, Math.floor(M
 function renderHome() {
     const today = todayISO(state.timezone), now = Date.now();
     const official = [...state.official, ...expandPracticeCycles(state.weeklyBlocks.filter(e => e.group === state.profile.group))].filter(e => !hasImportedPracticeOverlap(e, importsPracticeSchedule() ? state.importedPractices : []) && eventAppliesToGroup(e, { ...state.profile, stream: streamForGroup(state.profile.program, state.profile.group) })).flatMap(e => displayScheduleParts(e)).map(e => scheduleToCalendarEvent({ ...e, teacher: state.personalization.subjectTeachers[subjectColorKey(e.subject)] || e.teacher }, state.timezone));
-    const events = [...official, ...(importsPracticeSchedule() ? state.importedPractices : []).flatMap(importedPracticeCalendar), ...state.homePersonal.map(calendarPersonal)].sort((a, b) => a.startAt.localeCompare(b.startAt));
+    const events = numberLessons([...official, ...(importsPracticeSchedule() ? state.importedPractices : []).flatMap(importedPracticeCalendar), ...state.homePersonal.map(calendarPersonal)], state.profile.group).sort((a, b) => a.startAt.localeCompare(b.startAt));
     const weekEvents = events.filter(e => { const d = localDate(e.startAt, state.timezone); return d >= startOfWeek(today) && d <= addDays(startOfWeek(today), 6); });
     const todayEvents = events.filter(e => localDate(e.startAt, state.timezone) === today || localDate(e.endAt, state.timezone) === today);
     const todayCycles = visibleWeeklyBlocks(today, today);
@@ -308,7 +312,7 @@ function renderHome() {
     const focusTitle = focus ? String(focus.title ?? (('subject' in focus) ? focus.subject : '')) : '';
     $('homeContext').textContent = state.profile.group ? `${PROGRAMS.find(p => p.code === state.profile.program)?.title} · ${state.profile.course} курс · группа ${state.profile.group}` : 'Выберите группу';
     $('homeStats').innerHTML = [['Занятий сегодня', String(todayEvents.length)], ['На неделе', String(weekEvents.length)], ['Активных ДЗ', String(state.tasks.filter(t => (t.status ?? (t.done ? 'done' : 'todo')) !== 'done').length)], ['Источник', state.status === 'live' ? 'LIVE' : state.status === 'cache' ? 'CACHE' : state.status === 'partial' ? 'PARTIAL' : 'OFFLINE']].map(([a, b]) => `<div class="stat-card"><span>${a}</span><b>${b}</b></div>`).join('');
-    $('homeHero').innerHTML = focus ? `<div class="home-hero-copy"><span class="eyebrow">${active ? 'Сейчас идёт пара' : 'Следующая пара'}</span><h2>${esc(focusTitle)}</h2><p>${esc(focus.location || 'Аудитория не указана')} · ${esc(focus.kind === 'schedule' ? (focus.teacher || 'Преподаватель не указан') : 'Личное событие')}</p>${lessonMap(focus.location)}<div class="home-hero-chips"><span>${esc(focus.kind === 'schedule' ? String(focus.type ?? 'Занятие') : 'Личное')}</span><span>${esc(localTime(focus.startAt, state.timezone))}–${esc(localTime(focus.endAt, state.timezone))}</span><span>${esc(state.timezone)}</span></div></div><div class="home-countdown"><span>${active ? 'До конца' : 'До начала'}</span><strong id="homeCountdownValue">${countdownLabel((active ? Date.parse(focus.endAt) : Date.parse(focus.startAt)) - now)}</strong><small>${esc(longDateRu(focus ? localDate(focus.startAt, state.timezone) : today))}</small></div>` : `<div class="home-hero-copy"><span class="eyebrow">Сегодня</span><h2>${todayCycles.length ? 'Практический цикл этой недели' : 'Ближайших пар нет'}</h2><p>${todayCycles.length ? 'Период, время и предметы цикла указаны ниже.' : 'В опубликованном расписании не найдено будущих пар.'}</p></div><div class="home-countdown"><span>${todayCycles.length ? 'Смотрите цикл ниже' : 'Расписание'}</span><strong>—</strong><small>${esc(longDateRu(today))}</small></div>`;
+    $('homeHero').innerHTML = focus ? `<div class="home-hero-copy"><span class="eyebrow">${active ? 'Сейчас идёт пара' : 'Следующая пара'}</span><h2>${lessonNumberMarkup(focus)} ${esc(focusTitle)}</h2><p>${esc(focus.location || 'Аудитория не указана')} · ${esc(focus.kind === 'schedule' ? (focus.teacher || 'Преподаватель не указан') : 'Личное событие')}</p>${lessonMap(focus.location)}<div class="home-hero-chips"><span>${esc(focus.kind === 'schedule' ? String(focus.type ?? 'Занятие') : 'Личное')}</span><span>${esc(localTime(focus.startAt, state.timezone))}–${esc(localTime(focus.endAt, state.timezone))}</span><span>${esc(state.timezone)}</span></div></div><div class="home-countdown"><span>${active ? 'До конца' : 'До начала'}</span><strong id="homeCountdownValue">${countdownLabel((active ? Date.parse(focus.endAt) : Date.parse(focus.startAt)) - now)}</strong><small>${esc(longDateRu(focus ? localDate(focus.startAt, state.timezone) : today))}</small></div>` : `<div class="home-hero-copy"><span class="eyebrow">Сегодня</span><h2>${todayCycles.length ? 'Практический цикл этой недели' : 'Ближайших пар нет'}</h2><p>${todayCycles.length ? 'Период, время и предметы цикла указаны ниже.' : 'В опубликованном расписании не найдено будущих пар.'}</p></div><div class="home-countdown"><span>${todayCycles.length ? 'Смотрите цикл ниже' : 'Расписание'}</span><strong>—</strong><small>${esc(longDateRu(today))}</small></div>`;
     $('homeTodayTimeline').innerHTML = todayEvents.length ? todayEvents.map(e => `<article class="home-timeline-item"><span class="home-timeline-time">${e.allDay ? 'Весь день' : esc(localTime(e.startAt, state.timezone))}</span><div class="home-timeline-content"><b>${esc(String(e.title ?? (('subject' in e) ? e.subject : '')))}</b><small>${esc(e.location || 'Место не указано')}${e.kind === 'schedule' && e.teacher ? ` · ${esc(e.teacher)}` : ''}</small></div><div class="home-timeline-actions"><button class="btn small ghost" data-open-event="${esc(e.id)}">Открыть</button>${e.kind === 'schedule' ? `<button class="btn small" data-homework-from-event="${esc(e.id)}">Записать ДЗ</button>` : ''}</div></article>`).join('') : `<div class="empty-state compact"><p>${todayCycles.length ? 'Практика этой недели показана ниже.' : 'На сегодня занятий нет или источник пока не содержит данных.'}</p><button class="btn" data-page="schedule">Открыть расписание</button></div>`;
     if (!importsPracticeSchedule())
         $('homeTodayTimeline').insertAdjacentHTML('beforeend', renderWeeklyBlocks(visibleWeeklyBlocks(today, today)));
@@ -473,8 +477,9 @@ function eventHalfLabel(e) {
         return '2/2';
     return '';
 }
-function eventHalfMarkup(e, compact = false) { const warning = e.sourceNotice ? '<span class="event-source-warning" title="Пересечение в официальном источнике">⚠</span>' : ''; const half = eventHalfLabel(e); if (!half)
-    return warning; const part = half === '1/2' ? 'part-1' : 'part-2'; return `${warning}<span class="event-half ${part}${compact ? ' compact' : ''}" aria-label="Часть пары ${half}">${half}</span>`; }
+function lessonNumberMarkup(e) { return e.type === 'practice' && e.lessonNumber ? `<span class="lesson-number" title="Номер ПЗ по доступному расписанию за семестр">№${e.lessonNumber}</span>` : ''; }
+function eventHalfMarkup(e, compact = false) { const number = lessonNumberMarkup(e); const warning = e.sourceNotice ? '<span class="event-source-warning" title="Пересечение в официальном источнике">⚠</span>' : ''; const half = eventHalfLabel(e); if (!half)
+    return number + warning; const part = half === '1/2' ? 'part-1' : 'part-2'; return `${number}${warning}<span class="event-half ${part}${compact ? ' compact' : ''}" aria-label="Часть пары ${half}">${half}</span>`; }
 function eventSubject(e) { return String(e.title ?? (('subject' in e) ? e.subject : '')); }
 function subjectColor(e) { return state.personalization.subjectColors[subjectColorKey(eventSubject(e))] || ''; }
 function subjectColorControl(e) { if (e.kind !== 'schedule')
@@ -529,27 +534,70 @@ catch (error) {
     renderResources(); }
 function subjectChoices() { return Array.from(new Set([...state.official.map(e => e.subject), ...readTasks().map(t => t.subject), ...state.personalization.materials.map(m => m.subject), ...state.fileMaterials.map(m => m.subject), ...PROGRAMS.flatMap(p => p.scheduleCourses.map(c => `${p.shortTitle} · ${c} курс`))].filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ru')); }
 function getResourceItems() {
-    const official = PROGRAMS.flatMap(p => p.scheduleCourses.flatMap(course => sourcesFor(p.code, course).filter(s => s.status === 'published' || s.status === 'verified').map(s => ({ id: `official:${s.id}`, title: s.title, subject: `${p.shortTitle} · ${course} курс`, category: resourceCategoryFor(s.title), description: s.notes || 'Официальный документ или источник учебного расписания.', url: s.url, tags: [resourceCategoryLabel(resourceCategoryFor(s.title)), 'Официальный'], helpfulness: undefined, type: resourceTypeFromName('', s.url), official: true, fileMaterial: false }))));
+    const library = String(state.profile.course) === '1' ? firstCourseLibrary : [];
     const personal = state.personalization.materials.map(m => ({ ...m, tags: m.tags ?? [], type: resourceTypeFromName('', m.url), official: false, fileMaterial: false }));
     const uploaded = state.fileMaterials.map(m => ({ id: m.id, title: m.title, subject: m.subject, category: m.category, description: m.description, url: '', tags: m.tags, type: resourceTypeFromName(m.fileName), official: false, fileMaterial: true, fileName: m.fileName, size: m.size, createdAt: m.createdAt }));
-    return [...official, ...personal, ...uploaded];
+    return [...library, ...personal, ...uploaded];
+}
+let firstCourseLibrary = [];
+let libraryStatus = 'idle';
+let resourceLimit = 24, resourceFingerprint = '', resourceCollection = 'all';
+const materialFavoriteKey = 'almazov:library-favorites:v1';
+const materialFavorites = new Set((() => { try {
+    const v = JSON.parse(localStorage.getItem(materialFavoriteKey) || '[]');
+    return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : [];
+}
+catch {
+    return [];
+} })());
+async function loadFirstCourseLibrary() {
+    if (libraryStatus === 'loading' || libraryStatus === 'ready')
+        return;
+    libraryStatus = 'loading';
+    try {
+        const { FIRST_COURSE_LIBRARY } = await import('./data/firstCourseLibrary.js?v=908d3bef38a0a281');
+        firstCourseLibrary = FIRST_COURSE_LIBRARY.map(x => ({ ...x, tags: [...x.tags] }));
+        libraryStatus = 'ready';
+    }
+    catch {
+        libraryStatus = 'error';
+    }
+    if (state.page === 'resources')
+        renderResources();
 }
 function renderResources() {
+    const firstCourse = String(state.profile.course) === '1';
+    if (firstCourse && libraryStatus === 'idle')
+        void loadFirstCourseLibrary();
+    $('resourceLibraryNotice').textContent = firstCourse ? 'Библиотека 1 курса: учебники, атласы и методички из студенческой подборки. Подбирайте издание по требованиям своего преподавателя. Файлы открываются в Google Drive; скачать их можно в просмотрщике, если владелец разрешил скачивание.' : 'Здесь ваши материалы. Общая библиотека пока собрана только для 1 курса.';
     const items = getResourceItems();
     const subjects = Array.from(new Set(items.map(x => x.subject))).sort((a, b) => a.localeCompare(b, 'ru'));
     const subjectSel = $('resourceSubjectFilter');
-    const chosen = state.resourceSubject;
-    subjectSel.innerHTML = '<option value="all">Все предметы и курсы</option>' + subjects.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
-    subjectSel.value = subjects.includes(chosen) ? chosen : 'all';
-    const q = state.resourceSearch.trim().toLocaleLowerCase('ru-RU');
-    const filtered = items.filter(x => (state.resourceSubject === 'all' || x.subject === state.resourceSubject) && (state.resourceCategory === 'all' || x.category === state.resourceCategory) && (state.resourceType === 'all' || x.type === state.resourceType) && (!q || `${x.title} ${x.description} ${x.subject} ${x.category} ${(x.tags ?? []).join(' ')} ${x.fileName ?? ''}`.toLocaleLowerCase('ru-RU').includes(q)));
+    // Preserve a subject selected from a lesson, including while the library is loading.
+    if (state.resourceSubject !== 'all' && !subjects.includes(state.resourceSubject))
+        subjects.unshift(state.resourceSubject);
+    subjectSel.innerHTML = '<option value="all">Все предметы</option>' + subjects.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
+    subjectSel.value = state.resourceSubject;
+    const fingerprint = [state.profile.course, state.profile.program, state.profile.group, state.resourceSearch, state.resourceSubject, state.resourceCategory, state.resourceType, resourceCollection].join('|');
+    if (resourceFingerprint !== fingerprint) {
+        resourceFingerprint = fingerprint;
+        resourceLimit = 24;
+    }
+    const normalized = (v) => v.normalize('NFKC').toLocaleLowerCase('ru-RU').replace(/ё/g, 'е');
+    const q = normalized(state.resourceSearch.trim());
+    const filtered = items.filter(x => (resourceCollection === 'all' || resourceCollection === 'library' && x.library || resourceCollection === 'personal' && !x.library || resourceCollection === 'favorites' && materialFavorites.has(x.id)) && (state.resourceSubject === 'all' || normalized(x.subject) === normalized(state.resourceSubject)) && (state.resourceCategory === 'all' || x.category === state.resourceCategory) && (state.resourceType === 'all' || x.type === state.resourceType) && (!q || normalized(`${x.title} ${x.description} ${x.subject} ${(x.tags ?? []).join(' ')} ${x.fileName ?? ''}`).includes(q)));
+    const visible = filtered.slice(0, resourceLimit);
     const groups = new Map();
-    for (const item of filtered) {
+    for (const item of visible) {
         const group = groups.get(item.subject) ?? [];
         group.push(item);
         groups.set(item.subject, group);
     }
-    $('resourceList').innerHTML = filtered.length ? Array.from(groups.entries()).map(([subject, rows]) => `<section class="resource-subject-group"><header><div><p class="eyebrow">Предмет / курс</p><h2>${esc(subject)}</h2></div><span class="chip">${rows.length} материалов</span></header><div class="resource-card-grid">${rows.map(item => `<article class="resource-card card ${item.fileMaterial ? 'uploaded-resource' : ''}" style="--resource-subject-color:${state.personalization.subjectColors[subjectColorKey(item.subject)] || 'var(--accent)'}"><div class="resource-icon ${item.type === 'pdf' ? 'pdf' : item.fileMaterial ? 'file' : 'link'}" role="img" aria-label="${esc(resourceTypeLabel(item.type))}">${item.type === 'link' ? '↗' : esc(resourceTypeLabel(item.type))}</div><div class="resource-main"><div class="resource-card-tags"><span class="resource-category">${resourceCategoryLabel(item.category)}</span><span class="resource-type">${esc(resourceTypeLabel(item.type))}</span>${item.official ? '<span class="resource-origin">Официальный источник</span>' : item.fileMaterial ? '<span class="resource-origin personal-resource">Файл на устройстве</span>' : '<span class="resource-origin personal-resource">Моя ссылка</span>'}${(item.tags ?? []).map(tag => `<span class="resource-tag">${esc(tag)}</span>`).join('')}${item.helpfulness ? `<span class="resource-rating" aria-label="Полезность ${item.helpfulness} из 5">★ ${item.helpfulness}/5</span>` : ''}</div><h3>${esc(item.title)}</h3><p>${esc(item.description || 'Описание не добавлено.')}</p><small>${esc(item.fileName ? `${item.fileName} · ${formatBytes(item.size ?? 0)}` : item.subject)}</small></div><div class="resource-card-actions">${item.fileMaterial ? `<button class="btn small primary" data-material-download="${esc(item.id)}">Скачать ↓</button><button class="btn small" data-material-open="${esc(item.id)}">Открыть ↗</button><button class="btn small danger" data-material-delete="${esc(item.id)}">Удалить</button>` : `<a class="btn small primary" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${item.type === 'pdf' ? 'Открыть PDF ↗' : 'Открыть ↗'}</a>${item.type === 'pdf' ? `<a class="btn small" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer" download>Скачать</a>` : ''}${!item.official ? `<button class="btn small danger" data-material-delete="${esc(item.id)}">Удалить</button>` : ''}`}</div></article>`).join('')}</div></section>`).join('') : `<div class="empty-state card"><div class="empty-icon">▤</div><h3>Материалы не найдены</h3><p>Поменяйте фильтры, добавьте ссылку или загрузите файл в локальную базу знаний.</p><div class="empty-actions"><button class="btn" data-action="new-material">＋ Добавить ссылку</button><button class="btn primary" data-action="upload-material">⇧ Загрузить материал</button></div></div>`;
+    $('resourceResultCount').textContent = `Показано ${visible.length} из ${filtered.length}`;
+    const loading = firstCourse && libraryStatus === 'loading';
+    const failed = firstCourse && libraryStatus === 'error';
+    const message = loading ? '<p class="form-note" role="status">Загружаем библиотеку…</p>' : failed ? '<div class="card library-notice" role="status">Библиотека не загрузилась. Ваши материалы доступны. <button class="btn small" data-library-retry>Повторить</button></div>' : '';
+    $('resourceList').innerHTML = message + (visible.length ? Array.from(groups.entries()).map(([subject, rows]) => `<section class="resource-subject-group"><header><div><p class="eyebrow">Предмет</p><h2>${esc(subject)}</h2></div></header><div class="resource-card-grid">${rows.map(item => `<article class="resource-card card ${item.fileMaterial ? 'uploaded-resource' : ''}" style="--resource-subject-color:${state.personalization.subjectColors[subjectColorKey(item.subject)] || 'var(--accent)'}"><div class="resource-icon ${item.type === 'pdf' ? 'pdf' : item.fileMaterial ? 'file' : 'link'}" aria-hidden="true">${item.library ? '▤' : item.type === 'link' ? '↗' : esc(resourceTypeLabel(item.type))}</div><div class="resource-main"><div class="resource-card-tags"><span class="resource-category">${resourceCategoryLabel(item.category)}</span><span class="resource-type">${esc(resourceTypeLabel(item.type))}</span><span class="resource-origin">${item.library ? 'Библиотека 1 курса' : item.fileMaterial ? 'Файл на устройстве' : 'Моя ссылка'}</span>${item.tags.map(tag => `<span class="resource-tag">${esc(tag)}</span>`).join('')}${item.helpfulness ? `<span class="resource-rating">★ ${item.helpfulness}/5</span>` : ''}</div><h3>${esc(item.title)}</h3><p>${esc(item.description || 'Описание не добавлено.')}</p>${item.fileName ? `<small>${esc(item.fileName)} · ${formatBytes(item.size ?? 0)}</small>` : ''}</div><div class="resource-card-actions">${item.fileMaterial ? `<button class="btn small primary" data-material-download="${esc(item.id)}">Скачать ↓</button><button class="btn small" data-material-open="${esc(item.id)}">Открыть ↗</button>` : `<a class="btn small primary" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${item.library ? 'Открыть в Drive ↗' : 'Открыть ↗'}</a>${!item.library && item.type === 'pdf' ? `<a class="btn small" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer" download>Скачать</a>` : ''}`}<button class="btn small" data-material-favorite="${esc(item.id)}" aria-pressed="${materialFavorites.has(item.id)}" aria-label="${esc((materialFavorites.has(item.id) ? 'Убрать из избранного: ' : 'В избранное: ') + item.title)}">${materialFavorites.has(item.id) ? '★ В избранном' : '☆ В избранное'}</button>${!item.library ? `<button class="btn small danger" data-material-delete="${esc(item.id)}">Удалить</button>` : ''}</div></article>`).join('')}</div></section>`).join('') : loading || failed ? '' : `<div class="empty-state card"><div class="empty-icon">▤</div><h3>Материалы не найдены</h3><p>Измените фильтры или добавьте свой материал.</p><button class="btn" data-action="new-material">＋ Добавить ссылку</button></div>`) + (filtered.length > visible.length ? '<div class="library-more"><button class="btn" data-library-more>Показать ещё 24</button></div>' : '');
     refreshControls();
 }
 function formatBytes(bytes) { if (bytes < 1024)
@@ -1125,7 +1173,7 @@ else {
 } }
 function lessonMap(location) { const match = matchCourseAddresses(ALMAZOV_ADDRESSES, [location || '']).addresses; if (match.length !== 1)
     return ''; return `<a class="btn" href="https://yandex.ru/maps/?text=${encodeURIComponent(match[0].address)}" target="_blank" rel="noopener noreferrer">Адрес на карте ↗</a>`; }
-function openEventDetail(e) { $('detailTitle').textContent = String(e.title ?? (('subject' in e) ? e.subject : '')); $('detailBody').innerHTML = `<div class="detail-grid"><span>Дата</span><b>${esc(longDateRu(localDate(e.startAt, state.timezone)))}</b><span>Время</span><b>${esc(e.allDay ? 'Весь день' : `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`)}</b><span>Часовой пояс</span><b>${esc(state.timezone)}</b><span>Тип</span><b>${esc(e.kind === 'personal' ? 'Личное' : String(e.type ?? 'Занятие'))}</b><span>Место</span><b>${esc(e.location || '—')} ${lessonMap(e.location)}</b><span>Статус</span><b>${esc(STATUS_LABEL[e.status ?? 'planned'])}</b><span>Описание</span><p>${esc(e.description || '—')}</p></div>${e.kind === 'personal' ? '<div class="detail-actions"><button class="btn primary" data-action="edit-opened">Изменить</button><button class="btn danger" data-action="delete-opened">Удалить</button></div>' : `<div class="detail-actions"><button class="btn primary" data-homework-from-event="${esc(e.id)}">＋ Записать ДЗ</button><button class="btn" data-materials-subject="${esc(e.subject || e.title)}">Материалы предмета</button></div><details><summary>Сообщить об ошибке</summary><p>Скопируйте сведения, добавьте описание ошибки и отправьте в поддержку. Автоматически ничего не отправляется.</p><textarea id="scheduleErrorDraft" readonly aria-label="Сведения об ошибке расписания">${esc([e.title, `Группа ${state.profile.group}`, longDateRu(localDate(e.startAt, state.timezone)), `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`, e.location || '', e.sourceUrl || sourceFor(state.profile.program, state.profile.course), `Сборка ${document.documentElement.dataset.buildId || 'неизвестна'}`, 'Ошибка: '].join('\n'))}</textarea><button class="btn" data-copy-schedule-error>Скопировать сведения</button></details>`}`; state.editingId = e.kind === 'personal' ? e.id : ''; openModal('eventDetailModal'); }
+function openEventDetail(e) { $('detailTitle').textContent = String(e.title ?? (('subject' in e) ? e.subject : '')); $('detailBody').innerHTML = `<div class="detail-grid"><span>Дата</span><b>${esc(longDateRu(localDate(e.startAt, state.timezone)))}</b><span>Время</span><b>${esc(e.allDay ? 'Весь день' : `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`)}</b><span>Часовой пояс</span><b>${esc(state.timezone)}</b><span>Тип</span><b>${esc(e.kind === 'personal' ? 'Личное' : ({ lecture: 'Лекция', practice: 'ПЗ', lab: 'Лабораторная', assessment: 'Контроль', other: 'Занятие' }[e.type ?? 'other']))}</b>${e.type === 'practice' && e.lessonNumber ? `<span>Номер ПЗ</span><b>№${e.lessonNumber}<small class="lesson-number-note">По доступному расписанию за семестр. Нумеруются только практические занятия; сдвоенное ПЗ — один номер. Для неполного импорта отсчёт начинается с первого загруженного занятия.</small></b>` : ''}<span>Место</span><b>${esc(e.location || '—')} ${lessonMap(e.location)}</b><span>Статус</span><b>${esc(STATUS_LABEL[e.status ?? 'planned'])}</b><span>Описание</span><p>${esc(e.description || '—')}</p></div>${e.kind === 'personal' ? '<div class="detail-actions"><button class="btn primary" data-action="edit-opened">Изменить</button><button class="btn danger" data-action="delete-opened">Удалить</button></div>' : `<div class="detail-actions"><button class="btn primary" data-homework-from-event="${esc(e.id)}">＋ Записать ДЗ</button><button class="btn" data-materials-subject="${esc(e.subject || e.title)}">Материалы предмета</button></div><details><summary>Сообщить об ошибке</summary><p>Скопируйте сведения, добавьте описание ошибки и отправьте в поддержку. Автоматически ничего не отправляется.</p><textarea id="scheduleErrorDraft" readonly aria-label="Сведения об ошибке расписания">${esc([e.title, `Группа ${state.profile.group}`, longDateRu(localDate(e.startAt, state.timezone)), `${localTime(e.startAt, state.timezone)}–${localTime(e.endAt, state.timezone)}`, e.location || '', e.sourceUrl || sourceFor(state.profile.program, state.profile.course), `Сборка ${document.documentElement.dataset.buildId || 'неизвестна'}`, 'Ошибка: '].join('\n'))}</textarea><button class="btn" data-copy-schedule-error>Скопировать сведения</button></details>`}`; state.editingId = e.kind === 'personal' ? e.id : ''; openModal('eventDetailModal'); }
 async function handleSupportSubmit(form) { const subject = $('ticketSubject').value.trim(), description = $('ticketDescription').value.trim(); if (subject.length < 3 || description.length < 5) {
     $('ticketNotice').textContent = 'Заполните тему и подробное описание.';
     return;
@@ -1151,10 +1199,35 @@ function bind() {
                 closeModal(backdrop.id);
             return;
         }
-        const target = origin?.closest('[data-action],[data-page],[data-view],[data-schedule-mode],[data-theme-choice],[data-pick-program],[data-task-delete],[data-task-toggle],[data-task-status],[data-task-attachment],[data-jump-date],[data-open-event],[data-homework-from-event],[data-ticket],[data-faq-category],[data-faq-open],[data-subject-color-trigger],[data-duration-adjust],[data-avatar-preset],[data-material-delete],[data-material-open],[data-material-download]');
+        const target = origin?.closest('[data-action],[data-page],[data-view],[data-schedule-mode],[data-theme-choice],[data-pick-program],[data-task-delete],[data-task-toggle],[data-task-status],[data-task-attachment],[data-jump-date],[data-open-event],[data-homework-from-event],[data-ticket],[data-faq-category],[data-faq-open],[data-subject-color-trigger],[data-duration-adjust],[data-avatar-preset],[data-material-delete],[data-material-open],[data-material-download],[data-library-more],[data-library-retry],[data-material-favorite]');
         if (!target)
             return;
         const action = target.dataset.action;
+        if (target.hasAttribute('data-library-more')) {
+            resourceLimit += 24;
+            renderResources();
+            return;
+        }
+        if (target.hasAttribute('data-library-retry')) {
+            void loadFirstCourseLibrary();
+            renderResources();
+            return;
+        }
+        if (target.dataset.materialFavorite) {
+            const id = target.dataset.materialFavorite;
+            if (materialFavorites.has(id))
+                materialFavorites.delete(id);
+            else
+                materialFavorites.add(id);
+            try {
+                localStorage.setItem(materialFavoriteKey, JSON.stringify([...materialFavorites]));
+            }
+            catch {
+                toast('Избранное доступно до закрытия приложения: хранилище недоступно', 'error');
+            }
+            renderResources();
+            return;
+        }
         if (target.dataset.page) {
             nav(target.dataset.page);
             return;
@@ -1521,6 +1594,7 @@ function bind() {
     document.querySelectorAll('#typeFilter [data-type]').forEach(b => b.addEventListener('click', () => { state.type = b.dataset.type ?? 'all'; document.querySelectorAll('#typeFilter [data-type]').forEach(x => x.classList.remove('active')); b.classList.add('active'); renderSchedule(); }));
     $('statusFilter').addEventListener('change', e => { state.statusFilter = e.target.value; renderSchedule(); });
     $('categoryFilter').addEventListener('change', e => { state.categoryFilter = e.target.value; renderSchedule(); });
+    $('resourceCollectionFilter').addEventListener('change', e => { resourceCollection = e.target.value; renderResources(); });
     $('taskStatusFilter').addEventListener('change', e => { state.taskFilterStatus = e.target.value; renderTasks(); });
     $('taskSubjectFilter').addEventListener('change', e => { state.taskFilterSubject = e.target.value; renderTasks(); });
     $('resourceSubjectFilter').addEventListener('change', e => { state.resourceSubject = e.target.value; renderResources(); });

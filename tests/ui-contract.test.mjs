@@ -1,12 +1,31 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {FIRST_COURSE_LIBRARY} from '../dist/data/firstCourseLibrary.js';
 import {readFile} from 'node:fs/promises';
 
 const html=await readFile(new URL('../public/index.html',import.meta.url),'utf8');
+test('first-course library contains unique original documents with usable metadata',()=>{
+  assert.equal(FIRST_COURSE_LIBRARY.length,83);
+  assert.equal(new Set(FIRST_COURSE_LIBRARY.map(x=>x.id)).size,83);
+  assert.equal(FIRST_COURSE_LIBRARY.filter(x=>x.category==='book').length,47);
+  for(const item of FIRST_COURSE_LIBRARY){
+    const url=new URL(item.url);
+    assert.equal(url.protocol,'https:');assert.equal(url.hostname,'drive.google.com');
+    assert.ok(url.pathname.includes('/file/d/'));
+    assert.ok(item.title.trim()&&item.subject.trim()&&item.sourcePath);
+    assert.equal(item.library,true);assert.equal(item.fileMaterial,false);
+  }
+  for(const id of ['resourceCollectionFilter','resourceLibraryNotice','resourceResultCount'])assert.ok(html.includes(`id="${id}"`));
+});
 const css=await readFile(new URL('../public/styles.css',import.meta.url),'utf8');
 const boot=await readFile(new URL('../public/boot.js',import.meta.url),'utf8');
 
 const app=await readFile(new URL('../src/app.ts',import.meta.url),'utf8');
+test('library buttons are reachable through delegated click selection',()=>{
+ const selector=app.match(/origin\?\.closest<HTMLElement>\('([^']+)'\)/)?.[1];
+ assert.ok(selector);
+ for(const attr of ['data-library-more','data-library-retry','data-material-favorite'])assert.ok(selector.includes(`[${attr}]`),attr);
+});
 const validator=await readFile(new URL('../scripts/validate-dist.mjs',import.meta.url),'utf8');
 const awaitSource=async(path)=>readFile(new URL(path,import.meta.url),'utf8');
 
