@@ -1,7 +1,7 @@
-import { recordScheduleCheck } from './scheduleHistory.js?v=908d3bef38a0a281';
-import { LIVE_LD_JSON, PROGRAMS, sourceFor, sourcesFor } from '../data/catalog.js?v=908d3bef38a0a281';
-import { validateScheduleIndex, normalizeLiveEvents, normalizeWeeklyBlocks } from '../core/validate.js?v=908d3bef38a0a281';
-import { saveCache, readCache } from './cache.js?v=908d3bef38a0a281';
+import { recordScheduleCheck } from './scheduleHistory.js?v=002e1ba3b0f784d4';
+import { LIVE_LD_JSON, PROGRAMS, sourceFor, sourcesFor } from '../data/catalog.js?v=002e1ba3b0f784d4';
+import { validateScheduleIndex, normalizeLiveEvents, normalizeWeeklyBlocks } from '../core/validate.js?v=002e1ba3b0f784d4';
+import { saveCache, readCache } from './cache.js?v=002e1ba3b0f784d4';
 const API_BASE = './api/schedule';
 const memory = new Map();
 function isStaticRuntime() { return typeof document !== 'undefined' && document.documentElement.dataset.runtimeMode === 'static'; }
