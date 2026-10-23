@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "academicYear": "2026/2027",
-  "generatedAt": "2026-10-23T12:17:19.797849+00:00",
+  "generatedAt": "2026-10-23T23:27:08.721333+00:00",
   "status": "live-verified",
   "source": {
     "sha256": "09271b3c324e1bd1c59f516ed941894217b97032cdfc2f67dbbbb86ca9199244",
     "contentBytes": 334691,
-    "checkedAt": "2026-10-23T12:17:19.797849+00:00",
+    "checkedAt": "2026-10-23T23:27:08.721333+00:00",
     "academicYearInDocument": "2026/2027",
     "dateLabelAudit": {
       "embeddedDateYears": [
