@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "academicYear": "2026/2027",
-  "generatedAt": "2026-10-23T23:27:08.721333+00:00",
+  "generatedAt": "2026-10-24T06:41:35.368510+00:00",
   "status": "live-verified",
   "sourcePage": "https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/",
   "expectedProgramCourses": [
@@ -58,7 +58,7 @@
       "periods": 7,
       "sha256": "ab23456c2e035b68a7eac174da6904edf455475b0cfdf1a6fe39f0eb9855f820",
       "contentBytes": 210511,
-      "checkedAt": "2026-10-23T23:27:08.721333+00:00",
+      "checkedAt": "2026-10-24T06:41:35.368510+00:00",
       "academicYearInDocument": "2026/2027",
       "dateLabelAudit": {
         "embeddedDateYears": [
@@ -107,7 +107,7 @@
       "periods": 6,
       "sha256": "8114c440f1d7e2ea589ae1e7b7f367fb48f595756333efa97346b6f4e2f14462",
       "contentBytes": 210310,
-      "checkedAt": "2026-10-23T23:27:08.721333+00:00",
+      "checkedAt": "2026-10-24T06:41:35.368510+00:00",
       "academicYearInDocument": "2026/2027",
       "dateLabelAudit": {
         "embeddedDateYears": [
@@ -154,7 +154,7 @@
       "periods": 6,
       "sha256": "7484510ecf66c4888a8d7598f74d58e59e7e556b7d485d3269403caaa52a8bea",
       "contentBytes": 211503,
-      "checkedAt": "2026-10-23T23:27:08.721333+00:00",
+      "checkedAt": "2026-10-24T06:41:35.368510+00:00",
       "academicYearInDocument": "2026/2027",
       "dateLabelAudit": {
         "embeddedDateYears": [
@@ -201,7 +201,7 @@
       "periods": 6,
       "sha256": "7fd53abc1347a08f18d4718726691f8e882d06db71ee0bcdd6bbb73ef65282c4",
       "contentBytes": 213088,
-      "checkedAt": "2026-10-23T23:27:08.721333+00:00",
+      "checkedAt": "2026-10-24T06:41:35.368510+00:00",
       "academicYearInDocument": "2026/2027",
       "dateLabelAudit": {
         "embeddedDateYears": [
@@ -248,7 +248,7 @@
       "periods": 6,
       "sha256": "5a7188086fcbe24178f50c02f3b7064163c0be6683e6bba7f040d8a02674c179",
       "contentBytes": 211681,
-      "checkedAt": "2026-10-23T23:27:08.721333+00:00",
+      "checkedAt": "2026-10-24T06:41:35.368510+00:00",
       "academicYearInDocument": "2026/2027",
       "dateLabelAudit": {
         "embeddedDateYears": [
@@ -295,7 +295,7 @@
       "periods": 6,
       "sha256": "469b5a312e880bb784fb359f6fa7149abe7261f80b574dffcee19db7b773e831",
       "contentBytes": 211704,
-      "checkedAt": "2026-10-23T23:27:08.721333+00:00",
+      "checkedAt": "2026-10-24T06:41:35.368510+00:00",
       "academicYearInDocument": "2026/2027",
       "dateLabelAudit": {
         "embeddedDateYears": [
@@ -342,7 +342,7 @@
       "periods": 7,
       "sha256": "2fd1570bf4ff70922fac024f44e343347f33dfbed3d476ffda26272cffa1197c",
       "contentBytes": 210828,
-      "checkedAt": "2026-10-23T23:27:08.721333+00:00",
+      "checkedAt": "2026-10-24T06:41:35.368510+00:00",
       "academicYearInDocument": "2026/2027",
       "dateLabelAudit": {
         "embeddedDateYears": [
@@ -391,7 +391,7 @@
       "periods": 6,
       "sha256": "b066ec328bdf33e4d541ff25127f75f16e01ec18151e657e2a5da5d6cbcb32ea",
       "contentBytes": 211417,
-      "checkedAt": "2026-10-23T23:27:08.721333+00:00",
+      "checkedAt": "2026-10-24T06:41:35.368510+00:00",
       "academicYearInDocument": "2026/2027",
       "dateLabelAudit": {
         "embeddedDateYears": [
@@ -438,7 +438,7 @@
       "periods": 6,
       "sha256": "2cf5f5cab71ff36b7ce94d5f6322a1227b38eeff9f34e6ec71b026d77891bc6f",
       "contentBytes": 212506,
-      "checkedAt": "2026-10-23T23:27:08.721333+00:00",
+      "checkedAt": "2026-10-24T06:41:35.368510+00:00",
       "academicYearInDocument": "2026/2027",
       "dateLabelAudit": {
         "embeddedDateYears": [
@@ -485,7 +485,7 @@
       "periods": 6,
       "sha256": "7ed34f5789ba4cb1addf0e9027c233b1f0516266ef233335968d4fcae5fa94b9",
       "contentBytes": 212772,
-      "checkedAt": "2026-10-23T23:27:08.721333+00:00",
+      "checkedAt": "2026-10-24T06:41:35.368510+00:00",
       "academicYearInDocument": "2026/2027",
       "dateLabelAudit": {
         "embeddedDateYears": [
