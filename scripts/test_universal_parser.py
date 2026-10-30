@@ -6,6 +6,16 @@ spec=importlib.util.spec_from_file_location('build',ROOT/'scripts'/'build_offici
 m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 from universal_schedule_parser import UniversalScheduleParser
 engine=UniversalScheduleParser(m)
+# A facility prefix must consume the entire named hall, not just "зал".
+# This official source variant previously blocked course-4 publication.
+for hall in ['"Павлов"', '«Павлов»', '“Павлов”', 'Павлов', '«Большой зал»']:
+    for facility in ['КПК', 'ЛРК', 'ЦДТИ']:
+        location=f'{facility}, зал {hall}'
+        subject, place=m.split_leading_location(f'{location} Офтальмология')
+        assert subject=='Офтальмология', (subject, place)
+        assert place==m.clean_location(location), (subject, place)
+for unchanged in ['Офтальмология', 'Общая хирургия', 'КПК, зал "Павлов"']:
+    assert m.split_leading_location(unchanged)==(unchanged, ''), unchanged
 raw=(ROOT/'tests'/'fixtures'/'5k_ld_b_2026_2027.pdf').read_bytes()
 p=engine.analyze(raw,'fixture://5k_ld_b_2026_2027.pdf',5,'B','practice')
 assert p.layout=='weekly-matrix',p.to_dict()

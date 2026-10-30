@@ -9,8 +9,6 @@ db66afbd62f5f086c3fc6a92b6e34b19370f50bdb833f16572113de1c3a47a00  ./COPYRIGHT.md
 0ac1877ca22240ed4ea8b1d4e423089b68618ba3c84d70b76cee7cb9f16829ba  ./Dockerfile
 ae405b2f1526b6138ec68c24739dd1be992e830774a2ab919953ca9e0cc44346  ./PACKAGE_STATUS_2026-10-11.md
 e04c416cc3429aeacd729358bce1099dc8b5934cc53944c4c11e42a66a7ecd21  ./PRIVACY.md
-d64d252b7c922634a5557d4145be92581a359efc67e1ed70ee2fe62539aebe5d  ./QA_AUDIT.md
-464ecd4eea3691617e8f3f143ead160b621eeb735959e43a51a252a3cadba82e  ./QA_REPORT.md
 856fd986dc914e8601931e1748faa1575144528f78f926ede7bff0622f4d652a  ./README.md
 14046add536a7ba3de2715f4ca78b193f052eaefe8f8845348bbcde647a0ee59  ./README_FIRST.md
 bf3570605cdd83d1867813f5561679325e26772cc549ab72ecfe80851731f988  ./SCHEDULE_ENGINE_VERSION.txt
@@ -161,7 +159,6 @@ cd19d321ddb5a92e0763e5afb17b8267da83cd36ea75eae97688c19d4c11d9b7  ./reports/live
 44a457a60a5ecff579ad6550dfeb2b1dcf5586bfee624dafaf88c8c6c427119e  ./reports/rc4-qa-report-2026-10-10.md
 0ec1e37b082c99eda1a5baa10968f72844f64e1a01ccfa6cbd4d438bbb4d5db4  ./reports/recovery-week-map-audit.json
 4cae18d31d9cc1d3b562a90dfb338e47b46e8fdd0b21eef78df8a990bd5aee6d  ./reports/release-readiness-2026-10-10.md
-51fb658a9bb6a616526f3da87aba2dd830366addf46399b205d8725b347fc101  ./requirements-official-sync.before-universal.txt
 b53edd784c5b39847b2f8a924d6f0f28a5eb85d5178d59d1b38c1874f41d4d16  ./requirements-official-sync.txt
 5055ff57320ef4f331f3ae716a96f5d68c60b11b9a207cabc8d9d6f483a1db1b  ./scripts/apply_official_week_calendar_to_recovery.py
 a81cda6131dc7a4efe9c3c12106eadfaa51291912f8339916eafa2f4bbabe4f9  ./scripts/audit_official_coverage.py

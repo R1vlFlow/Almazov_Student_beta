@@ -4,6 +4,24 @@ import {readFile} from 'node:fs/promises';
 import {compareSchedules} from '../dist/services/scheduleHistory.js';
 import {validatePersonalBackup,restorePersonalBackup,createPersonalBackup,mergeBackupRecords,validBackupFileEncoding,decodeBackupFile} from '../dist/services/personalBackup.js';
 import {matchCourseAddresses} from '../dist/core/courseAddresses.js';
+import {loadSchedule,clearScheduleMemory} from '../dist/services/scheduleService.js';
+test('senior schedules retry an empty response and retain practice cycles',async()=>{
+ const old={document:globalThis.document,fetch:globalThis.fetch};
+ globalThis.document={baseURI:'https://example.org/',documentElement:{dataset:{runtimeMode:'static'}}};
+ try{
+  for(const course of [4,5,6]){
+   clearScheduleMemory();
+   globalThis.fetch=async()=>new Response(JSON.stringify({events:[],status:'unavailable'}));
+   assert.equal((await loadSchedule('31.05.01',course)).status,'unavailable');
+   const payload=JSON.parse(await readFile(new URL(`../dist/data/schedules/31.05.01/${course}.json`,import.meta.url),'utf8'));
+   globalThis.fetch=async()=>new Response(JSON.stringify(payload));
+   const loaded=await loadSchedule('31.05.01',course);
+   assert.ok(loaded.events.length>0,`course ${course}: lecture events`);
+   assert.ok(loaded.weeklyBlocks.length>0,`course ${course}: practice cycles`);
+   assert.equal(loaded.weeklyBlocks.length,payload.weeklyBlocks.length);
+  }
+ }finally{Object.assign(globalThis,old);clearScheduleMemory();}
+});
 const event={program:'31.05.01',course:4,group:'423',subject:'Терапия',date:'2026-10-19',start:'09:00',end:'12:30',location:'КПК'};
 const snapshot=(events,weeklyBlocks=[])=>({status:'live',events,weeklyBlocks});
 test('schedule differences ignore ordering and source IDs but retain duplicate lessons',()=>{
