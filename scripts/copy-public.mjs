@@ -158,8 +158,9 @@ if(esbuild){
 }
 
 // Fingerprint the actual deployable output, not just the human-edited version
-// string. Any JS/CSS/HTML/data change creates a new immutable asset namespace.
-const files=(await walk(dist)).filter(path=>!path.endsWith(`${sep}version.json`)).sort();
+// string. App assets create a new immutable namespace; network-first schedule
+// JSON updates independently, without presenting a new application release.
+const files=(await walk(dist)).filter(path=>{const rel=relative(dist,path).split(sep).join('/');return rel!=='version.json'&&!(rel.startsWith('data/')&&rel.endsWith('.json'));}).sort();
 const hash=createHash('sha256');
 for(const path of files){
   hash.update(relative(dist,path).split(sep).join('/'));

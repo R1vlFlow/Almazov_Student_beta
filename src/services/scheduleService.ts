@@ -12,7 +12,7 @@ if(typeof window!=='undefined')window.addEventListener('schedule-cache-invalidat
 export async function loadSchedule(program:ProgramCode,course:Course):Promise<ScheduleLoadResult>{
   const key=`${program}:${course}`;
   const cachedResult=memory.get(key);
-  if(cachedResult&&cachedResult.status!=='error')return cachedResult;
+  if(cachedResult&&cachedResult.status!=='error'&&(cachedResult.events.length>0||(cachedResult.weeklyBlocks?.length??0)>0))return cachedResult;
 
   // The application is shipped as a static release. Use the schedule snapshot
   // bundled with that release before trying the optional API, so GitHub Pages
@@ -34,8 +34,13 @@ export async function loadSchedule(program:ProgramCode,course:Course):Promise<Sc
     const result:ScheduleLoadResult={...lastGood,status:'cache',message:'Не удалось получить свежий снимок. Показано последнее сохранённое расписание; изменения могли ещё не загрузиться.'};
     memory.set(key,result);return result;
   }
+  if(isStaticRuntime()&&program==='31.05.01'){
+    // A failed CDN snapshot must not hide published senior-course cycles.
+    const remote=await loadLdRemote(program,course,key);
+    if(remote.events.length||(remote.weeklyBlocks?.length??0))return remote;
+  }
   if(isStaticRuntime()){ 
-    const result:ScheduleLoadResult={status:'unavailable',events:[],weeklyBlocks:[],sourceUrl:sourceFor(program,course),issues:['STATIC_SNAPSHOT_MISSING'],message:'Локальный снимок этого расписания отсутствует. Сервер и сетевой источник в статическом режиме не используются.'};
+    const result:ScheduleLoadResult={status:'unavailable',events:[],weeklyBlocks:[],sourceUrl:sourceFor(program,course),issues:['STATIC_SNAPSHOT_MISSING'],message:'Не удалось загрузить расписание. Проверьте соединение и нажмите «Обновить»: временная ошибка сети не означает отсутствие занятий.'};
     memory.set(key,result);return result;
   }
 
@@ -74,7 +79,7 @@ async function loadStaticSnapshot(program:ProgramCode,course:Course):Promise<Sch
     const url=new URL(`./data/schedules/${encodeURIComponent(program)}/${course}.json`,baseUrl);
     const buildId=typeof document!=='undefined'?document.documentElement.dataset.buildId:undefined;
     if(buildId)url.searchParams.set('v',buildId);
-    const res=await fetch(url.toString(),{cache:'no-store',signal:AbortSignal.timeout(5000)});
+    const res=await fetch(url.toString(),{cache:'no-store',signal:AbortSignal.timeout(20000)});
     if(!res.ok)return null;
     const payload=await res.json() as {events?:ScheduleEvent[];weeklyBlocks?:ScheduleWeeklyBlock[];generatedAt?:string;sourceUrl?:string;sourceName?:string;status?:string;issues?:string[];message?:string;coverage?:ScheduleLoadResult['coverage']};
     if(!Array.isArray(payload.events))return null;

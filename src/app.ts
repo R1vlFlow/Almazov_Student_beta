@@ -122,7 +122,7 @@ await ensureScheduleCacheVersion(document.documentElement.dataset.buildId??'dev'
 function startScheduleRefresh(){
   const interval=40*60*1000;let lastRefresh=Date.now(),refreshing=false;
   const refresh=async()=>{
-    if(refreshing||document.hidden||navigator.onLine===false||Date.now()-lastRefresh<interval||document.querySelector('.modal.open,dialog[open]'))return;
+    if(refreshing||document.hidden||navigator.onLine===false||Date.now()-lastRefresh<interval)return;
     refreshing=true;lastRefresh=Date.now();
     try{clearScheduleMemory();await reloadEvents();await loadKugData();if(state.page==='home')renderHome();}
     finally{refreshing=false;}
