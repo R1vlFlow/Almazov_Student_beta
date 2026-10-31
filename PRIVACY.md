@@ -1,16 +1,37 @@
-# Almazov Student — privacy notes (beta)
+# Конфиденциальность в Almazov Student
 
-The beta is designed as a local-first application. Profile data, tasks, notes, schedule imports, subject colors and theme settings are stored on the user's device in browser storage unless the user explicitly exports or shares them.
+Редакция от 31 октября 2026 года.
 
-Do not enter passwords, medical records, passport data, student IDs, or other sensitive information into the beta.
+Almazov Student — независимый студенческий проект. Ниже описано, как опубликованная версия работает с личными данными.
 
-Imported schedule files are processed in the browser. External CDN resources used by the beta may receive normal network metadata required to fetch those resources.
+## Данные на вашем устройстве
 
-The project is independent from NMITs named after V.A. Almazov. The beta disclaimer should remain visible to new users.
+Имя или псевдоним, аватар, выбранное расписание, задачи, заметки, имена преподавателей, личные материалы, импортированные занятия и настройки оформления сохраняются в хранилище браузера или приложения. Для повседневного использования отдельная учётная запись не требуется. Выбор группы — фильтр расписания, а не подтверждение личности.
 
-This document is a technical beta notice, not legal advice or a complete jurisdiction-specific privacy policy.
+Эти записи не синхронизируются между устройствами автоматически. Обновление расписания не должно удалять личные записи. Однако очистка данных браузера, удаление приложения или переход в другой браузер могут сделать их недоступными. Перед переносом или удалением приложения сохраните резервную копию в настройках.
 
+## Файлы и резервные копии
 
-## Phase 3 RC diagnostics and analytics
+Личный импорт расписания обрабатывается в браузере. Загруженные фотографии и личные материалы сохраняются на устройстве. При создании резервной копии приложение формирует файл с личными данными. Храните его у себя и передавайте только тем, кому доверяете.
 
-The app records a bounded local diagnostic queue (up to 30 sanitized client errors and 200 low-cardinality UI event names) in this browser's local storage. It does not send these records to a third party unless an owner-configured HTTPS error endpoint or approved Google Analytics/Yandex Metrika ID is added to `public/runtime-config.js`. UI telemetry records stable navigation/action identifiers only; it does not send form values, homework text, file names or profile names. Configure applicable consent and retention before enabling remote analytics in production.
+## Сетевые обращения и внешние ссылки
+
+Для загрузки приложения, расписания и обновлений устройство обращается к серверам размещения и источникам данных. При таких запросах соответствующие сервисы могут получать IP-адрес и обычные технические сведения о соединении и браузере.
+
+Учебные материалы, карты, GitHub и Telegram могут открываться на сторонних сайтах. Обработка данных там определяется правилами соответствующего сервиса. При самостоятельной отправке сообщения в поддержку его содержание получает адресат. Не прикладывайте к обращению лишние личные данные.
+
+## Диагностика
+
+В текущей конфигурации сбор клиентской телеметрии отключён, адрес удалённого сбора ошибок и идентификаторы внешней аналитики не заданы. Если диагностика будет включена, приложение может хранить ограниченный журнал ошибок и действий. Перед включением внешней аналитики необходимо обновить это описание и предусмотренные интерфейсом условия её использования.
+
+## Управление данными
+
+Вы можете изменить имя и аватар в профиле, удалить свои записи средствами приложения и сохранить резервную копию в настройках. Полная очистка данных сайта или приложения выполняется средствами браузера или операционной системы и удаляет локальные записи.
+
+Не используйте приложение для хранения паролей, медицинских документов, паспортных данных и других чувствительных сведений.
+
+## Связь
+
+Вопросы о работе приложения и личных данных: [поддержка проекта в Telegram](https://t.me/R1vlFlow_GY).
+
+Проект не является официальным приложением НМИЦ имени В. А. Алмазова. Документ описывает фактическую работу сервиса и не означает его одобрения образовательной организацией.

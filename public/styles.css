@@ -416,3 +416,13 @@ html[data-theme="light"] .weekly-rotation-item{background:#f7fafc;border-color:#
 #page-resources .resource-card-actions{flex-wrap:wrap}
 #page-resources button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
 @media(max-width:600px){#page-resources .resource-card{grid-template-columns:1fr}#page-resources .resource-icon{display:none}#page-resources .resource-card-actions{grid-column:1;display:flex;flex-direction:row;gap:8px}#page-resources .resource-card-actions .btn{flex:1 1 130px}.library-notice{padding:14px}}
+
+/* Shared vector icons keep profiles and navigation consistent across devices. */
+.ui-icon{width:22px;height:22px;display:block;flex-shrink:0}
+.avatar{background-size:cover;background-position:center}
+.avatar .ui-icon{width:26px;height:26px}.avatar.large .ui-icon{width:36px;height:36px}
+.avatar-presets button{display:grid;place-items:center;width:44px;height:44px;color:var(--text-2)}
+.avatar-presets button[aria-pressed=true]{color:var(--text);background:var(--today);border:2px solid var(--accent)}
+.avatar-heading{margin:8px 0 0;font-size:14px}
+.nav-list button span[data-ui-icon]{display:grid;place-items:center}
+#profileModal .modal-body{gap:16px}#profileModal .avatar-editor{align-items:start}
