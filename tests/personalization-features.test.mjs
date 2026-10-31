@@ -74,13 +74,35 @@ test('homework form and list support due dates, priorities, statuses, links and 
   assert.match(storeSource, /attachmentData: typeof value\.attachmentData === 'string'.*data:/);
 });
 
-test('profile form exposes persisted nickname, avatar, group, timezone and accent', () => {
-  for (const id of ['profileNickname', 'avatarUpload', 'avatarPresets', 'profileAccent', 'modalProgram', 'modalCourse', 'modalGroup', 'modalTimezone']) assert.match(html, new RegExp(`id="${id}"`));
+test('personal profile exposes appearance without duplicating academic filters', () => {
+  for (const id of ['profileNickname', 'avatarUpload', 'avatarPresets', 'profileAccent', 'modalTimezone']) assert.match(html, new RegExp(`id="${id}"`));
+  for (const id of ['modalProgram','modalCourse','modalGroup']) assert.ok(!html.includes(`id="${id}"`));
+  for (const id of ['programSelect','courseSelect','groupSelect']) assert.ok(html.includes(`id="${id}"`));
+  const save=app.slice(app.indexOf('async function saveProfile()'),app.indexOf('async function cropAvatar'));
+  assert.ok(!save.includes('setAcademicProfile')&&!save.includes('state.profile='));
   assert.match(app, /async function saveProfile\(\)/);
   assert.match(app, /cropAvatar\(file:File\)/);
   assert.match(app, /updatePersonalization\(\{displayName:nickname,accentColor:/);
   assert.match(app, /setAcademicProfile\(state\.profile\)/);
   assert.match(app, /function applyAppearance\(\)/);
+});
+
+test('legacy avatars migrate to vectors without losing photos, notes or academic selection', async()=>{
+ globalThis.localStorage=new MemoryStorage();
+ const photo='data:image/png;base64,aGVsbG8=';
+ globalThis.localStorage.setItem('almazov.personalization.v1',JSON.stringify({version:2,displayName:'Анна',avatarPreset:'🩺',avatarDataUrl:photo,academicProfile:{program:'31.05.01',course:4,group:'423'},tasks:[],materials:[]}));
+ const store=await import('../dist/services/personalizationStore.js?vector-migration');
+ const migrated=store.readPersonalization();
+ assert.equal(migrated.avatarPreset,'medicine');assert.equal(migrated.avatarDataUrl,photo);
+ const next=store.updatePersonalization({displayName:'Анна Н.',avatarPreset:'leaf'});
+ assert.deepEqual(next.academicProfile,migrated.academicProfile);assert.equal(next.avatarDataUrl,photo);
+ const {normalizeAvatarPreset}=await import('../dist/core/avatar.js');
+ const {icon}=await import('../dist/ui/icons.js');
+ assert.equal(normalizeAvatarPreset('<img onerror=alert(1)>'),'profile');
+ assert.ok(!icon('<script>').includes('<script>'));
+ for(const [old,id] of Object.entries({'🎓':'graduate','🩺':'medicine','📚':'books','🧬':'science','🌿':'leaf','⭐':'star'})){
+  assert.equal(normalizeAvatarPreset(old),id);assert.ok(icon(id).includes('<svg'));
+ }
 });
 
 test('subject color uses the same normalized key in calendar, homework, resources and settings', () => {

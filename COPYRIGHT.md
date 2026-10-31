@@ -1,11 +1,11 @@
-# Almazov Student — copyright notice
+# Almazov Student — авторские права
 
-**Almazov Student** is an independent beta project.
+© 2026 R1vlFlow. Все права защищены.
 
-Copyright © 2026 R1vlFlow. All rights reserved.
+Almazov Student — независимый студенческий проект. Название проекта, оригинальный логотип, оригинальный дизайн интерфейса, исходный код, авторские иллюстрации, тексты и другие оригинальные материалы не предоставляются для повторного использования, распространения или создания производных работ без предварительного письменного разрешения правообладателя.
 
-The project name, logo, original UI design, source code, custom illustrations, texts, and other original assets are not granted for reuse, redistribution, or creation of derivative works unless the copyright holder gives written permission.
+Это уведомление не распространяет права проекта на сторонние библиотеки, стандарты, товарные знаки, названия и логотипы образовательных организаций, учебные материалы и сведения из внешних источников. Права на них сохраняются за соответствующими правообладателями.
 
-This notice does not claim ownership of third-party libraries, standards, trademarks, university names, logos, or externally supplied educational data. Those remain with their respective owners.
+Проект не является официальным приложением НМИЦ имени В. А. Алмазова. Он не заявляет о связи с этой организацией, её одобрении или поддержке.
 
-The project is not an official application of NMITs named after V.A. Almazov and is not affiliated with, approved by, or endorsed by that institution.
+Условия использования оригинальных материалов приведены в [лицензии](LICENSE.txt).

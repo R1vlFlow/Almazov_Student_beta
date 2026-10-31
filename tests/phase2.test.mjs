@@ -84,7 +84,7 @@ test('migration safely upgrades old profile and materials without clearing legac
   assert.equal(migrated.version, 2);
   assert.deepEqual(migrated.academicProfile, { program: '31.05.02', course: 2, group: '221' });
   assert.equal(migrated.displayName, 'Legacy Nick');
-  assert.equal(migrated.avatarPreset, '🩺');
+  assert.equal(migrated.avatarPreset, 'medicine');
   assert.equal(migrated.accentColor, '#167d6a');
   assert.equal(migrated.theme, 'dark');
   assert.equal(migrated.timezone, 'Europe/Zurich');

@@ -1,3 +1,4 @@
+import {normalizeAvatarPreset} from '../core/avatar.js';
 import type { Course, ProgramCode, Task, ThemeMode } from '../core/types.js';
 
 export type HomeworkStatus = 'todo' | 'in_progress' | 'done';
@@ -45,7 +46,7 @@ let migrationWriteSafe = true;
 const INITIAL: PersonalizationState = {
   version: 2,
   academicProfile: { program: '31.05.01', course: 1, group: '123' },
-  displayName: '', avatarPreset: '🎓', avatarDataUrl: '', accentColor: '#315fce',
+  displayName: '', avatarPreset: 'profile', avatarDataUrl: '', accentColor: '#315fce',
   theme: 'system', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Moscow',
   double1: '#315fce', double2: '#1f9073', subjectColors: {}, subjectTeachers: {}, tasks: [], materials: []
 };
@@ -103,7 +104,7 @@ function normalize(raw: unknown): PersonalizationState {
       group: typeof ap.group === 'string' ? ap.group.slice(0, 40) : INITIAL.academicProfile.group
     },
     displayName: typeof raw.displayName === 'string' ? raw.displayName.slice(0, 36) : '',
-    avatarPreset: typeof raw.avatarPreset === 'string' && raw.avatarPreset.length < 16 ? raw.avatarPreset : INITIAL.avatarPreset,
+    avatarPreset: normalizeAvatarPreset(raw.avatarPreset),
     avatarDataUrl: typeof raw.avatarDataUrl === 'string' && /^data:image\/(?:webp|png|jpeg);base64,[a-z\d+/=]+$/i.test(raw.avatarDataUrl) && raw.avatarDataUrl.length < 160_000 ? raw.avatarDataUrl : '',
     accentColor: color(raw.accentColor, INITIAL.accentColor), theme,
     timezone: typeof raw.timezone === 'string' && raw.timezone.length < 80 ? raw.timezone : INITIAL.timezone,
@@ -118,7 +119,7 @@ function migrateLegacy(): PersonalizationState {
     if (plain(profile)) {
       base.academicProfile = { program: (profile.program as ProgramCode) || base.academicProfile.program, course: (Number(profile.course) || 1) as Course, group: String(profile.group ?? base.academicProfile.group) };
       base.displayName = typeof profile.displayName === 'string' ? profile.displayName.slice(0, 36) : typeof profile.nickname === 'string' ? profile.nickname.slice(0, 36) : typeof profile.name === 'string' ? profile.name.slice(0, 36) : base.displayName;
-      base.avatarPreset = typeof profile.avatarPreset === 'string' && profile.avatarPreset.length < 16 ? profile.avatarPreset : base.avatarPreset;
+      base.avatarPreset = normalizeAvatarPreset(profile.avatarPreset);
       base.avatarDataUrl = typeof profile.avatarDataUrl === 'string' && /^data:image\/(?:webp|png|jpeg);base64,[a-z\d+/=]+$/i.test(profile.avatarDataUrl) && profile.avatarDataUrl.length < 160_000 ? profile.avatarDataUrl : base.avatarDataUrl;
       base.accentColor = color(profile.accentColor, base.accentColor);
     }

@@ -40,9 +40,9 @@ await check('Android install UI points to the current project and discloses rele
   assert.match(html, /data-android-releases/);
   assert.match(html, /github\.com\/R1vlFlow\/Almazov_Student_beta\/releases/);
   assert.doesNotMatch(html, /r1vlflow\/Zalma\/releases\/download/);
-  assert.match(installDoc, /новая постоянная подпись/);
+  assert.match(installDoc, /подписаны постоянным ключом проекта/);
   assert.match(html, /data-download-apk href="https:\/\/github\.com\/R1vlFlow\/Almazov_Student_beta\/releases\/download\/v3\.2\.1\/Almazov-Student-3\.2\.1\.apk"/);
-  assert.match(installDoc, /Preview APK из GitHub Actions предназначен только для QA/);
+  assert.match(installDoc, /Предварительные сборки.*предназначены для тестирования, а не для установки вместо версии студентов/);
 });
 await check('Capacitor packages and config match the web build', () => {
   assert.equal(pkg.dependencies['@capacitor/core'], '8.5.3');
