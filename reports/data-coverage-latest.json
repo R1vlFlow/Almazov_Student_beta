@@ -20,8 +20,8 @@
     }
   ],
   "schemaVersion": 1,
-  "generatedAt": "2026-11-11T08:21:52.565Z",
-  "sourceGeneratedAt": "2026-11-11T08:21:36.032648+00:00",
+  "generatedAt": "2026-11-11T22:49:22.678Z",
+  "sourceGeneratedAt": "2026-11-11T22:49:08.297251+00:00",
   "status": "ready",
   "academicYear": "2026/2027",
   "counts": {
@@ -30,7 +30,7 @@
     "partial": 0,
     "unpublished": 8,
     "missingGroupPracticeAssignments": 0,
-    "sourceRecords": 43,
+    "sourceRecords": 44,
     "sourceValidationFailures": 0,
     "officialKugPdfs": 10,
     "parsedKugPeriods": 62,
@@ -239,7 +239,7 @@
   ],
   "sources": {
     "failures": [],
-    "validated": 43
+    "validated": 44
   },
   "integrity": {
     "duplicates": [],
