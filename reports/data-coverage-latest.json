@@ -20,8 +20,8 @@
     }
   ],
   "schemaVersion": 1,
-  "generatedAt": "2026-11-19T08:13:07.503Z",
-  "sourceGeneratedAt": "2026-11-19T08:12:54.390774+00:00",
+  "generatedAt": "2026-11-19T17:27:01.121Z",
+  "sourceGeneratedAt": "2026-11-19T17:26:45.273592+00:00",
   "status": "ready",
   "academicYear": "2026/2027",
   "counts": {
@@ -137,7 +137,7 @@
       "course": 2,
       "status": "full",
       "sourceState": "live-generated",
-      "events": 404,
+      "events": 214,
       "missing": []
     },
     {
