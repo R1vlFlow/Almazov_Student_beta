@@ -21,7 +21,7 @@ test('central personalization store persists profile, theme, subject colors, hom
   const store = await import('../dist/services/personalizationStore.js?feature-test');
   const initial = store.readPersonalization();
   const next = store.updatePersonalization({
-    displayName: 'Анна Н.', avatarPreset: '🩺', accentColor: '#7c4dff', theme: 'dark',
+    displayName: 'Анна Н.', avatarPreset: '🩺', accentColor: '#7c4dff', theme: 'dark', textScale: 135,
     academicProfile: { program: '31.05.02', course: 2, group: '221' },
     subjectColors: { [store.subjectColorKey('Фармакология')]: '#167d6a' },
     tasks: [{ id: 't1', subject: 'Фармакология', text: 'Подготовить конспект', due: '2026-10-11T18:00', done: false, status: 'in_progress', priority: 'high', link: 'https://example.org/task', attachmentName: 'task.pdf', attachmentData: 'data:application/pdf;base64,JVBERi0xLjQ=', program: '31.05.02', course: 2, group: '221', createdAt: '2026-10-09T10:00:00.000Z' }],
@@ -30,6 +30,9 @@ test('central personalization store persists profile, theme, subject colors, hom
   assert.equal(next.displayName, 'Анна Н.');
   assert.equal(next.academicProfile.group, '221');
   assert.equal(next.theme, 'dark');
+  assert.equal(initial.textScale, 100);
+  assert.equal(next.textScale, 135);
+  assert.equal(JSON.parse(globalThis.localStorage.getItem('almazov.personalization.v1')).textScale, 135);
   assert.equal(next.subjectColors[store.subjectColorKey('Фармакология')], '#167d6a');
   assert.equal(next.tasks[0].status, 'in_progress');
   assert.equal(next.tasks[0].priority, 'high');
@@ -39,6 +42,7 @@ test('central personalization store persists profile, theme, subject colors, hom
   assert.equal(next.materials[0].helpfulness, 5);
   assert.ok(globalThis.localStorage.getItem('almazov.personalization.v1'));
   assert.equal(initial.version, 2);
+  assert.equal(store.updatePersonalization({textScale:999}).textScale,100);
 });
 
 test('weekly workweek explicitly includes Monday through Saturday', () => {

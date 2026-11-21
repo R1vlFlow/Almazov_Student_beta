@@ -30,6 +30,7 @@ export interface PersonalizationState {
   avatarDataUrl: string;
   accentColor: string;
   theme: ThemeMode;
+  textScale: number;
   timezone: string;
   double1: string;
   double2: string;
@@ -47,7 +48,7 @@ const INITIAL: PersonalizationState = {
   version: 2,
   academicProfile: { program: '31.05.01', course: 1, group: '123' },
   displayName: '', avatarPreset: 'profile', avatarDataUrl: '', accentColor: '#315fce',
-  theme: 'system', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Moscow',
+  theme: 'system', textScale: 100, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Moscow',
   double1: '#315fce', double2: '#1f9073', subjectColors: {}, subjectTeachers: {}, tasks: [], materials: []
 };
 let cache: PersonalizationState | null = null;
@@ -107,6 +108,7 @@ function normalize(raw: unknown): PersonalizationState {
     avatarPreset: normalizeAvatarPreset(raw.avatarPreset),
     avatarDataUrl: typeof raw.avatarDataUrl === 'string' && /^data:image\/(?:webp|png|jpeg);base64,[a-z\d+/=]+$/i.test(raw.avatarDataUrl) && raw.avatarDataUrl.length < 160_000 ? raw.avatarDataUrl : '',
     accentColor: color(raw.accentColor, INITIAL.accentColor), theme,
+    textScale: [100,110,120,135,150].includes(Number(raw.textScale)) ? Number(raw.textScale) : 100,
     timezone: typeof raw.timezone === 'string' && raw.timezone.length < 80 ? raw.timezone : INITIAL.timezone,
     double1: color(raw.double1, INITIAL.double1), double2: color(raw.double2, INITIAL.double2),
     subjectColors: colors, subjectTeachers: teachers, tasks: normalizedTasks, materials: normalizedMaterials
