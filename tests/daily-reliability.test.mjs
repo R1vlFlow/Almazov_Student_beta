@@ -4,6 +4,35 @@ import {readFile} from 'node:fs/promises';
 import {compareSchedules} from '../dist/services/scheduleHistory.js';
 import {validatePersonalBackup,restorePersonalBackup,createPersonalBackup,mergeBackupRecords,validBackupFileEncoding,decodeBackupFile} from '../dist/services/personalBackup.js';
 import {matchCourseAddresses} from '../dist/core/courseAddresses.js';
+test('startup opens the shell while schedule requests wait and offers retry if scripts stall',async()=>{
+ const {runInNewContext}=await import('node:vm');
+ const source=await readFile(new URL('../public/boot.js',import.meta.url),'utf8');
+ const startup=source.slice(source.indexOf('function initStartupNotice()'),source.lastIndexOf("if(document.readyState==='loading')"));
+ function launch(){
+  const handlers={},timers=[],children=[];let removed=false,reloads=0;
+  const app={inert:false};const status={},note={parentElement:{append:node=>children.push(node)}};
+  const splash={classList:{add(){}},remove(){removed=true;},append:node=>children.push(node)};
+  const nodes={appSplash:splash,splashStatus:status,splashNote:note};
+  runInNewContext(startup+';initStartupNotice();',{
+   document:{getElementById:id=>nodes[id],querySelector:()=>app,createElement:()=>({addEventListener(name,fn){this[name]=fn;}})},
+   window:{addEventListener:(name,fn)=>handlers[name]=fn,location:{reload(){reloads++;}}},
+   performance:{now:()=>0},localStorage:{getItem:()=>null},BUILD_ID:'test',
+   setInterval:()=>1,clearInterval(){},
+   setTimeout:(fn,delay)=>{const row={fn,delay,cancelled:false};timers.push(row);return row;},
+   clearTimeout:row=>{row.cancelled=true;}
+  });
+  return {handlers,timers,children,app,status,get removed(){return removed;},get reloads(){return reloads;}};
+ }
+ const shell=launch();assert.equal(shell.app.inert,true);
+ shell.handlers['app:shell-ready']();
+ assert.equal(shell.timers.find(t=>t.delay===8000).cancelled,true);
+ for(let i=0;i<shell.timers.length;i++){const t=shell.timers[i];if(!t.cancelled)t.fn();}
+ assert.equal(shell.app.inert,false);assert.equal(shell.removed,true);
+ const stalled=launch();stalled.timers.find(t=>t.delay===8000).fn();
+ assert.match(stalled.status.textContent,/задерживается/);
+ assert.equal(stalled.children[0].textContent,'Повторить загрузку');
+ stalled.children[0].click();assert.equal(stalled.reloads,1);
+});
 import {loadSchedule,clearScheduleMemory} from '../dist/services/scheduleService.js';
 test('senior schedules retry an empty response and retain practice cycles',async()=>{
  const old={document:globalThis.document,fetch:globalThis.fetch};
