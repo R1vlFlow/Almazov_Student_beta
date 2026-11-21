@@ -493,3 +493,14 @@ h1,h2,h3,h4 { font-weight:600; }
 html[data-large-text=true] .filters{grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))}
 html[data-large-text=true] .segments,html[data-large-text=true] .view-switch{flex-wrap:wrap}
 html[data-large-text=true] .mobile-period-nav{height:auto;min-height:60px}
+
+/* Programme topics are secondary to the subject, type and timetable time. */
+.lesson-topic { display:block; min-width:0; color:var(--text-2); font-size:calc(12px * var(--text-scale,1)); font-weight:400; line-height:1.5; overflow-wrap:anywhere; }
+.lesson-topic-label { display:block; color:var(--text-3); font-size:calc(10px * var(--text-scale,1)); font-weight:600; line-height:1.5; }
+.mobile-event .lesson-topic { display:block; font-weight:400; line-height:1.5; }
+.mobile-event .lesson-topic-label { font-size:calc(10px * var(--text-scale,1)); font-weight:600; }
+.lesson-topic-detail { min-width:0; line-height:1.5; overflow-wrap:anywhere; }
+.lesson-topic-detail p,.lesson-topic-unavailable { color:var(--text-2); font-weight:400; line-height:1.6; }
+.lesson-topic-detail a { display:inline-block; padding-block:8px; }
+.home-hero-copy>.lesson-topic { max-width:65ch; margin-block:8px; }
+.list-event-title>.lesson-topic { margin-block:5px; }

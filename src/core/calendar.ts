@@ -3,7 +3,11 @@ import {localDate,localTime,localDateTimeInput,localDateTimeToUtc} from './time.
 
 export type CalendarEventKind='schedule'|'personal';
 export type {EventStatus};
+export interface LessonTopicMatch {
+  titles:string[];sourceUrl:string;pages:number[];planYear:number;
+}
 export interface CalendarEvent{
+  topic?:LessonTopicMatch;topicUnavailable?:string;
   lessonNumber?:number;doubleOf?:string;sourceNotice?:string;sourceUrl?:string;
   id:string;kind:CalendarEventKind;title:string;subject?:string;description?:string;category?:string;status?:EventStatus;startAt:string;endAt:string;timeZone:string;allDay?:boolean;location?:string;meetingUrl?:string;attendees?:string[];recurrence?:RecurrenceRule|null;seriesId?:string;readOnly:boolean;privacy?:'public'|'private';
   program?:ScheduleEvent['program'];course?:ScheduleEvent['course'];group?:string;stream?:ScheduleEvent['stream'];type?:LessonType;teacher?:string;half?:ScheduleEvent['half'];doublePart?:ScheduleEvent['doublePart'];weeks?:string;
