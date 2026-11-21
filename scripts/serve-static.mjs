@@ -8,6 +8,7 @@ const root=resolve(projectRoot,'dist');
 const host=process.env.HOST==='0.0.0.0'?'0.0.0.0':'127.0.0.1';
 const port=Number.parseInt(process.env.PORT||'4173',10);
 const mime={
+  '.woff2':'font/woff2',
   '.css':'text/css; charset=utf-8',
   '.html':'text/html; charset=utf-8',
   '.ico':'image/x-icon',
