@@ -1,8 +1,18 @@
 import type { ThemeMode } from '../core/types.js';
 import { readPersonalization, updatePersonalization } from '../services/personalizationStore.js';
 const KEY='almazov.theme';
+let transitionTimer:ReturnType<typeof setTimeout>|undefined;
+function prepareThemeTransition(actual:string){
+  const root=document.documentElement;
+  if(!root.dataset.theme||root.dataset.theme===actual||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  clearTimeout(transitionTimer);
+  root.classList.add('theme-transition');
+  // Commit the current colours before changing the theme variables.
+  void root.offsetWidth;
+  transitionTimer=setTimeout(()=>root.classList.remove('theme-transition'),400);
+}
 export function themeMode():ThemeMode{const stored=readPersonalization().theme;const v=stored??localStorage.getItem(KEY);return v==='light'||v==='dark'||v==='system'?v:'system';}
-export function applyTheme(mode:ThemeMode,save=true){const actual=mode==='system'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):mode;document.documentElement.dataset.theme=actual;document.documentElement.dataset.themePreference=mode;document.documentElement.style.colorScheme=actual;if(save){localStorage.setItem(KEY,mode);updatePersonalization({theme:mode});}syncThemeButton(mode);}
+export function applyTheme(mode:ThemeMode,save=true){const actual=mode==='system'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):mode;prepareThemeTransition(actual);document.documentElement.dataset.theme=actual;document.documentElement.dataset.themePreference=mode;document.documentElement.style.colorScheme=actual;if(save){localStorage.setItem(KEY,mode);updatePersonalization({theme:mode});}syncThemeButton(mode);}
 function syncThemeButton(mode:ThemeMode){document.querySelectorAll<HTMLElement>('[data-action="theme"]').forEach(b=>{b.dataset.mode=mode;b.textContent=mode==='dark'?'☾':mode==='light'?'☼':'◐';b.title=`Тема: ${mode==='dark'?'тёмная':mode==='light'?'светлая':'системная'}. Нажмите для смены`;b.setAttribute('aria-label',b.title);});}
 export function initTheme(){const current=themeMode();applyTheme(current,false);const mq=matchMedia('(prefers-color-scheme: light)');mq.addEventListener?.('change',()=>{if(themeMode()==='system')applyTheme('system',false);});}
 export function cycleTheme(){const current=themeMode();applyTheme(current==='dark'?'light':current==='light'?'system':'dark');}

@@ -196,7 +196,7 @@ for(const path of jsFiles){
 // Versioned assets make the SW install safe even while an older SW still
 // controls the page. Do not precache index.html: navigation is network-first.
 const versionedPaths=[
-  './styles.css', './splash.css', './boot.js', './manifest.webmanifest', './offline.html',
+  './assets/fonts/source-sans-3.woff2', './styles.css', './splash.css', './boot.js', './manifest.webmanifest', './offline.html',
   ...jsFiles.map(path=>'./'+relative(dist,path).split(sep).join('/'))
 ].map(path=>`${path}?v=${buildId}`);
 const uniqueVersionedPaths=[...new Set(versionedPaths)];
