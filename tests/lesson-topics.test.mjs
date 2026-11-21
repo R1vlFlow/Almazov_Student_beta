@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {describeLessons} from '../dist/core/lessonTopics.js';
+import {lessonTerm} from '../dist/core/lessonSequence.js';
 import {LESSON_TOPIC_PLANS} from '../dist/data/lessonTopics.js';
 import {displayScheduleParts,scheduleToCalendarEvent} from '../dist/core/calendar.js';
 import {normalizeLiveEvents} from '../dist/core/validate.js';
@@ -60,6 +61,12 @@ test('lecture and practice sequences remain separate and lectures never display 
   assert.equal(rows.find(e=>e.type==='lecture').topic.titles[0],plan('Анатомия','lecture').topics[0].title);
   assert.equal(rows.filter(e=>e.type==='practice').at(-1).lessonNumber,15);
 });
+test('January belongs to the preceding autumn semester without restarting the sequence',()=>{
+  const p=plan('Анатомия','lecture'),rows=semester(p);
+  rows.at(-1).startAt='2027-01-10T06:00:00Z';rows.at(-1).endAt='2027-01-10T07:35:00Z';
+  const last=describeLessons(rows).at(-1);
+  assert.deepEqual(last.topic.titles,[p.topics.at(-1).title]);assert.equal(last.lessonNumber,undefined);
+});
 test('moved events follow their new chronology; cancellations and duplicate source rows consume no hours',()=>{
   const rows=semester(plan('Анатомия','lecture'));
   [rows[0].startAt,rows[1].startAt]=[rows[1].startAt,rows[0].startAt];
@@ -92,7 +99,7 @@ test('all 35 real first-year groups reconcile with all six verified lecture/prac
     const rows=all.filter(e=>eventAppliesToGroup(e,profile)).flatMap(displayScheduleParts).map(e=>scheduleToCalendarEvent(e,'Europe/Moscow'));
     const out=describeLessons(rows,group);
     for(const p of LESSON_TOPIC_PLANS){
-      const matches=out.filter(e=>p.subjects.includes(e.subject||e.title)&&e.type===p.type&&e.startAt.startsWith('2026-'));
+      const matches=out.filter(e=>{const term=lessonTerm(e);return p.subjects.includes(e.subject||e.title)&&e.type===p.type&&term.academicYear===p.academicYear&&term.semester===p.semester;}).sort((a,b)=>a.startAt.localeCompare(b.startAt));
       assert.ok(matches.length,`${group}: missing ${p.id}`);
       assert.ok(matches.every(e=>e.topic&&!e.topicUnavailable),`${group}: semester hours mismatch for ${p.id}`);
       assert.equal(matches.at(-1).topic.titles.at(-1),p.topics.at(-1).title,`${group}: last topic ${p.id}`);
