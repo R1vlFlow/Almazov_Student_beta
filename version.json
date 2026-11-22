@@ -1,9 +1,9 @@
 {
-  "version": "2.8.0-rc.8",
-  "uiVersion": "2.8.0-rc.8",
+  "version": "2.8.0-rc.9",
+  "uiVersion": "2.8.0-rc.9",
   "engineVersion": "4.9.0-rc.1",
-  "release": "ALL-COURSES-VERIFIED-MATRIX-PARSER",
-  "released": "2026-10-16",
+  "release": "VERIFIED-LESSON-TOPIC-LIBRARY",
+  "released": "2026-11-22",
   "releaseChannel": "rc",
   "releaseStatus": "VERIFIED_WEB_RELEASE_CANDIDATE"
 }

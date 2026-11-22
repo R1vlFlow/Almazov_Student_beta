@@ -1,5 +1,6 @@
+import {EXPANDED_LESSON_TOPIC_PLANS} from './expandedLessonTopics.js';
 /** Transcribed from the official 2026 programmes, §§4.3–4.4; PDF pages are one-based.
- * Only the verified first semester of General Medicine is included. A programme
+ * This file retains the first-semester baseline; additional reviewed plans are generated separately. A programme
  * describes the intended order, not a teacher-confirmed topic for a calendar date.
  */
 export interface PlannedTopic {title:string;hours:number;page:number;}
@@ -7,6 +8,10 @@ export interface LessonTopicPlan {
   id:string;program:string;course:number;academicYear:number;semester:1|2;
   subjects:readonly string[];type:'lecture'|'practice';totalHours:number;
   sourceUrl:string;sha256:string;verifiedAt:string;topics:readonly PlannedTopic[];
+  curriculumYear?:number;teachingSemester?:number;
+  /** A reviewed table can still contradict the official hour distribution.
+   * Keep it readable, but never derive dates until this is resolved. */
+  mappingIssue?:string;
 }
 type TopicRow=readonly [title:string,hours:number,page:number];
 const rows=(items:readonly TopicRow[]):PlannedTopic[]=>items.map(([title,hours,page])=>({title,hours,page}));
@@ -15,6 +20,7 @@ const chemistry={...common,subjects:['Химия'],sourceUrl:'https://education.
 const biology={...common,subjects:['Биология'],sourceUrl:'https://education.almazovcentre.ru/sveden_files/RP_LD/2026_%D0%A0%D0%9F_%D0%91%D0%B8%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%8F%20%D0%9B%D0%94.pdf',sha256:'d7d994c1044da0a6f6ca1a15665b8b0f3ea005d2d16640c1751f02dd09745bf6'};
 const anatomy={...common,subjects:['Анатомия человека','Анатомия'],sourceUrl:'https://education.almazovcentre.ru/sveden_files/RP_LD/2026%20%D0%A0%D0%9F%20%D0%90%D0%BD%D0%B0%D1%82%D0%BE%D0%BC%D0%B8%D1%8F%20%D1%87%D0%B5%D0%BB%D0%BE%D0%B2%D0%B5%D0%BA%D0%B0%20%D0%9B%D0%94.pdf',sha256:'bef7b7415c7b277f21394bfd5ba335254c99d6f7d4bf73301d3f071178e7f3e1'};
 export const LESSON_TOPIC_PLANS:readonly LessonTopicPlan[]=[
+  ...EXPANDED_LESSON_TOPIC_PLANS,
   {...chemistry,id:'chemistry-2026-sem1-lecture',type:'lecture',totalHours:30,topics:rows([
     ['Основы химической термодинамики. Биоэнергетика',2,8],
     ['Основы химической кинетики',2,8],
