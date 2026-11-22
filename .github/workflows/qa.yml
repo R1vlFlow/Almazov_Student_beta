@@ -34,7 +34,13 @@ jobs:
           retention-days: 14
       - name: Verify artifact readiness against the live Actions service
         timeout-minutes: 3
-        run: node scripts/wait-for-pages-artifact.mjs
+        uses: actions/github-script@v8
         env:
           PAGES_ARTIFACT_ID: ${{ steps.web-preview.outputs.artifact-id }}
           PAGES_ARTIFACT_NAME: web-preview-${{ github.sha }}
+        with:
+          script: |
+            const {pathToFileURL} = require('node:url');
+            const {runFromEnvironment} = await import(pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/wait-for-pages-artifact.mjs`).href);
+            try { await runFromEnvironment({info: core.info}); }
+            catch (error) { core.setFailed(error.message); }

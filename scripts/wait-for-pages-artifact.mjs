@@ -45,11 +45,19 @@ export async function waitForPagesArtifact({ listArtifacts, expectedId, name = '
   }
 }
 
+export async function runFromEnvironment({ env = process.env, info = message => console.log(message) } = {}) {
+  // GitHub exposes the run-scoped artifact credentials to JavaScript actions, not shell steps.
+  if (!env.ACTIONS_RUNTIME_TOKEN || !env.ACTIONS_RESULTS_URL) {
+    throw new Error('Artifact readiness must run inside a GitHub JavaScript action with run-scoped artifact access.');
+  }
+  const { DefaultArtifactClient } = await import('@actions/artifact');
+  const client = new DefaultArtifactClient();
+  return waitForPagesArtifact({ listArtifacts: () => client.listArtifacts(), expectedId: env.PAGES_ARTIFACT_ID, name: env.PAGES_ARTIFACT_NAME ?? 'github-pages', info });
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
-    const { DefaultArtifactClient } = await import('@actions/artifact');
-    const client = new DefaultArtifactClient();
-    await waitForPagesArtifact({ listArtifacts: () => client.listArtifacts(), expectedId: process.env.PAGES_ARTIFACT_ID, name: process.env.PAGES_ARTIFACT_NAME ?? 'github-pages', info: message => console.log(message) });
+    await runFromEnvironment();
   } catch (error) {
     // Do not print request objects, headers or runtime credentials from SDK errors.
     console.error(error.message);

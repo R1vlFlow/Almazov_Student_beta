@@ -1,8 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { waitForPagesArtifact } from '../scripts/wait-for-pages-artifact.mjs';
+import { waitForPagesArtifact, runFromEnvironment } from '../scripts/wait-for-pages-artifact.mjs';
 
 const ready = { id: 14754710068, name: 'github-pages', size: 1528938 };
+test('shell steps without run-scoped artifact access receive an explicit configuration error', async () => {
+  await assert.rejects(runFromEnvironment({ env: {} }), /GitHub JavaScript action/);
+});
 function scenario(sequence, expectedId = ready.id) {
   let calls = 0;
   const sleeps = [];
