@@ -18,9 +18,9 @@ class MemoryStorage {
   clear() { this.values.clear(); }
 }
 
-test('Phase 2 build metadata and support Telegram link are defined', () => {
+test('Phase 2 build metadata and support Telegram link are defined', async () => {
   const v = JSON.parse(version);
-  assert.equal(v.version, '2.8.0-rc.8');
+  assert.equal(v.version, JSON.parse(await read('package.json')).version);
   assert.match(html, /https:\/\/t\.me\/R1vlFlow_GY/);
   assert.match(html, /@R1vlFlow_GY/);
 });

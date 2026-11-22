@@ -5,6 +5,7 @@ export type CalendarEventKind='schedule'|'personal';
 export type {EventStatus};
 export interface LessonTopicMatch {
   titles:string[];sourceUrl:string;pages:number[];planYear:number;
+  planId:string;cohortYear:number;teachingSemester:number;verifiedAt:string;
 }
 export interface CalendarEvent{
   topic?:LessonTopicMatch;topicUnavailable?:string;

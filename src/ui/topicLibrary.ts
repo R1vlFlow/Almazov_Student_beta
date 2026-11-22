@@ -1,0 +1,24 @@
+import {topicLibraryEntries,filterTopicLibrary,officialTopicUrl,subjectTopicCoverage} from '../core/topicLibrary.js';
+import {LESSON_TOPIC_PLANS,type LessonTopicPlan} from '../data/lessonTopics.js';
+import type {CalendarEvent} from '../core/calendar.js';
+
+const esc=(value:unknown)=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]!));
+function planRows(plan:LessonTopicPlan){
+  const url=officialTopicUrl(plan.sourceUrl);if(!url)return '';
+  return `<ul class="topic-plan-list">${plan.topics.map(t=>`<li><span>${esc(t.title)}</span><small>${t.hours} уч. ч. · <a href="${esc(url)}#page=${t.page}" target="_blank" rel="noopener noreferrer" aria-label="${esc(t.title)} — страница ${t.page} программы">стр. ${t.page}</a></small></li>`).join('')}</ul>`;
+}
+export function populateTopicPlan(element:HTMLElement){
+  const plan=LESSON_TOPIC_PLANS.find(p=>p.id===element.dataset.topicPlan);
+  const host=element.querySelector<HTMLElement>('[data-topic-plan-body]');
+  if(plan&&host&&!host.dataset.loaded){host.innerHTML=planRows(plan);host.dataset.loaded='true';}
+}
+export function renderTopicLibrary(profile:{program:string;course:number;group:string},events:CalendarEvent[],query='',type='all',semester='all',limit=12):{html:string;summary:string}{
+  const all=topicLibraryEntries(profile),filtered=filterTopicLibrary(all,query,type,semester);
+  const mapped=new Set(events.filter(e=>e.topic).map(e=>e.topic!.planId));
+  const coverage=subjectTopicCoverage(events,all),missing=coverage.filter(r=>!r.mapped);
+  const summary=`${profile.course} курс · группа ${profile.group} · программ: ${all.length} · планов лекций/ПЗ: ${all.reduce((sum,e)=>sum+e.plans.length,0)} · с привязкой к расписанию: ${mapped.size} · требуют сверки: ${missing.length}`;
+  const gaps=missing.length?`<details class="topic-library-gaps"><summary>Какие темы ещё не подтверждены · ${missing.length}</summary><p>Перечень построен по расписанию группы. Наличие PDF не означает, что темы уже проверены.</p><ul>${missing.map(r=>`<li>${esc(r.subject)} · ${r.type==='lecture'?'лекции':'ПЗ'} · ${r.semester===1?'осень':'весна'} — ${r.planIds.length?'план добавлен, привязка к датам требует сверки':r.sourceIds.length?'программа найдена, таблица требует сверки':'отдельная программа этого набора не добавлена'}</li>`).join('')}</ul></details>`:'';
+  if(!all.length)return {summary,html:gaps+'<div class="empty-state compact"><h3>Программы пока не добавлены</h3><p>Темы не будут подставляться из другого направления или года набора.</p></div>'};
+  const html=filtered.slice(0,limit).map(({source,plans})=>`<article class="topic-library-card"><header><div><h3>${esc(source.subject)}</h3><p>Набор ${source.cohortYear}${source.pageStart?` · стр. ${source.pageStart}–${source.pageEnd}`:source.pages?` · ${source.pages} стр.`:''}</p></div><span class="topic-library-badge">${plans.some(p=>p.mappingIssue)?'Есть расхождения':plans.length?'Темы проверены':'Программа в PDF'}</span></header>${source.reviewNote?`<p class="topic-library-warning">${esc(source.reviewNote)}</p>`:''}${source.bundle?'<p class="muted">Общий сборник дисциплин этого направления. Отдельные темы пока не привязаны к занятиям.</p>':''}${plans.map(p=>`<details class="topic-plan" data-topic-plan="${esc(p.id)}"><summary><span>${p.type==='lecture'?'Лекции':'Практические занятия'}</span><small>${p.teachingSemester??(p.course-1)*2+p.semester}-й семестр · ${p.topics.length} тем · ${p.totalHours} уч. ч.</small></summary>${p.mappingIssue?`<p class="topic-library-warning">${esc(p.mappingIssue)}</p>`:''}<div data-topic-plan-body></div></details>`).join('')}${plans.length?`<p class="topic-library-note">${plans.some(p=>mapped.has(p.id))?'Ожидаемые темы показаны в расписании.':plans.some(p=>p.mappingIssue)?'В программе есть противоречие. Темы доступны для просмотра; привязка к датам требует уточнения.':'Порядок тем проверен по программе. Привязка к датам появится при совпадении объёма расписания.'}</p>`:'<p class="topic-library-note">Документ доступен. Темы по датам появятся после сверки таблицы и учебных часов.</p>'}<footer><a class="btn small" href="${esc(source.url)}${source.pageStart?`#page=${source.pageStart}`:''}" target="_blank" rel="noopener noreferrer">Открыть программу ↗</a><span>Источник: Алмазов</span></footer></article>`).join('');
+  return {summary,html:`<p class="topic-library-explanation">Лекции и практики имеют отдельную последовательность. В расписании номер показывается только у ПЗ; сдвоенное ПЗ — одно занятие. Преподаватель может изменить фактический порядок тем.</p>${gaps}<div class="topic-library-grid">${html||'<p class="empty-state compact">Ничего не найдено. Измените поиск или фильтр.</p>'}</div>${filtered.length>limit?`<button type="button" class="btn topic-library-more" data-topic-more>Показать ещё · осталось ${filtered.length-limit}</button>`:''}`};
+}

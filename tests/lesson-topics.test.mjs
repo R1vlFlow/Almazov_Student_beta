@@ -9,22 +9,25 @@ import {normalizeLiveEvents} from '../dist/core/validate.js';
 import {eventAppliesToGroup} from '../dist/core/filter.js';
 import {groupsFor,streamForGroup} from '../dist/data/roster.js';
 
-const plan=(subject,type)=>LESSON_TOPIC_PLANS.find(p=>p.subjects.includes(subject)&&p.type===type);
-function semester(p,{group='124',start='2026-09-01',split=false}={}){
+const plan=(subject,type)=>LESSON_TOPIC_PLANS.find(p=>p.program==='31.05.01'&&p.subjects.includes(subject)&&p.type===type&&p.course===1&&p.semester===1);
+function semester(p,{group='124',start=p.semester===1?'2026-09-01':'2027-02-01',split=false}={}){
   const hours=p.type==='practice'?4:2;
-  return Array.from({length:p.totalHours/hours},(_,i)=>{
+  return Array.from({length:Math.ceil(p.totalHours/hours)},(_,i)=>{
     const d=new Date(`${start}T00:00:00Z`);d.setUTCDate(d.getUTCDate()+i);const date=d.toISOString().slice(0,10);
-    const raw={id:`${group}-${p.type}-${i}`,subject:p.subjects[0],program:p.program,course:p.course,group,type:p.type,date,start:'09:00',end:hours===4?'12:25':'10:35',location:'Солнечное',mergedConsecutive:split&&hours===4};
+    const slotHours=Math.min(hours,p.totalHours-i*hours);
+    const raw={id:`${group}-${p.type}-${i}`,subject:p.subjects[0],program:p.program,course:p.course,group,type:p.type,date,start:'09:00',end:slotHours===4?'12:25':slotHours===3?'11:15':slotHours===2?'10:35':'09:45',location:'Солнечное',mergedConsecutive:split&&hours===4};
     return (split?displayScheduleParts(raw):[raw]).map(e=>scheduleToCalendarEvent(e,'Europe/Moscow'));
   }).flat();
 }
 test('verified plans have explicit provenance and exactly the source teaching-hour totals',()=>{
-  assert.equal(LESSON_TOPIC_PLANS.length,6);
+  assert.ok(LESSON_TOPIC_PLANS.length>=6);
   for(const p of LESSON_TOPIC_PLANS){
     assert.equal(p.topics.reduce((sum,t)=>sum+t.hours,0),p.totalHours,p.id);
     assert.match(p.sha256,/^[a-f0-9]{64}$/);assert.equal(new URL(p.sourceUrl).hostname,'education.almazovcentre.ru');
-    assert.ok(p.topics.every(t=>t.title.length>5&&t.page>=8&&t.page<=17&&[2,4].includes(t.hours)));
-    const described=describeLessons(semester(p));assert.ok(described.every(e=>e.topic),p.id);
+    assert.ok(p.topics.every(t=>t.title.length>5&&Number.isInteger(t.page)&&t.page>0&&Number.isInteger(t.hours)&&t.hours>0));
+    const described=describeLessons(semester(p));
+    if(p.mappingIssue){assert.ok(described.every(e=>!e.topic&&e.topicUnavailable===p.mappingIssue),p.id);continue;}
+    assert.ok(described.every(e=>e.topic),p.id);
     assert.equal(described.at(-1).topic.titles.at(-1),p.topics.at(-1).title);
   }
 });
@@ -98,7 +101,7 @@ test('all 35 real first-year groups reconcile with all six verified lecture/prac
     const profile={program:'31.05.01',course:1,group,stream:streamForGroup('31.05.01',group)};
     const rows=all.filter(e=>eventAppliesToGroup(e,profile)).flatMap(displayScheduleParts).map(e=>scheduleToCalendarEvent(e,'Europe/Moscow'));
     const out=describeLessons(rows,group);
-    for(const p of LESSON_TOPIC_PLANS){
+    for(const p of LESSON_TOPIC_PLANS.filter(p=>p.program==='31.05.01'&&p.course===1&&p.semester===1&&['Химия','Биология','Анатомия человека'].includes(p.subjects[0]))){
       const matches=out.filter(e=>{const term=lessonTerm(e);return p.subjects.includes(e.subject||e.title)&&e.type===p.type&&term.academicYear===p.academicYear&&term.semester===p.semester;}).sort((a,b)=>a.startAt.localeCompare(b.startAt));
       assert.ok(matches.length,`${group}: missing ${p.id}`);
       assert.ok(matches.every(e=>e.topic&&!e.topicUnavailable),`${group}: semester hours mismatch for ${p.id}`);
