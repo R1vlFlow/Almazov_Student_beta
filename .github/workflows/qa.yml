@@ -26,8 +26,15 @@ jobs:
           mkdir -p preview
           tar -czf preview/almazov-web-preview.tar.gz -C dist .
           sha256sum preview/almazov-web-preview.tar.gz > preview/SHA256SUMS
-      - uses: actions/upload-artifact@v4
+      - id: web-preview
+        uses: actions/upload-artifact@v4
         with:
           name: web-preview-${{ github.sha }}
           path: preview/
           retention-days: 14
+      - name: Verify artifact readiness against the live Actions service
+        timeout-minutes: 3
+        run: node scripts/wait-for-pages-artifact.mjs
+        env:
+          PAGES_ARTIFACT_ID: ${{ steps.web-preview.outputs.artifact-id }}
+          PAGES_ARTIFACT_NAME: web-preview-${{ github.sha }}

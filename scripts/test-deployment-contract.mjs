@@ -21,6 +21,13 @@ check('source and schedule workflows serialize without cancellation',pages.inclu
 check('scheduled sync does not compete on every code push',!/^\s*push:\s*$/m.test(sync));
 check('both workflows publish dist artifacts',pages.includes('path: dist')&&sync.includes('path: dist'));
 check('both workflows use official Pages deployment',pages.includes('actions/deploy-pages@v4')&&sync.includes('actions/deploy-pages@v4'));
+for(const [name,workflow] of [['normal',pages],['scheduled',sync]]){
+  const upload=workflow.indexOf('uses: actions/upload-pages-artifact@v3');
+  const wait=workflow.indexOf('run: node scripts/wait-for-pages-artifact.mjs');
+  const deploy=workflow.indexOf('uses: actions/deploy-pages@v4');
+  check(`${name} deployment waits for its own uploaded artifact`,upload>=0&&wait>upload&&deploy>wait&&workflow.includes('PAGES_ARTIFACT_ID: ${{ steps.pages-artifact.outputs.artifact_id }}'));
+  check(`${name} artifact wait blocks on failure and has a deadline`,workflow.includes('timeout-minutes: 3')&&!workflow.includes('continue-on-error: true'));
+}
 check('docs link the canonical Pages URL',guide.includes('URL Pages')&&guide.includes('без `/dist/`')&&readme.includes('https://r1vlflow.github.io/Almazov_Student_beta/')&&!readme.includes('https://r1vlflow.github.io/Almazov_Student_beta/dist/'));
 check('official data refresh remains scheduled and manually available',/^\s*workflow_dispatch:\s*$/m.test(sync)&&/^\s*schedule:\s*$/m.test(sync));
 check('both deploy paths run the full official snapshot builder without stale fallback',pages.includes('run: npm run sync:official')&&sync.includes('run: npm run sync:official')&&packageJson.includes('scripts/build_official_schedule.py')&&packageJson.includes('scripts/build_specialist_program_schedules.py')&&!pages.includes('--use-last-good')&&!sync.includes('--use-last-good'));

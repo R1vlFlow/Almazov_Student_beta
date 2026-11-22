@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node scripts/build-topic-catalog.mjs && node scripts/clean-dist.mjs && tsc -p tsconfig.json && node scripts/copy-public.mjs && node scripts/validate-dist.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --test tests/calendar.test.mjs tests/core.test.mjs tests/local-runtime.test.mjs tests/local-support.test.mjs tests/org-normalization.test.mjs tests/personalization-features.test.mjs tests/phase2.test.mjs tests/practice-import.test.mjs tests/static-server.test.mjs tests/ui-contract.test.mjs tests/daily-reliability.test.mjs tests/address-places.test.mjs tests/lesson-sequence.test.mjs tests/lesson-topics.test.mjs tests/topic-library.test.mjs",
+    "test": "npm run build && node --test tests/calendar.test.mjs tests/core.test.mjs tests/local-runtime.test.mjs tests/local-support.test.mjs tests/org-normalization.test.mjs tests/personalization-features.test.mjs tests/phase2.test.mjs tests/practice-import.test.mjs tests/static-server.test.mjs tests/ui-contract.test.mjs tests/daily-reliability.test.mjs tests/address-places.test.mjs tests/lesson-sequence.test.mjs tests/lesson-topics.test.mjs tests/topic-library.test.mjs tests/pages-artifact.test.mjs",
     "test:backend": "node --test tests/api.test.mjs",
     "test:local": "npm test",
     "qa:local": "npm run lint && npm run test:local && node scripts/validate-dist.mjs",
@@ -26,16 +26,17 @@
     "recover:offline-safe": "python3 scripts/apply_official_week_calendar_to_recovery.py && python3 scripts/build_specialist_recovery_snapshot.py && python3 scripts/audit_official_coverage.py && python3 scripts/test_offline_recovery_integrity.py"
   },
   "dependencies": {
-    "pdfjs-dist": "^5.4.296",
-    "xlsx": "^0.18.5",
-    "redis": "^5.7.0",
+    "@capacitor/android": "8.5.3",
     "@capacitor/core": "8.5.3",
-    "@capacitor/android": "8.5.3"
+    "pdfjs-dist": "^5.4.296",
+    "redis": "^5.7.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "typescript": "^5.8.3",
+    "@actions/artifact": "2.3.2",
     "@capacitor/cli": "8.5.3",
-    "esbuild": "0.28.2"
+    "esbuild": "0.28.2",
+    "typescript": "^5.8.3"
   },
   "engines": {
     "node": ">=22.5.0"
