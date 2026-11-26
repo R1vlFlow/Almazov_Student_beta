@@ -6,12 +6,21 @@ import {preparationLessons,preparationTasks,taskDeadlineLabel,taskDueAt,taskKind
 import {localTime} from '../core/time.js';
 import {groupAddressPlaces} from '../core/courseAddresses.js';
 import {ALMAZOV_ADDRESSES} from '../data/addresses.js';
+import {icon} from './icons.js';
 
 export const escapeHtml=(value:unknown)=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]!));
 const esc=escapeHtml;
 interface PreparationMaterial {id:string;title:string;subject:string;url:string;fileMaterial:boolean;}
 interface PreparationContext {profile:UserProfile;date:string;timeZone:string;events:CalendarEvent[];tasks:Task[];materials:PreparationMaterial[];status:string;changeBadge?:(event:CalendarEvent)=>string;}
 const types:Record<string,string>={lecture:'Лекция',practice:'Практика',lab:'Лабораторная',assessment:'Контроль',other:'Занятие'};
+export function lessonTypeMarkup(event:CalendarEvent):string {
+  const kind=event.kind==='personal'?'personal':Object.hasOwn(types,event.type||'')?event.type!:'other';
+  const label=kind==='personal'?(event.category||'Личное событие'):types[kind];
+  return `<span class="lesson-kind-pill lesson-kind-${kind}">${icon(kind==='lecture'?'books':kind==='practice'?'medicine':kind==='lab'?'flask':kind==='assessment'?'tasks':'calendar')}<span>${esc(label)}</span></span>`;
+}
+export function lessonPlaceMarkup(location?:string):string {
+  return `<span class="lesson-place-line">${icon('pin')}<span class="lesson-place-copy"><span class="lesson-place-caption">Место</span><strong>${esc(location||'Место пока не указано')}</strong></span></span>`;
+}
 export function preparationMarkup(context:PreparationContext):{summary:string;html:string} {
   const {profile,date,timeZone,events,tasks,materials,status}=context;
   const lessons=preparationLessons(events,date,timeZone),classes=lessons.filter(e=>e.kind==='schedule');
@@ -23,7 +32,7 @@ export function preparationMarkup(context:PreparationContext):{summary:string;ht
   const route=first?`<section class="planner-arrival"><div><p class="eyebrow">Первое занятие · ${esc(localTime(first.startAt,timeZone))}</p><h2>${esc(address?.name||first.location||'Место не указано')}</h2>${address?`<p>${esc(address.address)}</p>`:'<p>Точное место проверьте в карточке занятия.</p>'}</div>${address?`<a class="btn" href="https://yandex.ru/maps/?text=${encodeURIComponent(address.address)}" target="_blank" rel="noopener noreferrer">Маршрут в Яндекс Картах</a>`:'<button class="btn" data-page="addresses">Посмотреть адреса</button>'}</section>`:'';
   const lessonsHtml=lessons.map(e=>{
     const subject=e.subject||e.title;
-    return `<article class="planner-lesson"><div class="planner-time">${e.allDay?'Весь день':`${esc(localTime(e.startAt,timeZone))}<span>${esc(localTime(e.endAt,timeZone))}</span>`}</div><div class="planner-lesson-body"><span class="planner-kind">${esc(e.kind==='personal'?'Личное событие':types[e.type||'other'])}${e.type==='practice'&&e.lessonNumber?` · ПЗ №${e.lessonNumber}`:''}${e.doubleOf?' · сдвоенное':''}</span><h3>${esc(e.title)}</h3>${e.topic?`<p class="planner-topic">${esc(e.topic.titles.join('; '))}</p>`:''}<p class="muted">${esc(e.location||'Место не указано')}${e.teacher?` · ${esc(e.teacher)}`:''}</p>${context.changeBadge?.(e)??''}<div class="planner-row-actions"><button class="btn small" data-open-event="${esc(e.id)}">Подробнее</button>${e.kind==='schedule'?`<button class="btn small" data-action="planner-materials" data-subject="${esc(subject)}">Материалы предмета</button><button class="btn small" data-homework-from-event="${esc(e.id)}">Записать задание</button>`:''}</div></div></article>`;
+    return `<article class="planner-lesson"><div class="planner-time">${e.allDay?'Весь день':`${esc(localTime(e.startAt,timeZone))}<span>${esc(localTime(e.endAt,timeZone))}</span>`}</div><div class="planner-lesson-body">${e.type==='practice'&&e.lessonNumber?`<span class="planner-kind">ПЗ №${e.lessonNumber}${e.doubleOf?' · сдвоенное':''}</span>`:''}<h3>${esc(e.title)}</h3>${e.topic?`<p class="planner-topic">${esc(e.topic.titles.join('; '))}</p>`:''}<span class="lesson-card-facts">${lessonTypeMarkup(e)}${lessonPlaceMarkup(e.location)}</span>${e.teacher?`<p class="muted">${esc(e.teacher)}</p>`:''}${context.changeBadge?.(e)??''}<div class="planner-row-actions"><button class="btn small" data-open-event="${esc(e.id)}">Подробнее</button>${e.kind==='schedule'?`<button class="btn small" data-action="planner-materials" data-subject="${esc(subject)}">Материалы предмета</button><button class="btn small" data-homework-from-event="${esc(e.id)}">Записать задание</button>`:''}</div></div></article>`;
   }).join('');
   const taskHtml=relevant.map(task=>{const overdue=(taskDueAt(task,timeZone)??Infinity)<Date.now();return `<article class="planner-task"><button type="button" class="task-check" data-task-toggle="${esc(task.id)}" aria-label="Выполнить: ${esc(task.text)}"></button><div><span class="planner-kind">${esc(taskKindLabel(task))}</span><b>${esc(task.subject)}</b><p>${esc(task.text)}</p><small class="${overdue?'planner-overdue':''}">${overdue?'Просрочено · ':''}${esc(taskDeadlineLabel(task,timeZone))}</small></div><button type="button" class="btn small" data-task-edit="${esc(task.id)}">Изменить</button></article>`;}).join('');
   const empty=status==='loading'?'Загружаем занятия…':['error','unavailable'].includes(status)?'Расписание пока недоступно. Обновите данные перед подготовкой.':'В загруженном расписании занятий на завтра нет.';

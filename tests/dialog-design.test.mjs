@@ -30,7 +30,7 @@ test('twenty distinct vector profile icons preserve old selections and reject ar
 });
 test('lesson detail gives practice its number, never numbers lectures, and omits empty descriptions',()=>{
  const context={timeZone:'Europe/Moscow',mapHtml:'',updatesHtml:'',errorDraft:''};
- const practice=lessonDetailMarkup(event,context);assert.match(practice,/Практика №5/);assert.match(practice,/lesson-time-card/);assert.match(practice,/lesson-place-card/);assert.ok(!practice.includes('<h3>О занятии</h3>'));
+ const practice=lessonDetailMarkup(event,context);assert.match(practice,/Практика №5/);assert.match(practice,/lesson-time-card/);assert.match(practice,/lesson-place-card/);assert.ok(!practice.includes('<h3>О занятии</h3>'));assert.ok(!practice.includes('Как считается номер практики'));
  const lecture=lessonDetailMarkup({...event,type:'lecture'},context);assert.ok(!lecture.includes('№5'));assert.ok(!lecture.includes('Как считается номер практики'));
  assert.match(lessonDetailActions(event),/data-homework-from-event/);assert.match(lessonDetailActions(event),/data-materials-subject/);
 });
