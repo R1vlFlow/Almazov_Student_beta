@@ -30,6 +30,7 @@ export interface PersonalizationState {
   avatarPreset: string;
   avatarDataUrl: string;
   accentColor: string;
+  accentStyle?: 'solid'|'gradient';
   theme: ThemeMode;
   textScale: number;
   timezone: string;
@@ -120,7 +121,7 @@ function normalize(raw: unknown): PersonalizationState {
     displayName: typeof raw.displayName === 'string' ? raw.displayName.slice(0, 36) : '',
     avatarPreset: normalizeAvatarPreset(raw.avatarPreset),
     avatarDataUrl: typeof raw.avatarDataUrl === 'string' && /^data:image\/(?:webp|png|jpeg);base64,[a-z\d+/=]+$/i.test(raw.avatarDataUrl) && raw.avatarDataUrl.length < 160_000 ? raw.avatarDataUrl : '',
-    accentColor: color(raw.accentColor, INITIAL.accentColor), theme,
+    accentColor: color(raw.accentColor, INITIAL.accentColor), accentStyle:raw.accentStyle==='gradient'?'gradient':'solid', theme,
     textScale: [100,110,120,135,150].includes(Number(raw.textScale)) ? Number(raw.textScale) : 100,
     timezone: typeof raw.timezone === 'string' && raw.timezone.length < 80 ? raw.timezone : INITIAL.timezone,
     double1: color(raw.double1, INITIAL.double1), double2: color(raw.double2, INITIAL.double2),
