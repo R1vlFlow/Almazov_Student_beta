@@ -57,9 +57,14 @@ test('production validation protects the modal CSS contract',()=>{
  assert.match(validator,/Required modal\/layout CSS missing/);
 });
 
-for(const page of ['home','schedule','homework','kug','resources','faculties','faq','settings','profilePage']){
+for(const page of ['home','schedule','homework','resources','faculties','faq','settings','profilePage']){
  test(`page ${page} has a real section`,()=>assert.match(html,new RegExp(`id="page-${page}"`)));
 }
+test('academic calendar belongs to Materials and retains its periods and source documents',()=>{
+ assert.doesNotMatch(html,/data-page="kug"|id="page-kug"/);
+ for(const id of ['resourcesKug','kugContext','kugPeriods','kugSources','kugDataStatus'])assert.ok(html.includes(`id="${id}"`));
+ assert.match(app,/const openKug=page==='kug';if\(openKug\)page='resources'/);
+});
 
 test('navigation keeps FAQ and direct Telegram contact without a support tab',()=>{
  assert.match(html,/data-page="faq"/); assert.match(html,/FAQ/);
