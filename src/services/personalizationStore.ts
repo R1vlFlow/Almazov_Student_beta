@@ -22,6 +22,7 @@ export interface PersonalMaterial {
   createdAt: string;
 }
 export interface AcademicProfile { program: ProgramCode; course: Course; group: string; }
+export interface PreparationItem extends AcademicProfile {id:string;date:string;text:string;done:boolean;createdAt:string;}
 export interface PersonalizationState {
   version: 2;
   academicProfile: AcademicProfile;
@@ -37,6 +38,7 @@ export interface PersonalizationState {
   subjectColors: Record<string, string>;
   subjectTeachers: Record<string, string>;
   tasks: HomeworkTask[];
+  preparationItems?: PreparationItem[];
   materials: PersonalMaterial[];
 }
 
@@ -64,6 +66,8 @@ function normalizeTask(value: unknown): HomeworkTask | null {
     ...value,
     id: value.id, subject: value.subject.slice(0, 180), text: value.text.slice(0, 4000), due: typeof value.due === 'string' ? value.due : undefined,
     done: status === 'done', status, priority, link: validUrl,
+    kind: ['homework','report','test','credit','makeup','other'].includes(String(value.kind)) ? value.kind as HomeworkTask['kind'] : 'homework',
+    dueTimeZone: validTimeZone(value.dueTimeZone),
     attachmentName: typeof value.attachmentName === 'string' ? value.attachmentName.slice(0, 180) : undefined,
     attachmentData: typeof value.attachmentData === 'string' && value.attachmentData.length < 1_200_000 && /^data:[a-z0-9.+/-]+;base64,[a-z\d+/=]+$/i.test(value.attachmentData) ? value.attachmentData : undefined,
     program: (['31.05.01', '31.05.02', '37.05.01'].includes(String(value.program)) ? value.program : '31.05.01') as ProgramCode,
@@ -71,6 +75,15 @@ function normalizeTask(value: unknown): HomeworkTask | null {
     group: typeof value.group === 'string' ? value.group.slice(0, 40) : '',
     createdAt: typeof value.createdAt === 'string' ? value.createdAt : new Date(0).toISOString()
   };
+}
+function validTimeZone(value:unknown):string|undefined {
+  if(typeof value!=='string'||value.length>80)return undefined;
+  try{new Intl.DateTimeFormat('ru',{timeZone:value}).format();return value;}catch{return undefined;}
+}
+function normalizePreparation(value:unknown):PreparationItem[] {
+  if(!Array.isArray(value))return [];
+  const seen=new Set<string>();
+  return value.filter((x):x is Record<string,unknown>=>plain(x)&&typeof x.id==='string'&&typeof x.text==='string'&&typeof x.date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)&&['31.05.01','31.05.02','37.05.01'].includes(String(x.program))&&Number.isInteger(x.course)&&Number(x.course)>=1&&Number(x.course)<=6&&typeof x.group==='string').filter(x=>{if(seen.has(String(x.id)))return false;seen.add(String(x.id));return true;}).map(x=>({id:String(x.id),text:String(x.text).slice(0,240),date:String(x.date),program:x.program as ProgramCode,course:x.course as Course,group:String(x.group).slice(0,40),done:x.done===true,createdAt:typeof x.createdAt==='string'?x.createdAt:new Date(0).toISOString()}));
 }
 function normalizeMaterial(value: unknown): PersonalMaterial | null {
   if (!plain(value) || typeof value.id !== 'string' || typeof value.title !== 'string' || typeof value.url !== 'string' || !/^https?:\/\//i.test(value.url)) return null;
@@ -111,7 +124,7 @@ function normalize(raw: unknown): PersonalizationState {
     textScale: [100,110,120,135,150].includes(Number(raw.textScale)) ? Number(raw.textScale) : 100,
     timezone: typeof raw.timezone === 'string' && raw.timezone.length < 80 ? raw.timezone : INITIAL.timezone,
     double1: color(raw.double1, INITIAL.double1), double2: color(raw.double2, INITIAL.double2),
-    subjectColors: colors, subjectTeachers: teachers, tasks: normalizedTasks, materials: normalizedMaterials
+    subjectColors: colors, subjectTeachers: teachers, tasks: normalizedTasks, materials: normalizedMaterials, preparationItems:normalizePreparation(raw.preparationItems)
   };
 }
 function migrateLegacy(): PersonalizationState {

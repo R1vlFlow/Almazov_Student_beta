@@ -70,6 +70,21 @@ test('backup validates format, local keys and corrupt file data before writing',
 class Tx{constructor(rows){this.rows=rows;this.pending=0;queueMicrotask(()=>{if(!this.pending)this.oncomplete?.();});}objectStore(){const tx=this;const request=fn=>{tx.pending++;const r={};queueMicrotask(()=>{try{r.result=fn();r.onsuccess?.();}catch(e){r.error=e;r.onerror?.();tx.onerror?.();}finally{tx.pending--;queueMicrotask(()=>{if(!tx.pending)tx.oncomplete?.();});}});return r;};return {get:id=>request(()=>this.rows.get(id)),getAll:()=>request(()=>[...this.rows.values()]),add:row=>request(()=>{if(this.rows.has(row.id))throw Error('duplicate');this.rows.set(row.id,structuredClone(row));})};}}
 class DB{constructor(name){this.name=name;}createObjectStore(){Fake.stores.set(this.name,new Map());return {createIndex(){}};}transaction(){return new Tx(Fake.stores.get(this.name));}close(){}}
 class Fake{static stores=new Map();open(name){const r={};queueMicrotask(()=>{r.result=new DB(name);if(!Fake.stores.has(name))r.onupgradeneeded?.();r.onsuccess?.();});return r;}}
+
+test('backup round trip preserves tasks, attachments and preparation items and merges without overwriting',async()=>{
+ const old={indexedDB:globalThis.indexedDB,localStorage:globalThis.localStorage};const memory=new Map();globalThis.localStorage={getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,v)};globalThis.indexedDB=new Fake();Fake.stores=new Map();
+ try{
+  const {readPersonalization,savePersonalization}=await import('../dist/services/personalizationStore.js');
+  const current=readPersonalization();
+  const task={id:'old-task',program:'31.05.01',course:1,group:'123',subject:'Анатомия',text:'Мой текст',status:'done',done:true,priority:'medium',kind:'report',due:'2026-11-27T09:00',dueTimeZone:'Europe/Moscow',attachmentName:'notes.pdf',attachmentData:'data:application/pdf;base64,JVBERi0=',createdAt:'2026-11-26'};
+  const item={id:'old-item',program:'31.05.01',course:1,group:'123',date:'2026-11-27',text:'Халат',done:true,createdAt:'2026-11-26'};
+  savePersonalization({...current,tasks:[task],preparationItems:[item]});
+  const copy=await createPersonalBackup();assert.equal(validatePersonalBackup(copy),copy);
+  copy.personalization.tasks=[{...task,text:'Чужой текст'},{...task,id:'new-task',text:'Новое задание'}];copy.personalization.preparationItems=[{...item,text:'Чужая вещь'},{...item,id:'new-item',text:'Тетрадь'}];
+  await restorePersonalBackup(copy);await restorePersonalBackup(copy);
+  const result=await createPersonalBackup();assert.equal(result.personalization.tasks.length,2);assert.equal(result.personalization.tasks[0].text,'Мой текст');assert.equal(result.personalization.tasks[0].attachmentData,task.attachmentData);assert.equal(result.personalization.tasks[0].dueTimeZone,'Europe/Moscow');assert.equal(result.personalization.preparationItems.length,2);assert.equal(result.personalization.preparationItems[0].text,'Халат');
+ }finally{Object.assign(globalThis,old);}
+});
 test('restore is additive and repeated restore does not duplicate notes or overwrite files',async()=>{
  const old={indexedDB:globalThis.indexedDB,localStorage:globalThis.localStorage,FileReader:globalThis.FileReader};const memory=new Map();globalThis.localStorage={getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,v)};globalThis.indexedDB=new Fake();globalThis.FileReader=class{async readAsDataURL(blob){this.result='data:'+blob.type+';base64,'+Buffer.from(await blob.arrayBuffer()).toString('base64');this.onload();}};
  try{const b=blank();b.stores.files=[{id:'file-a',title:'Конспект',subject:'Терапия',category:'lecture',description:'',tags:[],fileName:'notes.pdf',mimeType:'application/pdf',size:5,createdAt:b.createdAt,program:'31.05.01',course:4,group:'423',scope:'31.05.01:4:423',fileBase64:'JVBERi0='}];await restorePersonalBackup(b);await restorePersonalBackup(b);const exported=await createPersonalBackup();assert.equal(exported.stores.files.length,1);assert.equal(exported.stores.files[0].fileBase64,'JVBERi0=');const altered=structuredClone(b);altered.stores.files[0].title='Чужая версия';await restorePersonalBackup(altered);assert.equal((await createPersonalBackup()).stores.files[0].title,'Конспект');}finally{Object.assign(globalThis,old);}

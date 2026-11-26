@@ -1,3 +1,39 @@
+/* Preparation, tasks and schedule history share the application's theme tokens. */
+:root{--planner-link:#315fce}:root[data-theme="dark"]{--planner-link:#9bb7ff}
+#page-tomorrow .planner-materials a,#page-tomorrow .text-link,#page-changes .text-link{color:var(--planner-link)}
+#changesNotice:empty,#preparationNotice:empty,#taskScopeNotice:empty,#taskExistingAttachment:empty{display:none}
+.daily-shortcuts{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 20px}
+.planner-notice{padding:14px 18px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);color:var(--text-2);margin-bottom:18px;font-size:calc(14px * var(--text-scale,1));line-height:1.55}
+.planner-notice[hidden],.nav-list em[hidden]{display:none!important}
+#scheduleChangesNotice{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.planner-notice p{margin:0}.planner-notice p+p{margin-top:6px}
+.planner-arrival{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px;border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:14px;background:var(--surface);margin-bottom:20px}
+.planner-arrival h2{margin:4px 0;font-size:calc(22px * var(--text-scale,1))}.planner-arrival p{margin:4px 0;color:var(--text-2)}
+.planner-columns{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:start}
+.planner-columns>.panel{min-width:0}.planner-columns h2,.preparation-checklist h2,.change-batch h2{font-size:calc(20px * var(--text-scale,1));line-height:1.35}
+.planner-lesson{display:grid;grid-template-columns:66px minmax(0,1fr);gap:16px;padding:20px 0;border-top:1px solid var(--border)}
+.planner-time{font-size:calc(17px * var(--text-scale,1));font-weight:650;line-height:1.4;font-variant-numeric:tabular-nums}.planner-time span{display:block;color:var(--text-3);font-size:calc(13px * var(--text-scale,1));font-weight:400;margin-top:4px}
+.planner-lesson h3,.schedule-change h3{font-size:calc(18px * var(--text-scale,1));line-height:1.35;margin:6px 0;overflow-wrap:anywhere}.planner-lesson p{margin:6px 0;line-height:1.5}
+.planner-kind{display:inline-block;color:var(--text-2);font-size:calc(12px * var(--text-scale,1));line-height:1.45;font-weight:600}
+.planner-topic{color:var(--text-2);font-size:calc(14px * var(--text-scale,1))}.planner-row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.planner-materials{padding-left:18px;margin:12px 0;line-height:1.55}.planner-materials a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.planner-task{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:start;padding:18px 0;border-top:1px solid var(--border)}
+.planner-task b{display:block;margin:4px 0}.planner-task p{margin:5px 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}.planner-task small{display:block;color:var(--text-2);margin-top:8px}
+.planner-overdue{color:var(--danger)!important;font-weight:600}.task-row.task-overdue{border-left-color:var(--danger)}
+.planner-empty{padding:18px 0;color:var(--text-2)}
+.preparation-checklist{margin-top:20px;max-width:900px}.preparation-checklist ul{list-style:none;padding:0;margin:0 0 18px}.preparation-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.preparation-item label{display:flex;align-items:center;gap:12px;min-height:44px;min-width:0;flex:1;font-weight:400;font-size:calc(16px * var(--text-scale,1))}.preparation-item label span{overflow-wrap:anywhere}.preparation-item.done label span{text-decoration:line-through;color:var(--text-3)}
+.preparation-item input{width:22px;height:22px;flex:0 0 22px;accent-color:var(--accent)}
+.preparation-checklist .section-head{flex-wrap:wrap}#taskRemoveAttachmentLabel[hidden]{display:none!important}
+.preparation-form{display:flex;align-items:end;gap:12px}.preparation-form label{flex:1;min-width:0;display:grid;gap:6px;font-size:calc(14px * var(--text-scale,1));color:var(--text-2)}
+.preparation-form input{min-height:44px;width:100%;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);padding:10px 12px;font:inherit}
+.preparation-form input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.changes-list{display:grid;gap:20px;max-width:1000px}.changes-list .planner-notice{margin:0}.change-batch.unread{border-left:4px solid var(--accent)}
+.schedule-change{padding:18px 0;border-top:1px solid var(--border)}.schedule-change p{margin:6px 0;line-height:1.5}.schedule-change>small{display:block;color:var(--text-2);margin:8px 0}
+.change-fields{margin:12px 0}.change-fields>div{display:grid;grid-template-columns:125px minmax(0,1fr);gap:14px;margin:10px 0;line-height:1.5}.change-fields dt{color:var(--text-2)}.change-fields dd{margin:0;overflow-wrap:anywhere}.change-before{color:var(--text-2)}
+.changes-list h2{margin:4px 0}.task-body p{white-space:pre-wrap}.task-actions{flex-wrap:wrap}.task-list .task-status-control{width:100%}
+@media(max-width:1000px){.planner-columns{grid-template-columns:1fr}}
+@media(max-width:680px){.planner-arrival{align-items:start;flex-direction:column;padding:16px}.planner-columns{gap:14px}.planner-lesson{grid-template-columns:54px minmax(0,1fr);gap:12px}.planner-task{grid-template-columns:24px minmax(0,1fr)}.planner-task>.btn{grid-column:2;justify-self:start}.preparation-form{align-items:stretch;flex-direction:column}.change-fields>div{grid-template-columns:1fr;gap:4px}.change-batch .section-head{align-items:start;flex-direction:column}.planner-columns .panel,.changes-list .panel,.preparation-checklist{padding:16px}#scheduleChangesNotice{align-items:start;flex-direction:column}}
 @font-face {
  font-family:"Source Sans 3";
  src:url("./assets/fonts/source-sans-3.woff2") format("woff2");

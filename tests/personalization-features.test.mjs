@@ -72,7 +72,7 @@ test('homework form and list support due dates, priorities, statuses, links and 
   for (const id of ['taskSubject', 'taskDate', 'taskPriority', 'taskText', 'taskLink', 'taskAttachment', 'taskStatusFilter', 'taskSubjectFilter']) assert.match(html, new RegExp(`id="${id}"`));
   for (const status of ['todo', 'in_progress', 'done']) assert.ok(app.includes(`value="${status}"`));
   for (const priority of ['low', 'medium', 'high']) assert.ok(html.includes(`value="${priority}"`));
-  assert.match(app, /\.sort\(\(a,b\)=>\{const ad=a\.due\?/);
+  assert.match(app, /taskDueAt\(a,state\.timezone\)/);
   assert.match(app, /function taskBadge\(subject:string\)/);
   assert.match(app, /data-task-status=/);
   assert.match(storeSource, /attachmentData: typeof value\.attachmentData === 'string'.*data:/);
