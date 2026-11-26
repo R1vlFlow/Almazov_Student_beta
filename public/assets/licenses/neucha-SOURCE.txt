@@ -1,0 +1,11 @@
+Neucha — Jovanny Lemonad.
+Distributed under the SIL Open Font License 1.1; see neucha-OFL.txt.
+Unmodified WOFF2 Cyrillic and Latin subsets supplied by Google Fonts.
+
+https://fonts.google.com/specimen/Neucha
+https://github.com/google/fonts/tree/main/ofl/neucha
+https://fonts.googleapis.com/css2?family=Neucha&display=swap
+https://fonts.gstatic.com/s/neucha/v18/q5uGsou0JOdh94bfuQltOxU.woff2
+https://fonts.gstatic.com/s/neucha/v18/q5uGsou0JOdh94bfvQlt.woff2
+
+The font is bundled locally and used only for the empty task list caption.
