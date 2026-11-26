@@ -506,7 +506,10 @@ html[data-theme="light"] .weekly-rotation-item{background:#f7fafc;border-color:#
 
 .install-option{flex:1 1 260px;min-width:0;padding:16px;border:1px solid var(--border,#b4bfd2);border-radius:16px;text-align:left}.install-option h3{margin:0 0 8px}.install-option p{line-height:1.5}.install-option .btn{width:100%;min-height:48px}.install-option a:not(.btn){font-size:calc(.9rem * var(--text-scale,1));overflow-wrap:anywhere}.install-option [role="status"]{min-height:3em}.install-option button:disabled{opacity:.65;cursor:default}
 
-.update-offer{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));right:16px;left:16px;max-width:480px;margin-left:auto;z-index:1000;box-shadow:0 8px 32px #0004}.update-offer p{margin:0 0 12px}
+.update-offer{position:fixed;bottom:calc(var(--update-edge-bottom,24px) + env(safe-area-inset-bottom,0px));right:max(20px,env(safe-area-inset-right,0px));left:auto;width:min(420px,calc(100vw - 32px));max-height:calc(var(--content-height,100dvh) - var(--update-edge-bottom,24px) - 16px);margin:0;padding:20px;overflow:auto;z-index:80;border:1px solid var(--border);border-radius:18px;background:var(--surface);color:var(--text);box-shadow:var(--shadow-md)}
+.update-offer-copy{min-width:0}.update-offer-label{display:block;margin-bottom:6px;color:var(--text-3);font-size:calc(11px * var(--text-scale,1));line-height:1.4;font-weight:600}.update-offer h2{margin:0;font-size:calc(19px * var(--text-scale,1));line-height:1.25;letter-spacing:-.2px;overflow-wrap:anywhere}.update-offer p{margin:9px 0 0;color:var(--text-2);font-size:calc(14px * var(--text-scale,1));line-height:1.5}
+.update-offer-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin-top:17px}.update-offer-actions .btn{min-width:0;min-height:44px;padding:10px 15px;font-size:calc(13px * var(--text-scale,1));line-height:1.4;text-align:center;white-space:normal}.update-offer-later{background:transparent;color:var(--text-2)}.update-offer .btn[aria-busy=true]{cursor:wait}
+body.modal-open .update-offer,body.menu-open .update-offer{display:none}
 
 /* Campus directory: one place per card, room details remain secondary. */
 #page-addresses .address-toolbar{display:flex;align-items:end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin:24px 0 16px}
@@ -528,7 +531,7 @@ html[data-theme="light"] .weekly-rotation-item{background:#f7fafc;border-color:#
 #page-addresses ul{padding-left:18px;font-size:calc(12px * var(--text-scale,1));line-height:1.6;overflow-wrap:anywhere}
 #page-addresses li+li{margin-top:6px}
 #page-addresses .address-footnote{font-size:calc(12px * var(--text-scale,1));line-height:1.7;color:var(--text-2);margin:24px 0}
-#page-addresses #addressUnresolved{margin-top:20px;padding:18px}
+
 #page-addresses .address-empty{grid-column:1/-1;padding:24px}
 @media(max-width:760px){#page-addresses .address-list{grid-template-columns:1fr}#page-addresses .address-toolbar{gap:16px}#page-addresses .address-search{max-width:none;flex-basis:100%}#page-addresses .address-scopes{width:100%}#page-addresses .address-scopes .btn{flex:1;padding:10px 6px;font-size:calc(12px * var(--text-scale,1))}#page-addresses .address-card{padding:16px}}
 
@@ -711,7 +714,7 @@ html[data-viewport-layout]:not([data-viewport-layout=single]) #page-schedule.act
 html[data-viewport-layout]:not([data-viewport-layout=single]) .toast-root,html[data-viewport-layout]:not([data-viewport-layout=single]) .fatal{left:calc(var(--content-left) + 8px);right:auto;max-width:calc(var(--content-width) - 16px);bottom:calc(var(--layout-viewport-height,100dvh) - var(--content-top) - var(--content-height) + 8px)}
 html[data-viewport-layout]:not([data-viewport-layout=single]) .release-notice{left:calc(var(--content-left) + 8px);top:calc(var(--content-top) + 8px);right:auto;bottom:auto;width:min(480px,calc(var(--content-width) - 16px));max-height:calc(var(--content-height) - 16px);overflow:auto}
 html[data-viewport-layout] .install-help-dialog{position:fixed;inset:auto;margin:0;left:calc(var(--content-left) + var(--content-width)/2);top:calc(var(--content-top) + var(--content-height)/2);transform:translate(-50%,-50%);width:min(620px,calc(var(--content-width) - 24px));max-height:calc(var(--content-height) - 24px)}
-html[data-viewport-layout]:not([data-viewport-layout=single]) .update-offer{left:calc(var(--content-left) + 8px);right:auto;width:calc(var(--content-width) - 16px);max-width:480px;max-height:calc(var(--content-height) - 100px);overflow:auto;bottom:calc(var(--layout-viewport-height,100dvh) - var(--content-top) - var(--content-height) + 80px)}
+html[data-viewport-layout]:not([data-viewport-layout=single]) .update-offer{left:calc(var(--content-left) + max(12px,calc(var(--content-width) - 432px)));right:auto;width:min(420px,calc(var(--content-width) - 24px));bottom:calc(var(--layout-viewport-height,100dvh) - var(--content-top) - var(--content-height) + var(--update-edge-bottom,24px))}
 html[data-short-viewport=true] .topbar{min-height:54px;padding-block:5px}html[data-short-viewport=true] .sidebar>.brand,html[data-short-viewport=true] .sidebar>.telegram-contact{display:none}html[data-short-viewport=true] .sidebar{gap:8px;padding:10px}
 html[data-short-viewport=true] .sidebar>.profile-card{padding-right:42px;min-height:52px}html[data-short-viewport=true] .sidebar>.side-status{font-size:10px;padding:0 2px}
 html[data-short-viewport=true] .modal>header,html[data-short-viewport=true] .modal>footer{padding:8px 12px!important;gap:8px}html[data-short-viewport=true] .modal>header .eyebrow,html[data-short-viewport=true] #profileModal .profile-preview-card{display:none}
@@ -726,3 +729,12 @@ html[data-viewport-layout=vertical][data-dual-navigation=true] .sidebar>.brand,h
 html[data-viewport-layout=vertical][data-dual-navigation=true] .sidebar>.nav-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:6px;max-width:680px;overflow-y:auto}
 html[data-viewport-layout=vertical][data-dual-navigation=true] .sidebar>.nav-list button{min-width:0;min-height:44px;padding:9px 10px;white-space:normal}
 html[data-viewport-layout=vertical][data-dual-navigation=true] .sidebar>.side-status{max-width:680px}
+
+/* A small meme for a genuinely empty task list; filtered results stay factual. */
+.task-empty-state{display:grid;grid-template-columns:minmax(160px,220px) minmax(0,1fr);align-items:center;gap:28px;padding:22px 32px;text-align:left;overflow:hidden}
+.task-empty-art{display:grid;gap:7px;width:100%;max-width:220px;margin:0 auto}.task-empty-art img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain}.task-empty-art figcaption{color:var(--text);font-size:calc(18px * var(--text-scale,1));font-weight:700;line-height:1.2;text-align:center;text-wrap:balance}
+.task-empty-copy{min-width:0}.task-empty-copy h3{margin:0 0 8px;font-size:calc(25px * var(--text-scale,1));line-height:1.2;letter-spacing:-.35px}.task-empty-copy p{max-width:38ch;margin:8px 0;color:var(--text-2);font-size:calc(14px * var(--text-scale,1));line-height:1.5}.task-empty-copy .task-empty-joke{color:var(--text);font-size:calc(17px * var(--text-scale,1))}.task-empty-copy .btn{margin-top:12px;white-space:normal;text-align:center}
+html[data-compact-layout=true] .update-offer{--update-edge-bottom:88px;left:12px;right:12px;width:auto;padding:17px}
+html[data-compact-layout=true] .task-empty-state{grid-template-columns:minmax(0,1fr);gap:4px;padding:18px 20px 25px;text-align:center}html[data-compact-layout=true] .task-empty-art{max-width:190px}html[data-compact-layout=true] .task-empty-copy p{margin-left:auto;margin-right:auto}
+html[data-short-viewport=true] .update-offer{padding:12px 15px}html[data-short-viewport=true] .update-offer-label{display:none}html[data-short-viewport=true] .update-offer h2{font-size:calc(17px * var(--text-scale,1))}html[data-short-viewport=true] .update-offer-actions{margin-top:10px}
+@media(max-width:360px){.update-offer-actions .btn{flex:1 1 auto}.task-empty-copy h3{font-size:calc(22px * var(--text-scale,1))}}

@@ -25,6 +25,25 @@
   // Verify the deployed build on every page load. The unique query and no-store
   // bypass both the browser HTTP cache and stale service-worker entries.
   let updateCheckRunning=false;
+  let deferredUpdate={key:'',until:0};
+  function updateIsDeferred(key){
+    try{const stored=JSON.parse(sessionStorage.getItem('almazov:update-offer-snooze')||'null');if(stored&&typeof stored.key==='string'&&Number.isFinite(stored.until))deferredUpdate=stored;}catch{}
+    return deferredUpdate.key===key&&deferredUpdate.until>Date.now();
+  }
+  function mountUpdateOffer(id,key,title,message,action){
+    const existing=document.getElementById(id);
+    if(existing?.dataset.releaseKey===key)return;
+    existing?.remove();
+    const banner=document.createElement('aside');banner.id=id;banner.className='card update-offer';banner.dataset.releaseKey=key;banner.setAttribute('role','status');banner.setAttribute('aria-live','polite');banner.setAttribute('aria-atomic','true');banner.setAttribute('aria-labelledby',id+'Title');
+    const copy=document.createElement('div');copy.className='update-offer-copy';
+    const label=document.createElement('span');label.className='update-offer-label';label.textContent='Обновление приложения';
+    const heading=document.createElement('h2');heading.id=id+'Title';heading.textContent=title;
+    const text=document.createElement('p');text.textContent=message;copy.append(label,heading,text);
+    const actions=document.createElement('div');actions.className='update-offer-actions';
+    const later=document.createElement('button');later.type='button';later.className='btn update-offer-later';later.textContent='Позже';later.title='Напомнить через 30 минут';
+    later.addEventListener('click',()=>{deferredUpdate={key,until:Date.now()+30*60*1000};try{sessionStorage.setItem('almazov:update-offer-snooze',JSON.stringify(deferredUpdate));}catch{}banner.remove();});
+    actions.append(action,later);banner.append(copy,actions);document.body.append(banner);
+  }
   async function checkForNewBuild(showStatus=false){
     if(updateCheckRunning)return;
     updateCheckRunning=true;
@@ -40,10 +59,11 @@
         if(remote.versionCode>current.versionCode){
           if(status)status.textContent='Доступна новая версия Android. Сохраните резервную копию перед установкой.';
           const href=new URL(remote.apkUrl);
-          if(href.origin==='https://github.com'&&href.pathname.startsWith('/R1vlFlow/Almazov_Student_beta/releases/download/')&&href.pathname.endsWith('.apk')&&document.body&&!document.getElementById('availableAndroidUpdate')){
-            const banner=document.createElement('aside');banner.id='availableAndroidUpdate';banner.className='card update-offer';banner.setAttribute('role','status');const text=document.createElement('p');text.textContent='Доступно обновление Android '+String(remote.version)+'. Сначала сохраните резервную копию в настройках.';const link=document.createElement('a');link.className='btn primary';link.href=href.href;link.textContent='Скачать обновление APK';banner.append(text,link);document.body.append(banner);
+          if(href.origin==='https://github.com'&&href.pathname.startsWith('/R1vlFlow/Almazov_Student_beta/releases/download/')&&href.pathname.endsWith('.apk')&&document.body&&(showStatus||!updateIsDeferred('android:'+remote.versionCode))){
+            const link=document.createElement('a');link.className='btn primary';link.href=href.href;link.textContent='Скачать APK';
+            mountUpdateOffer('availableAndroidUpdate','android:'+remote.versionCode,'Новая версия Android '+String(remote.version),'Перед установкой сохраните резервную копию в настройках.',link);
           }
-        }else if(showStatus&&status)status.textContent='Установлена актуальная опубликованная версия Android '+current.version+'.';
+        }else{document.getElementById('availableAndroidUpdate')?.remove();if(showStatus&&status)status.textContent='Установлена актуальная опубликованная версия Android '+current.version+'.';}
         return;
       }
       const url=new URL('./version.json',window.location.href);
@@ -55,6 +75,7 @@
       const pageUrl=new URL(window.location.href);
       const waitingWorker=(await navigator.serviceWorker?.getRegistration())?.waiting;
       if(release.buildId===BUILD_ID&&!waitingWorker){
+        document.getElementById('availableUpdate')?.remove();
         let cleanUrl=false;
         for(const key of ['__app_build','__root_refresh']){if(pageUrl.searchParams.has(key)){pageUrl.searchParams.delete(key);cleanUrl=true;}}
         if(cleanUrl)history.replaceState(history.state,'',pageUrl.href);
@@ -62,6 +83,7 @@
         if(showStatus){const status=document.getElementById('appUpdateStatus');if(status)status.textContent=`Приложение обновлено: ${BUILD_ID}`;}
         return;
       }
+      if(!showStatus&&updateIsDeferred('web:'+release.buildId))return;
       // One cache-busting navigation per newly discovered build; never reload-loop.
       let previous='',lastAttempt=0;
       try{previous=sessionStorage.getItem('almazov:last-build-refresh')||'';lastAttempt=Number(sessionStorage.getItem('almazov:last-build-refresh-at')||0);}catch{}
@@ -70,19 +92,14 @@
       pageUrl.searchParams.set('__app_build',release.buildId);
       if(showStatus&&status)status.textContent=`Новая версия ${release.buildId} найдена. Перезагружаем приложение…`;
       const offer=()=>{
-        let banner=document.getElementById('availableUpdate');
-        if(!banner){
-          banner=document.createElement('aside');banner.id='availableUpdate';banner.className='card update-offer';banner.setAttribute('role','status');
-          const message=document.createElement('p');message.textContent='Доступна новая версия. Сохраните изменения перед обновлением.';
           const button=document.createElement('button');button.type='button';button.className='btn primary';button.textContent='Обновить сейчас';
           button.addEventListener('click',async()=>{
             if(!window.confirm('Сохранены ли ваши изменения? Страница будет перезагружена.'))return;
-            button.disabled=true;
+            button.disabled=true;button.textContent='Обновляем…';button.setAttribute('aria-busy','true');const later=button.closest('.update-offer')?.querySelector('.update-offer-later');if(later)later.disabled=true;
             try{const registration=await navigator.serviceWorker?.getRegistration();if(registration?.waiting){await new Promise(resolve=>{const timer=setTimeout(resolve,5000);navigator.serviceWorker.addEventListener('controllerchange',()=>{clearTimeout(timer);resolve();},{once:true});registration.waiting.postMessage({type:'SKIP_WAITING'});});}}catch{}
             window.location.replace(pageUrl.href);
           });
-          banner.append(message,button);document.body.append(banner);
-        }
+          mountUpdateOffer('availableUpdate','web:'+release.buildId,'Доступна новая версия','Сохраните открытые изменения. После обновления страница перезагрузится.',button);
       };
       if(document.body)offer();else document.addEventListener('DOMContentLoaded',offer,{once:true});
       if(status)status.textContent='Доступно обновление. Нажмите «Обновить сейчас», когда сохраните изменения.';

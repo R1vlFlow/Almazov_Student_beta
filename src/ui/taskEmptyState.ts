@@ -1,0 +1,4 @@
+export function taskEmptyStateMarkup(hasTasks:boolean):string {
+ if(hasTasks)return '<div class="empty-state card"><h3>Нет заданий по этим фильтрам</h3><p>Измените срок, статус, предмет или поисковый запрос.</p><button class="btn primary" data-action="add-task">Добавить задание</button></div>';
+ return `<div class="empty-state card task-empty-state"><figure class="task-empty-art"><img src="./assets/task-hamster.png" width="1254" height="1254" loading="lazy" decoding="async" fetchpriority="low" alt="Подозрительный хомяк с лупой ищет задания"><figcaption>Мой глазик не видит алмазик</figcaption></figure><div class="task-empty-copy"><h3>Заданий пока нет</h3><p class="task-empty-joke">Проверил даже под лупой.</p><p>Когда появятся — добавьте сюда или прямо из расписания.</p><button class="btn primary" data-action="add-task">Добавить задание</button></div></div>`;
+}
