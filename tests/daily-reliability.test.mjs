@@ -78,11 +78,13 @@ test('backup round trip preserves tasks, attachments and preparation items and m
   const current=readPersonalization();
   const task={id:'old-task',program:'31.05.01',course:1,group:'123',subject:'Анатомия',text:'Мой текст',status:'done',done:true,priority:'medium',kind:'report',due:'2026-11-27T09:00',dueTimeZone:'Europe/Moscow',attachmentName:'notes.pdf',attachmentData:'data:application/pdf;base64,JVBERi0=',createdAt:'2026-11-26'};
   const item={id:'old-item',program:'31.05.01',course:1,group:'123',date:'2026-11-27',text:'Халат',done:true,createdAt:'2026-11-26'};
-  savePersonalization({...current,tasks:[task],preparationItems:[item]});
+  savePersonalization({...current,tasks:[task],preparationItems:[item],subjectColors:{химия:'#7892bf'},subjectGradients:{химия:'blue-purple'}});
   const copy=await createPersonalBackup();assert.equal(validatePersonalBackup(copy),copy);
+  copy.personalization.subjectColors={химия:'#b91c1c',биология:'#047857'};copy.personalization.subjectGradients={химия:'pastel-pink',биология:'teal-blue'};
   copy.personalization.tasks=[{...task,text:'Чужой текст'},{...task,id:'new-task',text:'Новое задание'}];copy.personalization.preparationItems=[{...item,text:'Чужая вещь'},{...item,id:'new-item',text:'Тетрадь'}];
   await restorePersonalBackup(copy);await restorePersonalBackup(copy);
   const result=await createPersonalBackup();assert.equal(result.personalization.tasks.length,2);assert.equal(result.personalization.tasks[0].text,'Мой текст');assert.equal(result.personalization.tasks[0].attachmentData,task.attachmentData);assert.equal(result.personalization.tasks[0].dueTimeZone,'Europe/Moscow');assert.equal(result.personalization.preparationItems.length,2);assert.equal(result.personalization.preparationItems[0].text,'Халат');
+  assert.equal(result.personalization.subjectGradients.химия,'blue-purple');assert.equal(result.personalization.subjectGradients.биология,'teal-blue');assert.equal(result.personalization.subjectColors.химия,'#7892bf');
  }finally{Object.assign(globalThis,old);}
 });
 test('restore is additive and repeated restore does not duplicate notes or overwrite files',async()=>{

@@ -17,10 +17,10 @@ const snapshot=(events,weeklyBlocks=[])=>({status:'live',events,weeklyBlocks,iss
 class MemoryStorage {values=new Map();getItem(k){return this.values.get(k)??null;}setItem(k,v){this.values.set(k,String(v));}}
 function luminance(hex){return hex.slice(1).match(/../g).map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);}
 test('curated palettes use safe colors and both gradient endpoints support white icons',()=>{
- assert.equal(APPEARANCE_PALETTES.length,8);assert.equal(new Set(APPEARANCE_PALETTES.map(p=>p.id)).size,8);
+ assert.equal(APPEARANCE_PALETTES.length,24);assert.equal(new Set(APPEARANCE_PALETTES.map(p=>p.id)).size,24);
  for(const p of APPEARANCE_PALETTES){assert.match(p.color,/^#[\da-f]{6}$/i);assert.match(appearanceBackground(p.color,'gradient'),/^linear-gradient/);for(const color of [p.color,p.end])assert.ok(1.05/(luminance(color)+.05)>=4.5,`${p.name}: ${color}`);}
  assert.equal(appearanceBackground('url(https://evil.test/)','gradient'),'linear-gradient(135deg, #4059c7, #7252b5)');assert.equal(appearanceBackground('#315fce','gradient'),'#315fce');
- assert.ok(appearancePickerMarkup('#315fce','gradient').includes('Ваш цвет'));
+ assert.ok(appearancePickerMarkup('#315fce','solid').includes('Ваш цвет'));
 });
 test('twenty distinct vector profile icons preserve old selections and reject arbitrary names',()=>{
  assert.equal(AVATAR_PRESETS.length,20);assert.equal(new Set(AVATAR_PRESETS.map(p=>p.id)).size,20);

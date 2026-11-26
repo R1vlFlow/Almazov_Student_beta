@@ -1,4 +1,5 @@
 import {normalizeAvatarPreset} from '../core/avatar.js';
+import {validGradientId} from '../core/appearance.js';
 import type { Course, ProgramCode, Task, ThemeMode } from '../core/types.js';
 
 export type HomeworkStatus = 'todo' | 'in_progress' | 'done';
@@ -31,12 +32,16 @@ export interface PersonalizationState {
   avatarDataUrl: string;
   accentColor: string;
   accentStyle?: 'solid'|'gradient';
+  accentGradient?: string;
   theme: ThemeMode;
   textScale: number;
   timezone: string;
   double1: string;
   double2: string;
+  double1Gradient?: string;
+  double2Gradient?: string;
   subjectColors: Record<string, string>;
+  subjectGradients?: Record<string,string>;
   subjectTeachers: Record<string, string>;
   tasks: HomeworkTask[];
   preparationItems?: PreparationItem[];
@@ -102,6 +107,8 @@ function normalize(raw: unknown): PersonalizationState {
   const colors: Record<string, string> = {};
   if (plain(raw.subjectColors)) for (const [key, value] of Object.entries(raw.subjectColors)) { const c = color(value, ''); const normalizedKey = subjectColorKey(key); if (c && normalizedKey) colors[normalizedKey] = c; }
   const teachers: Record<string, string> = {};
+  const gradients:Record<string,string>={};
+  if(plain(raw.subjectGradients))for(const [key,id] of Object.entries(raw.subjectGradients)){const normalizedKey=subjectColorKey(key);if(normalizedKey&&validGradientId(id))gradients[normalizedKey]=id;}
   if (plain(raw.subjectTeachers)) for (const [key, value] of Object.entries(raw.subjectTeachers)) { const normalizedKey = subjectColorKey(key); if (normalizedKey && typeof value === 'string' && value.trim()) teachers[normalizedKey] = value.trim().slice(0, 120); }
   const normalizedTasks = taskRaw.map(normalizeTask).filter((x): x is HomeworkTask => x !== null);
   const normalizedMaterials = materialRaw.map(normalizeMaterial).filter((x): x is PersonalMaterial => x !== null);
@@ -121,10 +128,10 @@ function normalize(raw: unknown): PersonalizationState {
     displayName: typeof raw.displayName === 'string' ? raw.displayName.slice(0, 36) : '',
     avatarPreset: normalizeAvatarPreset(raw.avatarPreset),
     avatarDataUrl: typeof raw.avatarDataUrl === 'string' && /^data:image\/(?:webp|png|jpeg);base64,[a-z\d+/=]+$/i.test(raw.avatarDataUrl) && raw.avatarDataUrl.length < 160_000 ? raw.avatarDataUrl : '',
-    accentColor: color(raw.accentColor, INITIAL.accentColor), accentStyle:raw.accentStyle==='gradient'?'gradient':'solid', theme,
+    accentColor: color(raw.accentColor, INITIAL.accentColor), accentStyle:raw.accentStyle==='gradient'?'gradient':'solid', accentGradient:validGradientId(raw.accentGradient)?raw.accentGradient:undefined, theme,
     textScale: [100,110,120,135,150].includes(Number(raw.textScale)) ? Number(raw.textScale) : 100,
     timezone: typeof raw.timezone === 'string' && raw.timezone.length < 80 ? raw.timezone : INITIAL.timezone,
-    double1: color(raw.double1, INITIAL.double1), double2: color(raw.double2, INITIAL.double2),
+    double1: color(raw.double1, INITIAL.double1), double2: color(raw.double2, INITIAL.double2),double1Gradient:validGradientId(raw.double1Gradient)?raw.double1Gradient:undefined,double2Gradient:validGradientId(raw.double2Gradient)?raw.double2Gradient:undefined,subjectGradients:gradients,
     subjectColors: colors, subjectTeachers: teachers, tasks: normalizedTasks, materials: normalizedMaterials, preparationItems:normalizePreparation(raw.preparationItems)
   };
 }
