@@ -673,3 +673,56 @@ html[data-large-text=true] .mobile-period-nav{height:auto;min-height:60px}
 .topic-plan>summary::before { left:2px; top:16px; }
 .topic-library[open]>summary::before,.topic-plan[open]>summary::before { transform:rotate(45deg); }
 @media(max-width:760px){.topic-library>summary{padding-left:34px}.topic-library>summary::before{left:14px;top:19px}}
+
+/* Available screen space, including hinges and the on-screen keyboard. */
+.visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
+.top-actions{margin-left:auto}
+#scheduleCount{display:inline-flex;align-items:center;justify-content:center;align-self:center;flex:0 0 auto;min-height:32px;height:auto;max-width:min(100%,300px);padding:7px 12px;margin:0;border-radius:999px;color:var(--text-2);font-size:calc(12px * var(--text-scale,1));line-height:1.3;text-align:center;white-space:normal;font-variant-numeric:tabular-nums}
+.sidebar{height:100dvh;max-height:var(--layout-viewport-height,100dvh);min-height:0;overflow:hidden;padding-top:max(16px,env(safe-area-inset-top,0px));padding-bottom:max(14px,env(safe-area-inset-bottom,0px))}
+.sidebar>.brand,.sidebar>.profile-card,.sidebar>.side-status,.sidebar>.telegram-contact{flex-shrink:0}.sidebar>.nav-list{flex:1 1 auto;min-height:0;overscroll-behavior:contain}.sidebar>.side-status{margin-top:0}
+.sidebar-close{display:none;position:absolute;top:10px;right:10px;z-index:2}
+.topbar{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:max(8px,env(safe-area-inset-top,0px))}
+.modal-backdrop{padding-left:max(8px,env(safe-area-inset-left,0px),calc(var(--content-left,0px) + 8px));padding-right:max(8px,env(safe-area-inset-right,0px),calc(100vw - var(--content-left,0px) - var(--content-width,100vw) + 8px));padding-top:max(8px,env(safe-area-inset-top,0px),calc(var(--content-top,0px) + 8px));padding-bottom:max(8px,env(safe-area-inset-bottom,0px),calc(var(--layout-viewport-height,100dvh) - var(--content-top,0px) - var(--content-height,100dvh) + 8px))}
+.modal-backdrop .modal{max-height:min(860px,calc(var(--content-height,100dvh) - 16px));min-height:0}.modal-body{scroll-padding-block:12px}.modal>footer>.btn{white-space:normal;line-height:1.4;text-align:center;min-width:0}
+.main .schedule-root{max-width:100%;min-width:0}
+@media(max-width:920px){body.menu-open .sidebar-close{display:grid}.sidebar>.brand{padding-right:44px}}
+@media(min-width:681px) and (max-width:1000px){.schedule-card-grid:not(.single-day){grid-template-columns:repeat(2,minmax(0,1fr));min-width:0}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.filters .grow{grid-column:1/-1}}
+html[data-compact-layout=true] .hero-head{flex-direction:column;gap:14px}html[data-compact-layout=true] .actions{justify-content:flex-start;max-width:100%}
+html[data-compact-layout=true] .page{padding:18px max(12px,env(safe-area-inset-right,0px)) 38px max(12px,env(safe-area-inset-left,0px))}
+html[data-compact-layout=true] .filters,html[data-compact-layout=true] .resource-filters,html[data-compact-layout=true] .homework-toolbar{grid-template-columns:minmax(0,1fr)}
+html[data-compact-layout=true] .calendar-toolbar{display:grid;grid-template-columns:minmax(0,1fr)}html[data-compact-layout=true] .view-switch{overflow-x:auto;flex-wrap:nowrap}html[data-compact-layout=true] .view-switch button{flex:0 0 auto}
+html[data-compact-layout=true] .calendar-toolbar-actions{justify-content:space-between}html[data-compact-layout=true] .desktop-schedule{display:none}html[data-compact-layout=true] .mobile-schedule{display:block}
+html[data-compact-layout=true] .period-bar{align-items:flex-start;flex-wrap:wrap;min-width:0}html[data-compact-layout=true] #scheduleCount{align-self:flex-start}
+html[data-compact-layout=true] .settings-grid,html[data-compact-layout=true] .split-grid,html[data-compact-layout=true] .planner-columns,html[data-compact-layout=true] .home-day-grid,html[data-compact-layout=true] .info-grid,html[data-compact-layout=true] .kug-results,html[data-compact-layout=true] .resource-card-grid{grid-template-columns:minmax(0,1fr)}
+html[data-compact-layout=true] .planner-arrival{flex-direction:column;align-items:start}html[data-compact-layout=true] .planner-arrival .btn{white-space:normal}
+html[data-compact-layout=true] .two-col{grid-template-columns:minmax(0,1fr)}
+html[data-compact-layout=true] .homework-toolbar>*,html[data-compact-layout=true] .resource-filters>*{grid-column:auto;min-width:0}html[data-compact-layout=true] .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+html[data-compact-layout=true] #page-schedule.active{padding-bottom:100px}html[data-compact-layout=true] #page-schedule.active .mobile-period-nav{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:8px;position:fixed;bottom:0;left:0;right:0;z-index:25;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--border)}
+html[data-compact-layout=true] .mobile-period-nav>div{display:grid;gap:2px;text-align:center;min-width:0}html[data-compact-layout=true] .mobile-period-nav b{font-size:calc(13px * var(--text-scale,1))}html[data-compact-layout=true] .mobile-period-nav .icon{width:48px;min-height:48px}
+html[data-compact-layout=true] .mobile-period-today{border:0;background:transparent;color:var(--accent);font-weight:700;min-height:28px}
+html[data-viewport-layout]:not([data-viewport-layout=single]) .main{position:fixed;left:var(--content-left);top:var(--content-top);width:var(--content-width);height:var(--content-height);margin:0;overflow:auto;overscroll-behavior:contain}
+html[data-viewport-layout] .main{scrollbar-gutter:stable}
+html[data-viewport-layout][data-dual-navigation=true] .sidebar{inset:var(--navigation-top) auto auto var(--navigation-left);width:var(--navigation-width);height:var(--navigation-height);max-height:var(--navigation-height);transform:none;box-shadow:none}
+html[data-viewport-layout][data-dual-navigation=true] .sidebar>*{width:100%;max-width:360px;margin-left:auto;margin-right:auto}html[data-viewport-layout][data-dual-navigation=true] .menu,html[data-viewport-layout][data-dual-navigation=true] .sidebar-close{display:none}
+html[data-viewport-layout]:not([data-viewport-layout=single]):not([data-dual-navigation=true]) .sidebar{left:var(--content-left);top:var(--content-top);bottom:auto;height:var(--content-height);max-height:var(--content-height);width:min(300px,var(--content-width));transform:translateX(-120%);visibility:hidden}
+html[data-viewport-layout]:not([data-viewport-layout=single]):not([data-dual-navigation=true]) body.menu-open .sidebar{transform:none;visibility:visible}html[data-viewport-layout]:not([data-viewport-layout=single]):not([data-dual-navigation=true]) .menu{display:grid}html[data-viewport-layout]:not([data-viewport-layout=single]):not([data-dual-navigation=true]) body.menu-open .sidebar-close{display:grid}
+html[data-viewport-layout]:not([data-viewport-layout=single]) .modal-body{padding:16px}html[data-viewport-layout]:not([data-viewport-layout=single]) .task-fields-row{grid-template-columns:minmax(0,1fr)}html[data-viewport-layout]:not([data-viewport-layout=single]) #profileModal .profile-preview-card{margin:12px 16px 0}
+html[data-viewport-layout]:not([data-viewport-layout=single]) #page-schedule.active .mobile-period-nav{left:var(--content-left);right:auto;width:var(--content-width);bottom:calc(var(--layout-viewport-height,100dvh) - var(--content-top) - var(--content-height))}
+html[data-viewport-layout]:not([data-viewport-layout=single]) .toast-root,html[data-viewport-layout]:not([data-viewport-layout=single]) .fatal{left:calc(var(--content-left) + 8px);right:auto;max-width:calc(var(--content-width) - 16px);bottom:calc(var(--layout-viewport-height,100dvh) - var(--content-top) - var(--content-height) + 8px)}
+html[data-viewport-layout]:not([data-viewport-layout=single]) .release-notice{left:calc(var(--content-left) + 8px);top:calc(var(--content-top) + 8px);right:auto;bottom:auto;width:min(480px,calc(var(--content-width) - 16px));max-height:calc(var(--content-height) - 16px);overflow:auto}
+html[data-viewport-layout] .install-help-dialog{position:fixed;inset:auto;margin:0;left:calc(var(--content-left) + var(--content-width)/2);top:calc(var(--content-top) + var(--content-height)/2);transform:translate(-50%,-50%);width:min(620px,calc(var(--content-width) - 24px));max-height:calc(var(--content-height) - 24px)}
+html[data-viewport-layout]:not([data-viewport-layout=single]) .update-offer{left:calc(var(--content-left) + 8px);right:auto;width:calc(var(--content-width) - 16px);max-width:480px;max-height:calc(var(--content-height) - 100px);overflow:auto;bottom:calc(var(--layout-viewport-height,100dvh) - var(--content-top) - var(--content-height) + 80px)}
+html[data-short-viewport=true] .topbar{min-height:54px;padding-block:5px}html[data-short-viewport=true] .sidebar>.brand,html[data-short-viewport=true] .sidebar>.telegram-contact{display:none}html[data-short-viewport=true] .sidebar{gap:8px;padding:10px}
+html[data-short-viewport=true] .sidebar>.profile-card{padding-right:42px;min-height:52px}html[data-short-viewport=true] .sidebar>.side-status{font-size:10px;padding:0 2px}
+html[data-short-viewport=true] .modal>header,html[data-short-viewport=true] .modal>footer{padding:8px 12px!important;gap:8px}html[data-short-viewport=true] .modal>header .eyebrow,html[data-short-viewport=true] #profileModal .profile-preview-card{display:none}
+html[data-short-viewport=true] .modal>header h2{font-size:calc(18px * var(--text-scale,1))!important}html[data-short-viewport=true] .modal-body{padding:12px!important}
+html[data-keyboard-open=true] .mobile-period-nav{display:none!important}html[data-keyboard-open=true] .release-notice,html[data-keyboard-open=true] .update-offer{display:none!important}
+@media(max-width:360px){.modal>footer>.btn{flex:1;padding:8px}.hero-head h1{overflow-wrap:anywhere}.appearance-style-picker button{white-space:normal}.period-bar>div{min-width:0}}
+@media(pointer:coarse){.btn.small{min-height:40px}.nav-list button{min-height:44px}}
+@media print{html[data-viewport-layout] .main{position:static;width:auto;height:auto;overflow:visible}.sidebar-close{display:none!important}}
+
+html[data-viewport-layout=vertical][data-dual-navigation=true] .sidebar{padding:12px 16px;gap:10px}
+html[data-viewport-layout=vertical][data-dual-navigation=true] .sidebar>.brand,html[data-viewport-layout=vertical][data-dual-navigation=true] .sidebar>.telegram-contact{display:none}
+html[data-viewport-layout=vertical][data-dual-navigation=true] .sidebar>.nav-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:6px;max-width:680px;overflow-y:auto}
+html[data-viewport-layout=vertical][data-dual-navigation=true] .sidebar>.nav-list button{min-width:0;min-height:44px;padding:9px 10px;white-space:normal}
+html[data-viewport-layout=vertical][data-dual-navigation=true] .sidebar>.side-status{max-width:680px}
