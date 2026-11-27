@@ -1,3 +1,5 @@
+import {MAX_MATERIAL_FILE_SIZE,ensureFileSpace,fileStorageError} from '../core/uploadLimits.js';
+export {MAX_MATERIAL_FILE_SIZE} from '../core/uploadLimits.js';
 export type MaterialFileCategory = 'lecture' | 'practice' | 'lab' | 'book' | 'link';
 export interface FileMaterial {
   id: string;
@@ -20,8 +22,8 @@ export interface FileMaterial {
 const DB_NAME = 'almazov-materials';
 const DB_VERSION = 1;
 const STORE = 'files';
-export const MAX_MATERIAL_FILE_SIZE = 25 * 1024 * 1024;
-const ALLOWED_EXTENSIONS = new Set(['pdf', 'docx', 'xlsx', 'pptx', 'zip', 'jpg', 'jpeg', 'png']);
+
+const ALLOWED_EXTENSIONS = new Set(['pdf','doc','docx','xls','xlsx','ppt','pptx','zip','jpg','jpeg','png','webp','txt','md','epub','fb2','mp3','m4a','mp4']);
 
 export function materialScope(program: string, course: number, group: string): string {
   return `${program}:${course}:${group.trim().toLocaleLowerCase('ru-RU')}`;
@@ -53,10 +55,10 @@ function openDb(): Promise<IDBDatabase> {
 function transaction<T>(mode: IDBTransactionMode, action: (store: IDBObjectStore, resolve: (value: T) => void, reject: (reason?: unknown) => void) => void): Promise<T> {
   return openDb().then(db => new Promise<T>((resolve, reject) => {
     const tx = db.transaction(STORE, mode);
-    tx.oncomplete = () => db.close();
+    let result:T;tx.oncomplete = () => {db.close();resolve(result);};
     tx.onerror = () => { db.close(); reject(tx.error ?? new Error('Ошибка базы материалов.')); };
     tx.onabort = () => { db.close(); reject(tx.error ?? new Error('Операция с материалом отменена.')); };
-    action(tx.objectStore(STORE), resolve, reject);
+    try{action(tx.objectStore(STORE), value=>{result=value;}, error=>reject(fileStorageError(error)));}catch(error){tx.abort();reject(error);}
   }));
 }
 
@@ -68,8 +70,9 @@ export function listFileMaterials(scope: string): Promise<FileMaterial[]> {
   });
 }
 
-export function saveFileMaterial(input: Omit<FileMaterial, 'id' | 'fileName' | 'mimeType' | 'size' | 'createdAt' | 'blob'> & { file: File }): Promise<FileMaterial> {
-  if (!isAllowedMaterialFile(input.file)) return Promise.reject(new Error('Файл должен быть PDF, DOCX, XLSX, PPTX, ZIP, JPG или PNG и не превышать 25 МБ.'));
+export async function saveFileMaterial(input: Omit<FileMaterial, 'id' | 'fileName' | 'mimeType' | 'size' | 'createdAt' | 'blob'> & { file: File }): Promise<FileMaterial> {
+  if (!isAllowedMaterialFile(input.file)) return Promise.reject(new Error('Выберите документ, изображение, аудио, видео или ZIP размером до 250 МБ.'));
+  await ensureFileSpace(input.file.size);
   const record: FileMaterial = {
     id: `file-${crypto.randomUUID()}`,
     title: input.title.trim().slice(0, 180), subject: input.subject.slice(0, 180), category: input.category,

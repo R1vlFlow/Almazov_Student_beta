@@ -1,5 +1,6 @@
 import {normalizeAvatarPreset} from '../core/avatar.js';
 import {validGradientId} from '../core/appearance.js';
+import {subjectDisplayName} from '../core/normalize.js';
 import type { Course, ProgramCode, Task, ThemeMode } from '../core/types.js';
 
 export type HomeworkStatus = 'todo' | 'in_progress' | 'done';
@@ -10,6 +11,9 @@ export interface HomeworkTask extends Task {
   link?: string;
   attachmentName?: string;
   attachmentData?: string;
+  attachmentId?:string;
+  attachmentSize?:number;
+  attachmentType?:string;
 }
 export interface PersonalMaterial {
   id: string;
@@ -62,6 +66,8 @@ const INITIAL: PersonalizationState = {
 let cache: PersonalizationState | null = null;
 const color = (v: unknown, fallback: string) => typeof v === 'string' && /^#[\da-f]{6}$/i.test(v) ? v : fallback;
 const plain = (v: unknown): v is Record<string, unknown> => Boolean(v && typeof v === 'object' && !Array.isArray(v));
+// Read legacy Latin aliases first so an explicit canonical preference wins.
+const subjectEntries=(value:Record<string,unknown>)=>Object.entries(value).sort(([a],[b])=>Number(/^(?:л?атынь)$/iu.test(b.trim()))-Number(/^(?:л?атынь)$/iu.test(a.trim())));
 
 function normalizeTask(value: unknown): HomeworkTask | null {
   if (!plain(value) || typeof value.id !== 'string' || typeof value.subject !== 'string' || typeof value.text !== 'string') return null;
@@ -75,6 +81,9 @@ function normalizeTask(value: unknown): HomeworkTask | null {
     kind: ['homework','report','test','credit','makeup','other'].includes(String(value.kind)) ? value.kind as HomeworkTask['kind'] : 'homework',
     dueTimeZone: validTimeZone(value.dueTimeZone),
     attachmentName: typeof value.attachmentName === 'string' ? value.attachmentName.slice(0, 180) : undefined,
+    attachmentId:typeof value.attachmentId==='string'&&/^[\w.-]{1,120}$/.test(value.attachmentId)?value.attachmentId:undefined,
+    attachmentSize:typeof value.attachmentSize==='number'&&Number.isInteger(value.attachmentSize)&&value.attachmentSize>=0?value.attachmentSize:undefined,
+    attachmentType:typeof value.attachmentType==='string'?value.attachmentType.slice(0,100):undefined,
     attachmentData: typeof value.attachmentData === 'string' && value.attachmentData.length < 1_200_000 && /^data:[a-z0-9.+/-]+;base64,[a-z\d+/=]+$/i.test(value.attachmentData) ? value.attachmentData : undefined,
     program: (['31.05.01', '31.05.02', '37.05.01'].includes(String(value.program)) ? value.program : '31.05.01') as ProgramCode,
     course: (Number.isInteger(value.course) && Number(value.course) >= 1 && Number(value.course) <= 6 ? Number(value.course) : 1) as Course,
@@ -105,11 +114,11 @@ function normalize(raw: unknown): PersonalizationState {
   const taskRaw = Array.isArray(raw.tasks) ? raw.tasks : [];
   const materialRaw = Array.isArray(raw.materials) ? raw.materials : [];
   const colors: Record<string, string> = {};
-  if (plain(raw.subjectColors)) for (const [key, value] of Object.entries(raw.subjectColors)) { const c = color(value, ''); const normalizedKey = subjectColorKey(key); if (c && normalizedKey) colors[normalizedKey] = c; }
+  if (plain(raw.subjectColors)) for (const [key, value] of subjectEntries(raw.subjectColors)) { const c = color(value, ''); const normalizedKey = subjectColorKey(key); if (c && normalizedKey) colors[normalizedKey] = c; }
   const teachers: Record<string, string> = {};
   const gradients:Record<string,string>={};
-  if(plain(raw.subjectGradients))for(const [key,id] of Object.entries(raw.subjectGradients)){const normalizedKey=subjectColorKey(key);if(normalizedKey&&validGradientId(id))gradients[normalizedKey]=id;}
-  if (plain(raw.subjectTeachers)) for (const [key, value] of Object.entries(raw.subjectTeachers)) { const normalizedKey = subjectColorKey(key); if (normalizedKey && typeof value === 'string' && value.trim()) teachers[normalizedKey] = value.trim().slice(0, 120); }
+  if(plain(raw.subjectGradients))for(const [key,id] of subjectEntries(raw.subjectGradients)){const normalizedKey=subjectColorKey(key);if(normalizedKey&&validGradientId(id))gradients[normalizedKey]=id;}
+  if (plain(raw.subjectTeachers)) for (const [key, value] of subjectEntries(raw.subjectTeachers)) { const normalizedKey = subjectColorKey(key); if (normalizedKey && typeof value === 'string' && value.trim()) teachers[normalizedKey] = value.trim().slice(0, 120); }
   const normalizedTasks = taskRaw.map(normalizeTask).filter((x): x is HomeworkTask => x !== null);
   const normalizedMaterials = materialRaw.map(normalizeMaterial).filter((x): x is PersonalMaterial => x !== null);
   const swatches = ['#5478d4', '#138a72', '#bc674d', '#8567be', '#b18120', '#247eae', '#b14d7d', '#657c4e'];
@@ -202,4 +211,4 @@ export function updatePersonalization(patch: Partial<PersonalizationState>): Per
   return savePersonalization({ ...readPersonalization(), ...patch });
 }
 export function setAcademicProfile(profile: AcademicProfile): void { updatePersonalization({ academicProfile: profile }); }
-export function subjectColorKey(subject: string): string { return subject.trim().normalize('NFKC').toLocaleLowerCase('ru-RU').replace(/\s+/g, ' ').slice(0, 180); }
+export function subjectColorKey(subject: string): string { return subjectDisplayName(subject).normalize('NFKC').toLocaleLowerCase('ru-RU').replace(/\s+/g, ' ').slice(0, 180); }

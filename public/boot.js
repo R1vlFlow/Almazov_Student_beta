@@ -202,8 +202,8 @@
   function initStartupNotice(){
     const splash=document.getElementById('appSplash'),app=document.querySelector('.app');if(splash&&app)app.inert=true;
     const notice=document.getElementById('releaseNotice'),dismiss=document.getElementById('dismissReleaseNotice');
-    try{if(notice&&localStorage.getItem('almazov.notice.build')!==BUILD_ID)notice.hidden=false;}catch{}
-    dismiss?.addEventListener('click',()=>{if(notice)notice.hidden=true;try{localStorage.setItem('almazov.notice.build',BUILD_ID);}catch{}});
+    try{const dismissed=localStorage.getItem('almazov.notice.dismissed')==='1'||!!localStorage.getItem('almazov.notice.build')||sessionStorage.getItem('almazov.notice.dismissed')==='1';if(notice)notice.hidden=dismissed;}catch{if(notice)notice.hidden=true;}
+    dismiss?.addEventListener('click',()=>{if(notice)notice.hidden=true;try{localStorage.setItem('almazov.notice.dismissed','1');localStorage.setItem('almazov.notice.build',BUILD_ID);}catch{}try{sessionStorage.setItem('almazov.notice.dismissed','1');}catch{}});
     if(!splash)return;const started=performance.now(),fill=document.getElementById('splashFill'),track=document.getElementById('splashTrack'),status=document.getElementById('splashStatus'),note=document.getElementById('splashNote');let progress=8,ready=false;
     const paint=(value)=>{progress=Math.max(progress,Math.min(100,value));if(fill)fill.style.width=progress+'%';if(track)track.setAttribute('aria-valuenow',String(Math.round(progress)));if(status)status.textContent=progress>74?'Проверяем, всё ли на месте…':progress>42?'Повторяем анатомию…':progress>16?'Раскладываем учебники…':'Собираем расписание…';};
     const timer=setInterval(()=>{if(!ready)paint(progress<86?progress+Math.max(.3,(86-progress)*.035):86);},180);

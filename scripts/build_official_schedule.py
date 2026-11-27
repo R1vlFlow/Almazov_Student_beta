@@ -300,7 +300,7 @@ def clean_subject(s):
     s=re.sub(r'^\d{3}\s+','',s)
     # Remove accidental page/header fragments.
     s=re.sub(r'^(?:День недели|Время|Дисциплина / Неделя|Место проведения)\s*','',s,flags=re.I)
-    return s
+    return 'Латинский язык' if s.lower() in ('атынь', 'латынь') else s
 
 LEADING_LOCATION_START_RE = re.compile(
     r'^(?:ауд\.?\s+|каб\.?\s+|зал\s+|ул\.\s+|просп?\.?\s+'

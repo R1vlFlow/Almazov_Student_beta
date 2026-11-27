@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {compareSchedules} from '../dist/services/scheduleHistory.js';
-import {validatePersonalBackup,restorePersonalBackup,createPersonalBackup,mergeBackupRecords,validBackupFileEncoding,decodeBackupFile} from '../dist/services/personalBackup.js';
+import {validatePersonalBackup,restorePersonalBackup,createPersonalBackup,createPersonalBackupFile,readPersonalBackup,mergeBackupRecords,validBackupFileEncoding,decodeBackupFile} from '../dist/services/personalBackup.js';
 import {matchCourseAddresses} from '../dist/core/courseAddresses.js';
 test('startup opens the shell while schedule requests wait and offers retry if scripts stall',async()=>{
  const {runInNewContext}=await import('node:vm');
@@ -130,4 +130,20 @@ test('chunked attachment restore preserves every byte and yields to the interfac
  const blob=await decodeBackupFile(bytes.toString('base64'),bytes.length,'application/pdf');
  assert.equal(yielded,true);assert.equal(blob.type,'application/pdf');assert.deepEqual(Buffer.from(await blob.arrayBuffer()),bytes);
  await assert.rejects(decodeBackupFile('!!!!',3,'application/pdf'));
+});
+
+test('binary backup carries large task files and materials without base64 inflation and still reads old JSON',async()=>{
+ const old={indexedDB:globalThis.indexedDB,localStorage:globalThis.localStorage};const memory=new Map();globalThis.localStorage={getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,v)};globalThis.indexedDB=new Fake();Fake.stores=new Map();
+ try{
+  const {savePersonalization,readPersonalization}=await import('../dist/services/personalizationStore.js');savePersonalization({...readPersonalization(),tasks:[],materials:[]});
+  const b=blank(),taskBlob=new Blob([new Uint8Array(3*1024*1024).fill(17)],{type:'application/pdf'}),material=new Blob([new Uint8Array(30*1024*1024).fill(29)],{type:'application/pdf'});
+  b.personalization.tasks=[{id:'blob-task',subject:'Химия',text:'Файл больше старого лимита',program:'31.05.01',course:1,group:'123',done:false,attachmentId:'large-task-file',attachmentName:'task.pdf'}];
+  b.stores['task-files']=[{id:'large-task-file',name:'task.pdf',type:'application/pdf',size:taskBlob.size,createdAt:b.createdAt,blob:taskBlob}];
+  b.stores.files=[{id:'large-material',title:'Учебник',subject:'Химия',category:'book',description:'',tags:[],fileName:'book.pdf',mimeType:'application/pdf',size:material.size,createdAt:b.createdAt,program:'31.05.01',course:1,group:'123',scope:'31.05.01:1:123',blob:material}];
+  await restorePersonalBackup(b);const archive=await createPersonalBackupFile();assert.ok(archive.size<taskBlob.size+material.size+20000);
+  const decoded=await readPersonalBackup(new File([archive],'backup.almazov'));assert.equal(decoded.stores['task-files'][0].blob.size,taskBlob.size);assert.equal(decoded.stores.files[0].blob.size,material.size);assert.equal(new Uint8Array(await decoded.stores['task-files'][0].blob.slice(-8).arrayBuffer())[0],17);assert.equal(new Uint8Array(await decoded.stores.files[0].blob.slice(-8).arrayBuffer())[0],29);
+  await assert.rejects(readPersonalBackup(new File([archive.slice(0,-1)],'truncated.almazov')));
+  assert.equal((await readPersonalBackup(new File([JSON.stringify(blank())],'legacy.json'))).version,1);
+  const missing=blank();missing.personalization.tasks=b.personalization.tasks;assert.throws(()=>validatePersonalBackup(missing),/отсутствует вложение/);
+ }finally{Object.assign(globalThis,old);}
 });
