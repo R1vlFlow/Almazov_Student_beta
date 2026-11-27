@@ -1,4 +1,5 @@
 import {initFirstYearGuide,guideIntroMarkup} from './ui/firstYearGuide.js';
+import {addressPlacesMarkup} from './ui/addressCards.js';
 import {MAX_TASK_FILE_SIZE,MAX_AVATAR_FILE_SIZE} from './core/uploadLimits.js';
 import {saveTaskFile,getTaskFile,deleteTaskFile} from './services/taskFileStore.js';
 import {initSubjectCombobox,setTaskSubjects,subjectDisplayName} from './ui/subjectCombobox.js';
@@ -497,12 +498,6 @@ function renderKug(){
   sourcesEl.innerHTML=sources.length?sources.map(x=>`<article class="kug-source"><div><b>${esc(x.title)}</b><small>${esc(kugSourceStatus(x.status))} · периодов в данных: ${x.periods}</small></div><a class="btn small" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${x.status==='verified-bootstrap'?'Все документы ↗':'Открыть источник ↗'}</a></article>`).join(''):'<div class="empty-state compact"><h3>Источник не найден</h3><p>Для выбранного курса не найден отдельный PDF в текущем snapshot.</p><a class="btn" href="https://education.almazovcentre.ru/about_institute/programm/specialist_programme/student/" target="_blank" rel="noopener noreferrer">Все официальные документы ↗</a></div>';
 }
 let addressScope:'group'|'course'|'all'='group';
-function addressAliasesMarkup(name:string,aliases:string[]):string{
- const key=(s:string)=>s.toLocaleLowerCase('ru').replace(/\s+/g,'');
- const seen=new Set([key(name)]);
- const labels=aliases.filter(alias=>{const value=key(alias);if(seen.has(value))return false;seen.add(value);return true;}).slice(0,3);
- return labels.length?`<p class="address-aliases">${labels.map(label=>`<span>${esc(label)}</span>`).join('')}</p>`:'';
-}
 function renderAddresses(){
   const container=$('addressList');if(!container)return;
   const profile=state.profile;
@@ -515,7 +510,7 @@ function renderAddresses(){
   document.querySelectorAll<HTMLButtonElement>('[data-address-scope]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.addressScope===addressScope)));
   const q=($('addressSearch') as HTMLInputElement)?.value.trim().toLocaleLowerCase('ru')??'';
   const selected=available.filter(item=>!q||[item.name,item.address,...item.members.map(x=>x.name+' '+x.address+' '+(x.aliases??[]).join(' ')),...item.locations,...item.subjects].join(' ').toLocaleLowerCase('ru').includes(q));
-  container.innerHTML=selected.map(item=>`<article class="address-card card"><div class="address-icon" aria-hidden="true">⌖</div><div class="address-copy"><p class="eyebrow">${esc(item.members[0]!.category)}</p><h2>${esc(item.name)}</h2>${addressAliasesMarkup(item.name,item.aliases)}<p>${esc(item.address)}</p></div><div class="address-footer"><a class="btn primary address-map-link" href="${esc('https://yandex.ru/maps/?text='+encodeURIComponent(item.address))}" target="_blank" rel="noopener noreferrer" aria-label="${esc(item.name)} — Яндекс Карты">На карте ↗</a><a class="address-source" href="${esc(item.members[0]!.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(item.members[0]!.sourceLabel||'Источник')} ↗</a></div><details class="address-details"><summary>Корпуса и занятия${item.subjects.length?' · '+item.subjects.length+' предм.':''}</summary><div>${item.members.some(x=>x.note)?`<p class="address-note">${item.members.filter(x=>x.note).map(x=>esc(x.note!)).join(' ')}</p>`:''}${item.members.find(x=>x.guideId)?`<button type="button" class="btn small" data-guide-campus="${esc(item.members.find(x=>x.guideId)!.guideId!)}">Как найти вход · по гайду ↗</button>`:''}<h3>Корпуса</h3><ul>${[...new Set(item.members.map(x=>x.name+' — '+x.address))].map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${item.locations.length?`<h3>Места в расписании</h3><ul>${item.locations.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}${item.subjects.length?`<h3>Предметы</h3><ul>${item.subjects.sort().map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}</div></details></article>`).join('');
+  container.innerHTML=addressPlacesMarkup(selected);
   if(!selected.length)container.innerHTML='<p class="card address-empty">'+(loading&&addressScope!=='all'?'Загружаем места занятий…':q?'Ничего не найдено. Попробуйте название площадки или улицы.':'В расписании пока нет подтверждённых адресов. Откройте все площадки.')+'</p>';
 }
 async function loadKugData(){

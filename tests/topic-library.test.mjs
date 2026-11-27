@@ -11,6 +11,14 @@ const base=LESSON_TOPIC_PLANS.find(p=>p.program==='31.05.01'&&p.subjects.include
 const fake=(extra={})=>({...base,id:'fixture',course:6,curriculumYear:2021,teachingSemester:11,subjects:['Клинический предмет'],totalHours:6,topics:[{title:'Первая тема',hours:2,page:1},{title:'Вторая тема',hours:4,page:2}],...extra});
 const event=(id,date,minutes,type='practice',extra={})=>({id,kind:'schedule',program:'31.05.01',course:6,group:'601',title:'Клинический предмет',type,startAt:date+'T06:00:00Z',endAt:new Date(Date.parse(date+'T06:00:00Z')+minutes*60000).toISOString(),timeZone:'Europe/Moscow',readOnly:true,...extra});
 
+test('programme library omits the removed overview and gaps panel while preserving source-specific review warnings',()=>{
+ const rendered=renderTopicLibrary({program:'31.05.01',course:1,group:'123'},[event('missing','2026-09-01',95,'practice',{course:1,title:'Предмет без программы'})]);
+ assert.doesNotMatch(rendered.html,/topic-library-gaps|topic-library-explanation|Какие темы ещё не подтверждены|Лекции и практики имеют отдельную/);
+ assert.ok(rendered.html.includes('data-topic-plan'));assert.ok(rendered.html.includes('Открыть программу'));
+ const peds=renderTopicLibrary({program:'31.05.02',course:2,group:'221'},[],'','all','all',100);
+ assert.match(peds.html,/topic-library-warning/,'a contradiction within a programme still needs its own explanation');
+});
+
 test('coverage lists every timetable subject/type/semester including absent sources, without counting bundles as themes',()=>{
   const profile={program:'31.05.01',course:3},entries=topicLibraryEntries(profile);
   const rows=subjectTopicCoverage([
