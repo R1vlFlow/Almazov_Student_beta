@@ -1,5 +1,7 @@
 import {initFirstYearGuide,guideIntroMarkup} from './ui/firstYearGuide.js';
 import {addressPlacesMarkup} from './ui/addressCards.js';
+import {initCampusRoutes} from './ui/campusRoutes.js';
+import {initAddressPhotos} from './ui/addressPhoto.js';
 import {MAX_TASK_FILE_SIZE,MAX_AVATAR_FILE_SIZE} from './core/uploadLimits.js';
 import {saveTaskFile,getTaskFile,deleteTaskFile} from './services/taskFileStore.js';
 import {initSubjectCombobox,setTaskSubjects,subjectDisplayName} from './ui/subjectCombobox.js';
@@ -191,7 +193,7 @@ async function reloadEvents(){
   if(sequence!==reloadSequence)return;
   renderShell();renderSchedule();renderChangeIndicators();if(state.page==='addresses')renderAddresses();if(state.page==='tomorrow'){renderTomorrow();void refreshHomePersonal();}if(state.page==='home')renderHome();
 }
-export async function boot(){bindPersonalBackup();initSubjectCombobox();initFirstYearGuide({open:openModal,refresh:refreshControls});
+export async function boot(){bindPersonalBackup();initSubjectCombobox();initFirstYearGuide({open:openModal,refresh:refreshControls});initCampusRoutes({open:openModal,refresh:refreshControls});initAddressPhotos(openModal);
  try{const saved=JSON.parse(sessionStorage.getItem('almazov.calendar-position')||'null');if(saved&&saved.profile===JSON.stringify(state.profile)&&Object.hasOwn(VIEW_LABEL,saved.view)&&/^\d{4}-\d{2}-\d{2}$/.test(saved.date)&&Number.isFinite(Date.parse(saved.date))){state.view=saved.view;state.focusDate=saved.date;state.week=mondayOf(saved.date);}}catch{}
 await ensureScheduleCacheVersion(document.documentElement.dataset.buildId??'dev');initTheme();loadAppearance();applyAppearance();ensureProfile();enhanceControls();renderShell();bind();render();const requestedPage=new URLSearchParams(location.search).get('page');if(requestedPage&&(requestedPage==='kug'||document.getElementById(`page-${requestedPage}`)?.classList.contains('page')))nav(requestedPage);window.dispatchEvent(new Event('app:shell-ready'));void loadKugData();await reloadEvents();await refreshHomePersonal();await refreshUploadedMaterials();render();window.dispatchEvent(new Event('app:ready'));window.setInterval(()=>{if(state.page==='home')renderHome();if(state.page==='tomorrow'&&preparationDate!==addDays(todayISO(state.timezone),1)){renderTomorrow();void refreshHomePersonal();}},30000);startScheduleRefresh();}
 function startScheduleRefresh(){
