@@ -7,7 +7,9 @@ import {addressPlacesMarkup} from '../dist/ui/addressCards.js';
 import {groupAddressPlaces} from '../dist/core/courseAddresses.js';
 import {ALMAZOV_ADDRESSES} from '../dist/data/addresses.js';
 import {ADDRESS_PHOTOS,addressPhotoFor} from '../dist/data/addressPhotos.js';
-import {HANDBOOK_ARTICLES,findHandbookArticles} from '../dist/data/handbookContent.js';
+import {HANDBOOK_ARTICLES,HANDBOOK_SLIDE_DECKS,handbookSlideDeck,findHandbookArticles} from '../dist/data/handbookContent.js';
+import {CAMPUS_TRANSIT,transitForCampus} from '../dist/data/campusTransit.js';
+import {campusTransitMarkup,publicTransportUrl} from '../dist/ui/campusTransit.js';
 import {handbookArticleMarkup,handbookContentsMarkup} from '../dist/ui/firstYearGuide.js';
 import {CAMPUS_ROUTES} from '../dist/data/campusRoutes.js';
 import {campusRouteMarkup} from '../dist/ui/campusRoutes.js';
@@ -56,8 +58,29 @@ test('handbook is readable article text and excludes the campus directory and ro
 
 test('campus entrance walkthroughs use images and source pages from that exact campus',async()=>{
  assert.deepEqual(CAMPUS_ROUTES.map(r=>r.id),GUIDE_CAMPUSES.map(c=>c.id));
- for(const route of CAMPUS_ROUTES){const campus=GUIDE_CAMPUSES.find(c=>c.id===route.id);for(const [i,step] of route.steps.entries()){assert.ok(campus.pages.includes(step.sourcePage));assert.ok(step.image.split('/').at(-1).startsWith(route.id+'-'));const bytes=await readFile('dist/'+step.image.slice(2));assert.equal(bytes.toString('ascii',8,12),'WEBP');const html=campusRouteMarkup(route,i);assert.ok(html.includes(step.title));assert.ok(html.includes(step.image));assert.doesNotMatch(html,/handbook-topic|firstYearGuideSearch|guide-page-image/);}}
+ for(const route of CAMPUS_ROUTES){const campus=GUIDE_CAMPUSES.find(c=>c.id===route.id);for(const [i,step] of route.steps.entries()){assert.ok(campus.pages.includes(step.sourcePage));assert.ok(step.image.split('/').at(-1).startsWith(route.id+'-'));const bytes=await readFile('dist/'+step.image.slice(2));assert.equal(bytes.toString('ascii',8,12),'WEBP');const html=campusRouteMarkup(route,i,'entrance');assert.ok(html.includes(step.title));assert.ok(html.includes(step.image));assert.doesNotMatch(html,/handbook-topic|firstYearGuideSearch|guide-page-image/);}}
  assert.ok(CAMPUS_ROUTES.find(r=>r.id==='nok').note.includes('строительства'));
+});
+
+test('presentation introductions remain attached to the complete content, with every retained source page reachable',()=>{
+ const pages=HANDBOOK_SLIDE_DECKS.flatMap(d=>d.pages).sort((a,b)=>a-b);
+ assert.deepEqual(pages,HANDBOOK_ARTICLES.flatMap(a=>a.pages).sort((a,b)=>a-b));assert.equal(new Set(pages).size,pages.length);
+ for(const intro of [8,46,59,65]){const deck=HANDBOOK_SLIDE_DECKS.find(d=>d.pages.includes(intro));assert.ok(deck.pages.includes(intro+1));assert.ok(deck.pages.length>=6);}
+ for(const article of HANDBOOK_ARTICLES){const deck=handbookSlideDeck(article);assert.ok(article.pages.every(p=>deck.pages.includes(p)));}
+ assert.equal(handbookSlideDeck(HANDBOOK_ARTICLES.find(a=>a.id==='scholarships')).pages.length,7);
+ assert.equal(handbookSlideDeck(HANDBOOK_ARTICLES.find(a=>a.id==='canteens')).pages.length,6);
+ assert.deepEqual(HANDBOOK_ARTICLES.find(a=>a.id==='curators').pages,[7]);assert.equal(guideSectionForPage(8).id,'terms');
+});
+
+test('campus transport preserves full published stop lists, correct vehicle types and exact destination links',()=>{
+ assert.deepEqual(CAMPUS_TRANSIT.map(t=>t.id),GUIDE_CAMPUSES.map(c=>c.id));
+ for(const data of CAMPUS_TRANSIT){assert.ok(data.metro.length&&data.stops.length);for(const stop of data.stops){assert.ok(stop.name&&stop.routes.length);assert.match(stop.url,/^https:\/\/yandex\./);assert.match(stop.sourceUrl,/^https:\/\//);assert.equal(new Set(stop.routes.map(r=>r.type+':'+r.number)).size,stop.routes.length);for(const r of stop.routes)assert.match(r.number,/^\d+[А-ЯЁ]?$/u);}
+  const route=CAMPUS_ROUTES.find(r=>r.id===data.id),html=campusRouteMarkup(route,0);assert.ok(html.includes('Остановки и маршруты'));assert.doesNotMatch(html,/id="campusRouteImage"/);assert.ok(campusTransitMarkup(data,'Адрес & корпус').includes(encodeURIComponent('Адрес & корпус')));
+ }
+ const cdti=transitForCampus('cdti');assert.ok(cdti.stops.some(s=>s.routes.some(r=>r.type==='bus'&&r.number==='221')));assert.ok(cdti.stops.some(s=>s.routes.some(r=>r.type==='trolleybus'&&r.number==='52')));
+ const imo=transitForCampus('imo');for(const number of ['25','50']){assert.ok(imo.stops.some(s=>s.routes.some(r=>r.type==='trolleybus'&&r.number===number)));assert.ok(imo.stops.every(s=>s.routes.every(r=>r.number!==number||r.type==='trolleybus')));}
+ assert.deepEqual(transitForCampus('sunny').stops[0].routes.map(r=>r.number),['211','211Э','680']);assert.ok(transitForCampus('sunny').rail.includes('Солнечное'));
+ const link=new URL(publicTransportUrl('Санкт-Петербург, Средняя, 6','Метро Удельная'));assert.equal(link.searchParams.get('rtt'),'mt');assert.equal(link.searchParams.get('rtext'),'Метро Удельная~Санкт-Петербург, Средняя, 6');
 });
 
 test('photo records attach to one exact directory address, have provenance and ship locally without third-party image loads',async()=>{

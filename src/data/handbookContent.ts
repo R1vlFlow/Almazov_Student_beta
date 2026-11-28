@@ -7,6 +7,20 @@ export const HANDBOOK_GROUPS=[
  {id:'support',title:'Важные вопросы',description:'Поддержка, документы и полезные контакты.'}
 ];
 const seq=(a:number,b:number)=>Array.from({length:b-a+1},(_,i)=>i+a);
+export interface HandbookSlideDeck {id:string;title:string;pages:number[];}
+// Keep introductions with their complete chapters. Campus/transport pages live in Addresses.
+export const HANDBOOK_SLIDE_DECKS:HandbookSlideDeck[]=[
+ {id:'start',title:'Начало учёбы',pages:seq(1,14)},
+ {id:'campus-life',title:'Студенческий билет и общежитие',pages:seq(18,20)},
+ {id:'community',title:'Внеучебная жизнь',pages:seq(46,58)},
+ {id:'break',title:'Между парами',pages:seq(59,64)},
+ {id:'support',title:'Важные вопросы',pages:seq(65,71)}
+];
+export function handbookSlideDeck(article:HandbookArticle):HandbookSlideDeck{
+ const deck=HANDBOOK_SLIDE_DECKS.find(d=>article.pages.every(page=>d.pages.includes(page)));
+ if(!deck)throw new Error('Не найден полный раздел презентации: '+article.id);
+ return deck;
+}
 export const HANDBOOK_ARTICLES:HandbookArticle[]=[
  {id:'welcome',group:'start',title:'Первые недели',summary:'Не нужно разбираться во всём за один день.',pages:[1,2],blocks:[
   {text:'Гайд кураторов «PROсвет» собран для первокурсников набора 2026/27. Здесь — опыт студентов: как подготовиться к занятиям, к кому обратиться и что попробовать за пределами расписания.'},
@@ -22,12 +36,12 @@ export const HANDBOOK_ARTICLES:HandbookArticle[]=[
   {heading:'Подготовьтесь к обращению',items:['Сформулируйте вопрос и укажите направление, курс и группу.','Если вопрос связан с документом, подготовьте его название или образец.','Уточните у старосты способ подачи заявления и порядок получения справки.']},
   {text:'При вопросах по конкретной дисциплине сначала уточните требования у преподавателя или на кафедре.'}
  ]},
- {id:'curators',group:'start',title:'Куратор группы',summary:'Человек, который помогает освоиться в студенческой жизни.',pages:[7,8],blocks:[
+ {id:'curators',group:'start',title:'Куратор группы',summary:'Человек, который помогает освоиться в студенческой жизни.',pages:[7],blocks:[
   {text:'Куратор помогает первокурсникам с адаптацией: объясняет организационные моменты, знакомит с институтом и подсказывает, куда обратиться с вопросом.'},
   {heading:'О чём можно спросить',items:['Как подготовиться к первым занятиям.','Где искать учебную информацию и объявления для группы.','Как включиться в студенческие мероприятия.','К кому обратиться, если возникла сложность, которую не получается решить самостоятельно.']},
   {text:'Сохраните контакт куратора и договоритесь с группой, где будут собираться важные сообщения.'}
  ]},
- {id:'terms',group:'start',title:'Учебный словарь',summary:'ПЗ, коллоквиум, сессия — что всё это значит.',pages:[9,10],blocks:[
+ {id:'terms',group:'start',title:'Учебный словарь',summary:'ПЗ, коллоквиум, сессия — что всё это значит.',pages:[8,9,10],blocks:[
   {heading:'Лекция',text:'Преподаватель излагает материал по теме. Полезно отмечать ключевые понятия, вопросы и ссылки на учебные материалы.'},
   {heading:'Практическое занятие',text:'Работа в группе или подгруппе: обсуждение темы, освоение навыков, ответы на вопросы и практические задания.'},
   {heading:'Коллоквиум',text:'Контроль усвоенного раздела дисциплины. На профильных предметах он может включать практическую часть.'},
