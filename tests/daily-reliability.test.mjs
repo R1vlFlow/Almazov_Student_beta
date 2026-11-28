@@ -139,6 +139,17 @@ test('updates require explicit acceptance and never navigate clients from servic
 
 test('Android release metadata is shipped with the web build',async()=>{const source=JSON.parse(await readFile('public/android-release.json','utf8'));const built=JSON.parse(await readFile('dist/android-release.json','utf8'));assert.deepEqual(built,source);assert.ok(Number.isInteger(source.versionCode)&&source.versionCode>0);assert.match(source.version,/^\d+\.\d+\.\d+$/);assert.equal(source.apkUrl,`https://github.com/R1vlFlow/Almazov_Student_beta/releases/download/v${source.version}/Almazov-Student-${source.version}.apk`);});
 
+test('installation labels, download filename and backup release link match the published APK',async()=>{
+ const metadata=JSON.parse(await readFile('public/android-release.json','utf8'));
+ for(const path of ['public/index.html','dist/index.html']){
+  const html=await readFile(path,'utf8'),v=metadata.version;
+  assert.ok(html.includes(`Версия ${v}.`),path+' version label');
+  assert.ok(html.includes(`download="Almazov-Student-${v}.apk"`),path+' filename');
+  assert.ok(html.includes(`releases/tag/v${v}"`),path+' backup release');
+  assert.ok(html.includes(`APK ${v} подписан`),path+' signing label');
+ }
+});
+
 test('offline initial HTML is cached only when it matches the worker build',async()=>{const sw=await readFile('public/sw.js','utf8');assert.ok(sw.includes('data-build-id="${BUILD_ID}"'));assert.ok(sw.includes('await cache.put(indexUrl,response)'));});
 
 test('versioned schedule JSON still checks network and marks offline fallback',async()=>{
