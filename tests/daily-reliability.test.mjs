@@ -4,6 +4,49 @@ import {readFile} from 'node:fs/promises';
 import {compareSchedules} from '../dist/services/scheduleHistory.js';
 import {validatePersonalBackup,restorePersonalBackup,createPersonalBackup,createPersonalBackupFile,readPersonalBackup,mergeBackupRecords,validBackupFileEncoding,decodeBackupFile} from '../dist/services/personalBackup.js';
 import {matchCourseAddresses} from '../dist/core/courseAddresses.js';
+
+test('installed APK refreshes public schedules and KUG, with safe offline fallback',async()=>{
+ const {fetchPublishedData}=await import('../dist/services/publishedData.js');
+ const {loadSchedule,clearScheduleMemory}=await import('../dist/services/scheduleService.js');
+ const {saveCache,readCache}=await import('../dist/services/cache.js');
+ const originals=Object.fromEntries(['window','document','fetch','localStorage'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ const values=new Map([['almazov.profile','personal profile'],['almazov.tasks','personal task']]);
+ const localStorage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)};
+ const calls=[];let native=true,failRemote=false,invalidRemote=false;
+ const fresh={events:[{subject:'Fresh official subject'}],generatedAt:new Date().toISOString()};
+ const bundled={events:[{subject:'Old bundled subject'}],generatedAt:new Date(Date.now()-86400000).toISOString()};
+ try{
+  Object.defineProperty(globalThis,'window',{configurable:true,value:{Capacitor:{isNativePlatform:()=>native}}});
+  Object.defineProperty(globalThis,'document',{configurable:true,value:{baseURI:'https://localhost/',documentElement:{dataset:{buildId:'test-build'}}}});
+  Object.defineProperty(globalThis,'localStorage',{configurable:true,value:localStorage});
+  Object.defineProperty(globalThis,'fetch',{configurable:true,value:async(url,options)=>{
+   calls.push({url:String(url),options});const remote=String(url).startsWith('https://r1vlflow.github.io/');
+   if(remote&&failRemote)throw new TypeError('offline');
+   const payload=remote?(invalidRemote?{unexpected:true}:fresh):bundled;
+   return Response.json(payload);
+  }});
+  const valid=value=>Boolean(value&&Array.isArray(value.events));
+  const current=await fetchPublishedData('./data/schedules/31.05.01/6.json?v=test-build&group=623&note=private',valid);
+  assert.deepEqual(current,{payload:fresh,offline:false});assert.equal(calls.length,1);
+  assert.equal(calls[0].url,'https://r1vlflow.github.io/Almazov_Student_beta/data/schedules/31.05.01/6.json?v=test-build');
+  assert.equal(calls[0].options.credentials,'omit');assert.equal(calls[0].options.referrerPolicy,'no-referrer');assert.equal(calls[0].options.cache,'no-store');
+  invalidRemote=true;
+  assert.deepEqual(await fetchPublishedData('./data/schedules/31.05.01/6.json',valid),{payload:bundled,offline:true});
+  invalidRemote=false;failRemote=true;
+  await saveCache('last-good:31.05.01:6',{status:'live',...fresh});clearScheduleMemory();
+  const offline=await loadSchedule('31.05.01',6);
+  assert.equal(offline.events[0].subject,'Fresh official subject');assert.equal(offline.status,'cache');assert.ok(offline.issues.includes('SCHEDULE_OFFLINE_CACHE'));
+  assert.equal((await readCache('last-good:31.05.01:6')).payload.events[0].subject,'Fresh official subject');
+  calls.length=0;native=false;
+  assert.deepEqual(await fetchPublishedData('./data/schedules/31.05.01/6.json',valid),{payload:bundled,offline:false});
+  assert.equal(calls.length,1);assert.equal(calls[0].url,'https://localhost/data/schedules/31.05.01/6.json');
+  native=true;failRemote=false;calls.length=0;
+  await fetchPublishedData('./data/kug.json',valid);assert.equal(calls[0].url,'https://r1vlflow.github.io/Almazov_Student_beta/data/kug.json');
+  assert.equal(values.get('almazov.profile'),'personal profile');assert.equal(values.get('almazov.tasks'),'personal task');
+ }finally{
+  clearScheduleMemory();for(const [key,descriptor] of Object.entries(originals)){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
+ }
+});
 test('startup opens the shell while schedule requests wait and offers retry if scripts stall',async()=>{
  const {runInNewContext}=await import('node:vm');
  const source=await readFile(new URL('../public/boot.js',import.meta.url),'utf8');
@@ -94,7 +137,7 @@ test('restore is additive and repeated restore does not duplicate notes or overw
 test('maps only resolve an unambiguous official address',()=>{const one={name:'Клинико-поликлинический комплекс',address:'ул. Аккуратова, д. 2',sourceUrl:'https://example.org',category:'test'};assert.equal(matchCourseAddresses([one],['КПК']).addresses.length,1);assert.equal(matchCourseAddresses([one,{...one,address:'другое'}],['КПК']).addresses.length,0);assert.equal(matchCourseAddresses([one],['ауд. 2']).addresses.length,0);});
 test('updates require explicit acceptance and never navigate clients from service worker',async()=>{const boot=await readFile('public/boot.js','utf8'),sw=await readFile('public/sw.js','utf8');assert.ok(boot.includes('window.confirm'));assert.ok(boot.includes('release.buildId===BUILD_ID&&!waitingWorker'));assert.ok(boot.includes("button.addEventListener('click',async()=>"));assert.ok(!sw.includes('client.navigate'));assert.ok(sw.includes("event.data?.type==='SKIP_WAITING'"));});
 
-test('Android release metadata is shipped with the web build',async()=>{const source=JSON.parse(await readFile('public/android-release.json','utf8'));const built=JSON.parse(await readFile('dist/android-release.json','utf8'));assert.deepEqual(built,source);assert.equal(source.versionCode,35);assert.equal(source.version,'3.2.2');assert.ok(source.apkUrl.endsWith('/v3.2.2/Almazov-Student-3.2.2.apk'));assert.match(source.apkUrl,/^https:\/\/github\.com\/R1vlFlow\/Almazov_Student_beta\/releases\/download\//);});
+test('Android release metadata is shipped with the web build',async()=>{const source=JSON.parse(await readFile('public/android-release.json','utf8'));const built=JSON.parse(await readFile('dist/android-release.json','utf8'));assert.deepEqual(built,source);assert.ok(Number.isInteger(source.versionCode)&&source.versionCode>0);assert.match(source.version,/^\d+\.\d+\.\d+$/);assert.equal(source.apkUrl,`https://github.com/R1vlFlow/Almazov_Student_beta/releases/download/v${source.version}/Almazov-Student-${source.version}.apk`);});
 
 test('offline initial HTML is cached only when it matches the worker build',async()=>{const sw=await readFile('public/sw.js','utf8');assert.ok(sw.includes('data-build-id="${BUILD_ID}"'));assert.ok(sw.includes('await cache.put(indexUrl,response)'));});
 

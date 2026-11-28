@@ -82,10 +82,22 @@ jobs:
             npx cap add android
             npx cap sync android
           fi
+      - name: Read Android release metadata
+        run: |
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          meta = json.loads(Path('public/android-release.json').read_text())
+          version, code = meta['version'], meta['versionCode']
+          assert re.fullmatch(r'\d+\.\d+\.\d+', version) and isinstance(code, int) and code > 0
+          assert meta['apkUrl'].endswith(f'/v{version}/Almazov-Student-{version}.apk')
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write(f'ANDROID_RELEASE_VERSION={version}\nANDROID_RELEASE_CODE={code}\n')
+          PY
       - name: Set Android release version
         run: |
-          sed -i -E 's/versionCode [0-9]+/versionCode 35/' android/app/build.gradle
-          sed -i -E 's/versionName ".*"/versionName "3.2.2"/' android/app/build.gradle
+          sed -i -E "s/versionCode [0-9]+/versionCode ${ANDROID_RELEASE_CODE}/" android/app/build.gradle
+          sed -i -E "s/versionName \".*\"/versionName \"${ANDROID_RELEASE_VERSION}\"/" android/app/build.gradle
       - name: Configure Android release signing
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/almazov-release.p12
@@ -123,20 +135,20 @@ jobs:
           ./gradlew --no-daemon --stacktrace assembleRelease bundleRelease
           cd ..
           mkdir -p release
-          cp android/app/build/outputs/apk/release/app-release.apk release/Almazov-Student-3.2.2.apk
-          cp android/app/build/outputs/bundle/release/app-release.aab release/Almazov-Student-3.2.2.aab
-          sha256sum release/Almazov-Student-3.2.2.apk release/Almazov-Student-3.2.2.aab | tee release/SHA256SUMS.txt
+          cp android/app/build/outputs/apk/release/app-release.apk release/Almazov-Student-${ANDROID_RELEASE_VERSION}.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab release/Almazov-Student-${ANDROID_RELEASE_VERSION}.aab
+          sha256sum release/Almazov-Student-${ANDROID_RELEASE_VERSION}.apk release/Almazov-Student-${ANDROID_RELEASE_VERSION}.aab | tee release/SHA256SUMS.txt
       - name: Verify APK signature and record certificate
         run: |
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs release/Almazov-Student-3.2.2.apk > release/signature-verification.txt
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs release/Almazov-Student-${ANDROID_RELEASE_VERSION}.apk > release/signature-verification.txt
           cat release/signature-verification.txt
       - name: Upload signed release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Almazov-Student-3.2.2-signed-${{ github.run_number }}
+          name: Almazov-Student-${{ env.ANDROID_RELEASE_VERSION }}-signed-${{ github.run_number }}
           path: |
-            release/Almazov-Student-3.2.2.apk
-            release/Almazov-Student-3.2.2.aab
+            release/Almazov-Student-${{ env.ANDROID_RELEASE_VERSION }}.apk
+            release/Almazov-Student-${{ env.ANDROID_RELEASE_VERSION }}.aab
             release/SHA256SUMS.txt
             release/signature-verification.txt
           if-no-files-found: error

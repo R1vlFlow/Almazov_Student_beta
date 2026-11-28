@@ -3,6 +3,7 @@ import json
 ROOT=Path(__file__).resolve().parents[1]
 HTML=(ROOT/'public/index.html').read_text(encoding='utf-8')
 APP=(ROOT/'src/app.ts').read_text(encoding='utf-8')
+PUBLISHED=(ROOT/'src/services/publishedData.ts').read_text(encoding='utf-8')
 CSS=(ROOT/'public/styles.css').read_text(encoding='utf-8')
 BUILDER=(ROOT/'scripts/copy-public.mjs').read_text(encoding='utf-8')
 OFFICIAL=json.loads((ROOT/'data/official-schedules.json').read_text(encoding='utf-8'))
@@ -12,7 +13,7 @@ checks=[
  ('canonical SPA exposes KUG data targets', all(x in HTML for x in ('id="kugDataStatus"','id="kugPeriods"','id="kugSources"'))),
  ('calendar provides regular, KUG and combined modes', all(x in HTML for x in ('data-schedule-mode="regular"','data-schedule-mode="kug"','data-schedule-mode="combined"'))),
  ('builder reads complete canonical KUG file', "readFile(join(root,'data','kug.json')" in BUILDER and 'Object.entries(curatedKug)' in BUILDER),
- ('client reads built KUG JSON with bounded network timeout', "fetch('./data/kug.json'" in APP and 'AbortSignal.timeout(6000)' in APP),
+ ('client reads built KUG JSON with bounded network timeout', "fetchPublishedData('./data/kug.json'" in APP and 'timeoutMs=6000' in PUBLISHED and 'AbortSignal.timeout(' in PUBLISHED),
  ('UI renders date-ranged periods and links', 'function renderKug()' in APP and 'function renderKugGrid(dates:string[])' in APP and 'x.sourceUrl' in APP and 'x.start' in APP and 'x.end' in APP),
  ('UI labels verified KUG PDFs with their live hash status', "status==='live-verified'" in APP and 'PDF проверен · SHA-256 подтверждён' in APP),
  ('KUG periods carry a supported shape and valid date range', all(isinstance(items,list) and all(isinstance(x.get('from'),str) and isinstance(x.get('to'),str) and x['from']<=x['to'] for x in items) for courses in CURATED.values() for items in courses.values())),

@@ -1,4 +1,5 @@
 import {initFirstYearGuide,guideIntroMarkup} from './ui/firstYearGuide.js';
+import {fetchPublishedData} from './services/publishedData.js';
 import {addressPlacesMarkup} from './ui/addressCards.js';
 import {initCampusRoutes} from './ui/campusRoutes.js';
 import {initAddressPhotos} from './ui/addressPhoto.js';
@@ -518,10 +519,7 @@ function renderAddresses(){
 async function loadKugData(){
   state.kugStatus='loading';renderKug();
   try{
-    const response=await fetch('./data/kug.json',{cache:'no-store',signal:AbortSignal.timeout(6000)});
-    if(!response.ok)throw new Error(`HTTP ${response.status}`);
-    const payload=await response.json() as KugPayload;
-    if(!payload||!Array.isArray(payload.sources)||!Array.isArray(payload.periods))throw new Error('Неверная структура данных КУГ');
+    const {payload}=await fetchPublishedData('./data/kug.json',(value):value is KugPayload=>Boolean(value&&typeof value==='object'&&Array.isArray((value as KugPayload).sources)&&Array.isArray((value as KugPayload).periods)));
     state.kugData=payload;state.kugStatus='ready';
   }catch{state.kugStatus='error';}
   renderKug();

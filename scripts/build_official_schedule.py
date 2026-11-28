@@ -300,6 +300,10 @@ def clean_subject(s):
     s=re.sub(r'^\d{3}\s+','',s)
     # Remove accidental page/header fragments.
     s=re.sub(r'^(?:День недели|Время|Дисциплина / Неделя|Место проведения)\s*','',s,flags=re.I)
+    # These are labels of alternative clocks, never discipline names.
+    s=re.sub(r'^(?:\((?:Город|Солнечное)\)\s*[/,;]*\s*)+', '', s, flags=re.I)
+    if not re.search(r'[А-Яа-яЁёA-Za-z]{2,}', s):
+        return ''
     return 'Латинский язык' if s.lower() in ('атынь', 'латынь') else s
 
 LEADING_LOCATION_START_RE = re.compile(
@@ -368,7 +372,67 @@ def group_header(page_text):
 def text_lines(page):
     return [norm(x) for x in page.get_text('text').splitlines() if norm(x)]
 
+def parse_semester_lecture_tables(doc, course, url, stream):
+    """Read labelled semester columns before falling back to flattened PDF text.
+
+    None in MuPDF's extracted table marks a covered/merged cell; an actual
+    empty string must not inherit another lesson. Day continuity is retained
+    across repeated headers on page breaks. Unsupported pages return None so
+    callers cannot mistake a partial table extraction for a complete source.
+    """
+    events=[]
+    day=None
+    previous=['']*4
+    for page in doc:
+        try:
+            tables=page.find_tables(strategy='lines').tables
+        except (AttributeError, ValueError, RuntimeError):
+            return None
+        found=False
+        for table in tables:
+            rows=table.extract()
+            if not rows or len(rows[0])!=4:
+                continue
+            header=[norm(c or '').lower() for c in rows[0]]
+            if not ('день' in header[0] and 'врем' in header[1] and 'дисциплин' in header[2] and 'недел' in header[2] and 'место' in header[3]):
+                continue
+            found=True
+            for raw in rows[1:]:
+                if len(raw)!=4:
+                    return None
+                row=[previous[i] if value is None else norm(value) for i,value in enumerate(raw)]
+                previous=row
+                dm=DAY_RE.match(row[0])
+                if dm:
+                    day=DAY_ALIASES[dm.group(0).split()[0].lower().rstrip('.,:')]
+                if not row[2]:
+                    continue
+                matches=list(WEEK_RE.finditer(row[2]))
+                clock=parse_dual_location_time(row[1],row[3])
+                if day is None or not clock or not matches:
+                    return None
+                cursor=0
+                last_subject=''
+                for match in matches:
+                    subject=clean_subject(row[2][cursor:match.start()]) or last_subject
+                    if not subject:
+                        return None
+                    last_subject=subject
+                    for week in parse_weeks(match.group(1)):
+                        events.append({'weekday':day,'start':clock[0],'end':clock[1],
+                                       'subject':subject,'location':clean_location(row[3]),
+                                       'group':'ALL','stream':stream,'type':'lecture',
+                                       'weekNumber':week,'weekStart':week_start(week),
+                                       'sourceUrl':url,'parser':'semantic-lecture-table-v1'})
+                    cursor=match.end()
+        if not found:
+            return None
+    return events or None
+
 def parse_lecture(doc, course, url, stream):
+    tabular=parse_semester_lecture_tables(doc,course,url,stream)
+    if tabular is not None:
+        return tabular
     events=[]
     for page in doc:
         lines=text_lines(page); day=None; date_hint=None; i=0
@@ -728,13 +792,23 @@ def parse_dual_location_time(text, location):
     Official locations such as ЦДТИ/ШКОЛА/КПК/Башня are city-side locations and
     therefore use the second clock unless the cell explicitly says Солнечное.
     """
+    matches=list(TIME_RE.finditer(text))
     clocks = [
         (f'{int(m.group(1)):02d}:{m.group(2)}', f'{int(m.group(3)):02d}:{m.group(4)}')
-        for m in TIME_RE.finditer(text)
+        for m in matches
     ]
     if not clocks:
         return None
     low = location.lower()
+    # Some faculties print city first, others Solnechnoe first. Prefer the
+    # explicit label next to each clock; preserve the old order fallback for
+    # genuinely unlabelled practice sheets.
+    target='солнечное' if 'солнечное' in low else 'город'
+    for index,match in enumerate(matches):
+        tail=text[match.end():matches[index+1].start() if index+1<len(matches) else len(text)]
+        label=re.search(r'\(\s*(Солнечное|Город)\s*\)',tail,re.I)
+        if label and label.group(1).lower()==target:
+            return clocks[index]
     if 'солнечное' in low:
         return clocks[0]
     return clocks[1] if len(clocks) > 1 else clocks[0]

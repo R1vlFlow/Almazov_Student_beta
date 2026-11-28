@@ -36,12 +36,16 @@ await check('PWA install UI and platform instructions are present', () => {
   assert.match(html, /data-install-pwa/); assert.match(html, /id="installHelpDialog"/);
   assert.match(html, /На экран/); assert.match(html, /Safari/); assert.match(boot, /beforeinstallprompt/);
 });
-await check('Android install UI points to the current project and discloses release availability', () => {
+await check('Android install UI points to the current project and discloses release availability', async () => {
   assert.match(html, /data-android-releases/);
   assert.match(html, /github\.com\/R1vlFlow\/Almazov_Student_beta\/releases/);
   assert.doesNotMatch(html, /r1vlflow\/Zalma\/releases\/download/);
   assert.match(installDoc, /подписаны постоянным ключом проекта/);
-  assert.match(html, /data-download-apk href="https:\/\/github\.com\/R1vlFlow\/Almazov_Student_beta\/releases\/download\/v3\.2\.2\/Almazov-Student-3\.2\.2\.apk"/);
+  const android = JSON.parse(await read('public/android-release.json'));
+  assert.match(android.version, /^\d+\.\d+\.\d+$/);
+  assert.ok(Number.isInteger(android.versionCode) && android.versionCode > 0);
+  assert.equal(android.apkUrl, `https://github.com/R1vlFlow/Almazov_Student_beta/releases/download/v${android.version}/Almazov-Student-${android.version}.apk`);
+  assert.ok(html.includes(`data-download-apk href="${android.apkUrl}"`));
   assert.match(installDoc, /Предварительные сборки.*предназначены для тестирования, а не для установки вместо версии студентов/);
 });
 await check('Capacitor packages and config match the web build', () => {
@@ -59,6 +63,10 @@ await check('Android preview is QA-only and signed release is separate', () => {
   assert.match(signedReleaseWorkflow, /Load permanent signing key/);
   assert.match(signedReleaseWorkflow, /ANDROID_KEYSTORE_BASE64/);
   assert.match(signedReleaseWorkflow, /assembleRelease bundleRelease/);
+  for (const workflow of [signedReleaseWorkflow, previewWorkflow]) {
+    assert.ok(workflow.includes("Path('public/android-release.json')"));
+    assert.doesNotMatch(workflow, /versionCode \d+/);
+  }
   assert.ok(signedReleaseWorkflow.indexOf('run: npm run sync:official') < signedReleaseWorkflow.indexOf('run: npm run qa'));
   assert.match(signedReleaseWorkflow, /REQUIRE_SPECIALIST_SNAPSHOT:\s*[\"']?1/);
 });

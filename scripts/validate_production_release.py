@@ -83,6 +83,16 @@ def release_course_scope() -> list[str]:
     return list(dict.fromkeys(courses))
 
 
+def subject_label_errors(courses: dict, label: str) -> list[str]:
+    errors=[]
+    for course, data in courses.items():
+        for event in data.get('events', []):
+            subject=str(event.get('subject') or '').strip()
+            if not re.search(r'[А-Яа-яЁёA-Za-z]{2,}',subject) or re.match(r'^\(\s*(?:Город|Солнечное)\s*\)',subject,re.I):
+                errors.append(f'{label}/{course}: invalid subject label {subject!r} at {event.get("date")} {event.get("start")} source={event.get("sourceUrl")}')
+    return errors
+
+
 def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
     now = now or datetime.now(timezone.utc)
     errors: list[str] = []
@@ -141,6 +151,9 @@ def validate(root: Path = ROOT, *, now: datetime | None = None) -> list[str]:
     weeks = loaded['official academic week calendar']
     specialist = loaded['Pediatrics/Clinical Psychology snapshot']
     manual = loaded['specialist roster contract']
+    errors.extend(subject_label_errors(scoped_ld.get('courses', {}), 'LD'))
+    for program, data in specialist.get('programs', {}).items():
+        errors.extend(subject_label_errors(data.get('courses', {}), program))
 
     if ld.get('schemaVersion') != 7 or ld.get('dataState') not in ('live-generated', 'live-generated-partial'):
         errors.append('LD snapshot is not schemaVersion 7 generated from current official sources')

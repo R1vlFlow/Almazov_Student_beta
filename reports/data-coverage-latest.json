@@ -20,8 +20,8 @@
     }
   ],
   "schemaVersion": 1,
-  "generatedAt": "2026-11-28T04:57:37.904Z",
-  "sourceGeneratedAt": "2026-11-28T04:57:25.234127+00:00",
+  "generatedAt": "2026-11-28T16:18:40.856Z",
+  "sourceGeneratedAt": "2026-11-28T11:01:44.939868+00:00",
   "status": "ready",
   "academicYear": "2026/2027",
   "counts": {
@@ -137,7 +137,7 @@
       "course": 2,
       "status": "full",
       "sourceState": "live-generated",
-      "events": 214,
+      "events": 210,
       "missing": []
     },
     {
@@ -185,7 +185,7 @@
       "course": 1,
       "status": "full",
       "sourceState": "live-generated",
-      "events": 282,
+      "events": 281,
       "missing": []
     },
     {
@@ -193,7 +193,7 @@
       "course": 2,
       "status": "full",
       "sourceState": "live-generated",
-      "events": 164,
+      "events": 167,
       "missing": []
     },
     {
