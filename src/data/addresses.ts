@@ -1,11 +1,20 @@
-// Сверено 18.10.2026 по официальному перечню ИМО.
-export interface AlmazovAddress { name: string; address: string; sourceUrl: string; category: string; }
-export const ALMAZOV_ADDRESSES: AlmazovAddress[] = [
+// Основные адреса — официальный перечень; краткие названия — гайд кураторов 2026/27.
+export interface AlmazovAddress { name:string;address:string;sourceUrl:string;category:string;shortName?:string;aliases?:string[];guideId?:string;sourceLabel?:string;note?:string; }
+export const ALMAZOV_ADDRESSES:AlmazovAddress[] = [
   {
     "name": "Клинико-поликлинический корпус",
     "address": "г. Санкт-Петербург, ул. Аккуратова, д. 2, лит. А",
     "sourceUrl": "https://education.almazovcentre.ru/sveden/common/",
-    "category": "Учебные площадки Алмазова"
+    "category": "Учебные площадки Алмазова",
+    "shortName": "Центр Алмазова · Аккуратова, 2",
+    "aliases": [
+      "Башня",
+      "ГКК",
+      "КПК",
+      "Главный клинический комплекс",
+      "Башня и ГКК"
+    ],
+    "guideId": "tower"
   },
   {
     "name": "Федеральный перинатальный центр",
@@ -41,19 +50,30 @@ export const ALMAZOV_ADDRESSES: AlmazovAddress[] = [
     "name": "Институт медицинского образования",
     "address": "г. Санкт-Петербург, Коломяжский пр., д. 21, лит. А",
     "sourceUrl": "https://education.almazovcentre.ru/sveden/common/",
-    "category": "Учебные площадки Алмазова"
+    "category": "Учебные площадки Алмазова",
+    "shortName": "ИМО",
+    "aliases": [
+      "ИМО"
+    ],
+    "guideId": "imo"
   },
   {
     "name": "Центр доклинических и трансляционных исследований",
     "address": "г. Санкт-Петербург, муниципальный округ Юнтолово, ул. Долгоозерная, д. 43, строение 1",
     "sourceUrl": "https://education.almazovcentre.ru/sveden/common/",
-    "category": "Учебные площадки Алмазова"
+    "category": "Учебные площадки Алмазова",
+    "shortName": "ЦДТИ",
+    "aliases": [
+      "ЦДТИ"
+    ],
+    "guideId": "cdti"
   },
   {
     "name": "Комплекс «Солнечный»",
     "address": "г. Санкт-Петербург, пос. Солнечное, ул. Средняя, д. 6, лит. П",
     "sourceUrl": "https://education.almazovcentre.ru/sveden/common/",
-    "category": "Учебные площадки Алмазова"
+    "category": "Учебные площадки Алмазова",
+    "guideId": "sunny"
   },
   {
     "name": "Центр экспериментального биомоделирования",
@@ -71,7 +91,14 @@ export const ALMAZOV_ADDRESSES: AlmazovAddress[] = [
     "name": "Государственное казенное общеобразовательное специальное учебно-воспитательное учреждение школа №2 (открытого типа) Санкт-Петербурга",
     "address": "г. Санкт-Петербург, ул. Аккуратова, д. 11, лит. А",
     "sourceUrl": "https://education.almazovcentre.ru/sveden/common/",
-    "category": "Учебные площадки Алмазова"
+    "category": "Учебные площадки Алмазова",
+    "shortName": "Школа",
+    "aliases": [
+      "Школа",
+      "Школа №2",
+      "Школа № 2"
+    ],
+    "guideId": "school"
   },
   {
     "name": "СПб ГБУЗ «Городская поликлиника № 14»",
@@ -1092,5 +1119,20 @@ export const ALMAZOV_ADDRESSES: AlmazovAddress[] = [
     "address": "г. Санкт-Петербург, пр-кт Рижский, д. 43, лит. А",
     "sourceUrl": "https://education.almazovcentre.ru/sveden/common/",
     "category": "Базы практики"
+  },
+  {
+    "name": "Научно-образовательный комплекс (НОК)",
+    "shortName": "НОК",
+    "address": "г. Санкт-Петербург, Коломяжский проспект, д. 25",
+    "sourceUrl": "./assets/guides/first-year-2026-27/guide.pdf#page=17",
+    "sourceLabel": "Гайд кураторов",
+    "category": "Корпуса из гайда кураторов",
+    "aliases": [
+      "НОК",
+      "Новый образовательный комплекс",
+      "Научно-образовательный комплекс"
+    ],
+    "guideId": "nok",
+    "note": "Адрес указан в гайде кураторов 2026/27. Актуальное место занятия и вход уточняйте по расписанию."
   }
 ];

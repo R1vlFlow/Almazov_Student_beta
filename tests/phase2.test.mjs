@@ -28,7 +28,7 @@ test('Phase 2 build metadata and support Telegram link are defined', async () =>
 test('uploaded study materials use IndexedDB, scope metadata and safe file limits', async () => {
   assert.match(materialStore, /indexedDB\.open\(DB_NAME, DB_VERSION\)/);
   assert.match(materialStore, /createIndex\('scope'/);
-  assert.match(materialStore, /MAX_MATERIAL_FILE_SIZE = 25 \* 1024 \* 1024/);
+  assert.equal((await import('../dist/core/uploadLimits.js')).MAX_MATERIAL_FILE_SIZE,250*1024*1024);
   for (const ext of ['pdf','docx','xlsx','pptx','zip','jpg','jpeg','png']) assert.ok(materialStore.includes(`'${ext}'`), `missing file type ${ext}`);
   assert.match(html, /id="materialDropZone"/);
   assert.match(html, /id="fileMaterialInput" type="file"/);
@@ -52,15 +52,15 @@ test('custom select/date controls support theme, keyboard, current day, weekends
   assert.match(css, /@media\(max-width:360px\)/);
 });
 
-test('dashboard provides upcoming class, today timeline, nearest homework deadlines and quick actions', () => {
+test('dashboard focuses on the next class, today list and relevant deadlines', () => {
   for (const id of ['homeHero','homeTodayTimeline','homeDeadlines']) assert.match(html, new RegExp(`id="${id}"`));
   assert.match(app, /id=\"homeCountdownValue\"/);
   assert.match(app, /function countdownLabel\(/);
   assert.match(app, /function renderHome\(/);
   assert.match(app, /const dueTasks=state\.tasks\.filter/);
-  assert.match(app, /const next=events\.filter\(e=>e\.kind==='schedule'&&Date\.parse\(e\.startAt\)>now\)/);
-  assert.match(app, /data-action="add-task"/);
-  assert.match(html, /Карта корпуса/);
+  assert.match(app, /const next=events\.find\(e=>e\.kind==='schedule'&&Date\.parse\(e\.startAt\)>now\)/);
+  assert.match(html, /data-action="add-task"/);
+  assert.doesNotMatch(html, /Рабочий контур|Горящие дедлайны/);
 });
 
 test('smart homework action is linked to schedule events and calculates next matching class', () => {

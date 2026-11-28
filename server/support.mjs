@@ -4,7 +4,7 @@ import {join,resolve} from 'node:path';
 import {database} from './db.mjs';
 
 const ATTACHMENTS_DIR=resolve(process.env.APP_ATTACHMENTS_DIR??join(process.cwd(),'storage','attachments'));
-const MAX_TOTAL=8*1024*1024, MAX_ONE=3*1024*1024;
+const MAX_TOTAL=20*1024*1024, MAX_ONE=10*1024*1024;
 const CATEGORIES=new Set(['schedule','account','notifications','technical','other']);
 const PRIORITIES=new Set(['low','normal','high','urgent']);
 const STATUSES=new Set(['new','in_progress','waiting_user','resolved','closed']);

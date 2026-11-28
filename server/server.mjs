@@ -7,7 +7,7 @@ import {createEvent,updateEvent,deleteEvent,listEvents} from './events.mjs';
 import {listTickets,getTicket,createTicket,addMessage,readAttachment} from './support.mjs';
 import {readFile as readFileAttachment} from 'node:fs/promises';
 
-const ROOT=join(process.cwd(),'dist');const MAX_BODY=15*1024*1024;const rateBuckets=new Map();
+const ROOT=join(process.cwd(),'dist');const MAX_BODY=40*1024*1024;const rateBuckets=new Map();
 const TYPES={'.html':'text/html;charset=utf-8','.js':'text/javascript;charset=utf-8','.css':'text/css;charset=utf-8','.json':'application/json;charset=utf-8','.webmanifest':'application/manifest+json','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.ico':'image/x-icon','.txt':'text/plain;charset=utf-8'};
 function send(res,status,body,type='application/json;charset=utf-8',extra={}){
  const isMutableData=type.includes('application/json')||type==='application/manifest+json'||type==='text/html;charset=utf-8';

@@ -1,3 +1,4 @@
+import {MAX_SUPPORT_FILE_SIZE} from '../core/uploadLimits.js';
 export type TicketStatus='new'|'in_progress'|'waiting_user'|'resolved'|'closed';
 export interface SupportAttachment{name:string;type:string;size:number;dataBase64:string;}
 export interface SupportTicket{
@@ -59,7 +60,7 @@ export function addTicketMessage(id:string,body:string):Promise<SupportTicket>{
 }
 
 export async function fileToAttachment(file:File):Promise<SupportAttachment>{
-  if(file.size>3*1024*1024)throw new Error('Размер одного файла не должен превышать 3 МБ.');
+  if(file.size>MAX_SUPPORT_FILE_SIZE)throw new Error('Размер одного файла не должен превышать 10 МБ.');
   const data=await file.arrayBuffer();const bytes=new Uint8Array(data);let binary='';const chunk=0x8000;
   for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));
   return{name:file.name.slice(0,180),type:/^[\w.+-]+\/[\w.+-]+$/.test(file.type)?file.type:'application/octet-stream',size:file.size,dataBase64:btoa(binary)};

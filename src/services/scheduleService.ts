@@ -3,6 +3,7 @@ import { LIVE_LD_JSON, PROGRAMS, sourceFor, sourcesFor } from '../data/catalog.j
 import type { Course, ProgramCode, ScheduleEvent, ScheduleIndex, ScheduleLoadResult, ScheduleWeeklyBlock } from '../core/types.js';
 import { validateScheduleIndex, normalizeLiveEvents, normalizeWeeklyBlocks } from '../core/validate.js';
 import { saveCache, readCache } from './cache.js';
+import {fetchPublishedData} from './publishedData.js';
 
 const API_BASE='./api/schedule';
 const memory=new Map<string,ScheduleLoadResult>();
@@ -17,11 +18,14 @@ export async function loadSchedule(program:ProgramCode,course:Course):Promise<Sc
   // The application is shipped as a static release. Use the schedule snapshot
   // bundled with that release before trying the optional API, so GitHub Pages
   // and local static hosting never wait for a backend timeout.
-  const staticResult=await loadStaticSnapshot(program,course);
+  let staticResult=await loadStaticSnapshot(program,course);
   if(staticResult&&(staticResult.events.length>0||(staticResult.weeklyBlocks?.length??0)>0||staticResult.status==='unavailable')){
     if(staticResult.events.length||(staticResult.weeklyBlocks?.length??0)){
       const saved=await readCache<ScheduleLoadResult>('last-good:'+key);
       const previous=saved&&'payload' in saved?saved.payload as ScheduleLoadResult:saved as ScheduleLoadResult|null;
+      if(staticResult.issues?.includes('SCHEDULE_OFFLINE_CACHE')&&previous&&(previous.events?.length||previous.weeklyBlocks?.length)&&Date.parse(previous.generatedAt??'')>=Date.parse(staticResult.generatedAt??'')){
+        staticResult={...previous,status:'cache',issues:[...new Set([...(previous.issues??[]),'SCHEDULE_OFFLINE_CACHE'])],message:'Нет соединения: показано последнее сохранённое расписание. Изменения источника пока не проверены.'};
+      }
       if(!staticResult.issues?.includes('SCHEDULE_OFFLINE_CACHE'))recordScheduleCheck(key,previous,staticResult);
       await saveCache('last-good:'+key,staticResult);
     }
@@ -79,10 +83,8 @@ async function loadStaticSnapshot(program:ProgramCode,course:Course):Promise<Sch
     const url=new URL(`./data/schedules/${encodeURIComponent(program)}/${course}.json`,baseUrl);
     const buildId=typeof document!=='undefined'?document.documentElement.dataset.buildId:undefined;
     if(buildId)url.searchParams.set('v',buildId);
-    const res=await fetch(url.toString(),{cache:'no-store',signal:AbortSignal.timeout(20000)});
-    if(!res.ok)return null;
-    const payload=await res.json() as {events?:ScheduleEvent[];weeklyBlocks?:ScheduleWeeklyBlock[];generatedAt?:string;sourceUrl?:string;sourceName?:string;status?:string;issues?:string[];message?:string;coverage?:ScheduleLoadResult['coverage']};
-    if(!Array.isArray(payload.events))return null;
+    type Snapshot={events:ScheduleEvent[];weeklyBlocks?:ScheduleWeeklyBlock[];generatedAt?:string;sourceUrl?:string;sourceName?:string;status?:string;issues?:string[];message?:string;coverage?:ScheduleLoadResult['coverage']};
+    const {payload,offline}=await fetchPublishedData(url.toString(),(value):value is Snapshot=>Boolean(value&&typeof value==='object'&&Array.isArray((value as Snapshot).events)),20000);
     const weeklyBlocks=Array.isArray(payload.weeklyBlocks)?payload.weeklyBlocks:[];
     if(payload.events.length===0&&weeklyBlocks.length===0){
       if(payload.status==='unpublished')return {status:'unavailable',events:[],generatedAt:payload.generatedAt,sourceUrl:payload.sourceUrl,sourceName:payload.sourceName,issues:Array.isArray(payload.issues)?payload.issues:[],coverage:payload.coverage,message:payload.message??'Нет опубликованных данных для выбранного курса.'};
@@ -91,7 +93,6 @@ async function loadStaticSnapshot(program:ProgramCode,course:Course):Promise<Sch
     }
     const status=(payload.status==='partial'||payload.status==='cache'?'cache'===payload.status?'cache':'partial':'live') as ScheduleLoadResult['status'];
     const stale=payload.generatedAt&&Date.now()-Date.parse(payload.generatedAt)>7*24*60*60*1000;
-    const offline=res.headers.get('X-Almazov-Cache')==='offline';
     const finalStatus=stale||offline?'cache':status;
     const issues=Array.isArray(payload.issues)?[...payload.issues]:[];
     if(stale)issues.push('SCHEDULE_SNAPSHOT_STALE');

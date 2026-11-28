@@ -1,9 +1,9 @@
 {
-  "version": "2.8.0-rc.9",
-  "uiVersion": "2.8.0-rc.9",
+  "version": "2.8.0-rc.10",
+  "uiVersion": "2.8.0-rc.10",
   "engineVersion": "4.9.0-rc.1",
-  "release": "VERIFIED-LESSON-TOPIC-LIBRARY",
-  "released": "2026-11-22",
+  "release": "DAILY-STUDENT-UPDATE",
+  "released": "2026-11-28",
   "releaseChannel": "rc",
   "releaseStatus": "VERIFIED_WEB_RELEASE_CANDIDATE"
 }

@@ -1,5 +1,7 @@
 import type { Course, LessonType, Stream } from './types.js';
 
+export function subjectDisplayName(value:string):string{return /^(?:л?атынь)$/iu.test(value.trim())?'Латинский язык':value.replace(/\s+/g,' ').trim();}
+
 export const cleanText = (value: unknown): string => String(value ?? '')
   .replace(/\u00a0/g, ' ')
   .replace(/[\u200B-\u200D\uFEFF]/g, '')
@@ -15,7 +17,7 @@ export const cleanSubject = (value: unknown): string => cleanText(value)
   .replace(/\s+([,.;:])/g, '$1')
   .replace(/\s{2,}/g, ' ')
   .replace(/^[\s,.;:|/\-–—]+|[\s,.;:|/\-–—]+$/g, '')
-  .trim();
+  .trim().replace(/^(?:л?атынь)$/iu,'Латинский язык');
 
 export const cleanTeacher = (value: unknown): string => cleanText(value)
   .replace(/^(преподаватель|преп\.|доцент|профессор|ассистент|старший преподаватель)\s*:?[ ]*/i, '')

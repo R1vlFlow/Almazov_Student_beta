@@ -60,12 +60,13 @@ jobs:
       - name: Set forward Android version metadata
         run: |
           python3 - <<'PY'
-          import re
+          import json, re
           from pathlib import Path
           p = Path('android/app/build.gradle')
           s = p.read_text()
-          s = re.sub(r'versionCode\s+\d+', 'versionCode 35', s, count=1)
-          s = re.sub(r'versionName\s+["\'].*?["\']', 'versionName \"3.2.2\"', s, count=1)
+          meta = json.loads(Path('public/android-release.json').read_text())
+          s = re.sub(r'versionCode\s+\d+', 'versionCode '+str(meta['versionCode']), s, count=1)
+          s = re.sub(r'versionName\s+["\'].*?["\']', 'versionName \"'+meta['version']+'\"', s, count=1)
           p.write_text(s)
           PY
       - name: Assemble QA-only APK

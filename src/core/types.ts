@@ -147,6 +147,8 @@ export interface Task {
   subject: string;
   text: string;
   due?: string;
+  dueTimeZone?: string;
+  kind?: 'homework' | 'report' | 'test' | 'credit' | 'makeup' | 'other';
   done: boolean;
   status?: HomeworkStatus;
   priority?: HomeworkPriority;

@@ -1,3 +1,4 @@
+import {MAX_SCHEDULE_FILE_SIZE} from '../core/uploadLimits.js';
 import * as XLSX from 'xlsx';
 import { parseHtmlTable } from '../core/htmlTableParser.js';
 import type { Course, ProgramCode } from '../core/types.js';
@@ -22,7 +23,7 @@ interface ImportTarget { program: ProgramCode; course: Course; group: string; }
 const DB_NAME = 'almazov-imported-practices';
 const STORE = 'practice-events';
 const DB_VERSION = 1;
-const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const MAX_FILE_SIZE = MAX_SCHEDULE_FILE_SIZE;
 const aliases: Record<string, string[]> = {
   date: ['дата', 'число', 'дата занятия', 'дата проведения', 'день', 'date'],
   start: ['начало', 'начало занятия', 'время начала', 'время', 'время проведения', 'интервал времени', 'временной интервал', 'период', 'start', 'time'],
@@ -347,7 +348,7 @@ function icsDate(value: string, _zone?: string): { date: string; time: string } 
 }
 
 export async function parsePracticeScheduleFile(file: File, target: ImportTarget): Promise<ImportedPractice[]> {
-  if (!file.size || file.size > MAX_FILE_SIZE) throw new Error('Файл должен быть не пустым и не больше 20 МБ.');
+  if (!file.size || file.size > MAX_FILE_SIZE) throw new Error('Файл должен быть не пустым и не больше 50 МБ.');
   const extension = file.name.split('.').pop()?.toLocaleLowerCase('en-US') ?? '';
   let matrix: unknown[][];
   if (extension === 'csv' || extension === 'tsv' || extension === 'txt') matrix = csvMatrix(decodeScheduleText(await file.arrayBuffer()));

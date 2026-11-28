@@ -4,10 +4,14 @@ import re
 CSS = Path('public/styles.css').read_text(encoding='utf-8')
 
 def vars_for(pattern):
-    m = re.search(pattern, CSS)
-    if not m:
+    blocks = re.findall(pattern, CSS)
+    if not blocks:
         raise SystemExit(f'missing theme block: {pattern}')
-    return dict(re.findall(r'(--[\w-]+):(#(?:[0-9a-fA-F]{6}))', m.group(1)))
+    # Root variables may span multiple rules; later declarations win.
+    values = {}
+    for block in blocks:
+        values.update(re.findall(r'(--[\w-]+)\s*:\s*(#(?:[0-9a-fA-F]{6}))', block))
+    return values
 
 def lum(value):
     rgb=[int(value[i:i+2],16)/255 for i in (1,3,5)]

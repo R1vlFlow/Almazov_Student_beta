@@ -1,0 +1,171 @@
+[
+  {
+    "file": "school-1.webp",
+    "campus": "school",
+    "sourcePage": 29,
+    "bbox": [
+      128.85263061523438,
+      546.0,
+      477.1473693847656,
+      722.0
+    ],
+    "width": 1001,
+    "height": 506
+  },
+  {
+    "file": "school-2.webp",
+    "campus": "school",
+    "sourcePage": 24,
+    "bbox": [
+      76.0,
+      543.9606323242188,
+      518.0,
+      740.0393676757812
+    ],
+    "width": 1001,
+    "height": 445
+  },
+  {
+    "file": "tower-1.webp",
+    "campus": "tower",
+    "sourcePage": 30,
+    "bbox": [
+      89.0,
+      250.6355743408203,
+      506.0,
+      432.3644104003906
+    ],
+    "width": 1001,
+    "height": 436
+  },
+  {
+    "file": "tower-2.webp",
+    "campus": "tower",
+    "sourcePage": 30,
+    "bbox": [
+      88.41508483886719,
+      531.0,
+      506.58489990234375,
+      716.0
+    ],
+    "width": 1001,
+    "height": 444
+  },
+  {
+    "file": "imo-1.webp",
+    "campus": "imo",
+    "sourcePage": 33,
+    "bbox": [
+      94.0,
+      434.8021240234375,
+      482.0,
+      622.1978759765625
+    ],
+    "width": 1001,
+    "height": 484
+  },
+  {
+    "file": "imo-2.webp",
+    "campus": "imo",
+    "sourcePage": 33,
+    "bbox": [
+      139.90350341796875,
+      665.0,
+      482.09649658203125,
+      831.0
+    ],
+    "width": 1001,
+    "height": 486
+  },
+  {
+    "file": "cdti-1.webp",
+    "campus": "cdti",
+    "sourcePage": 40,
+    "bbox": [
+      60.95393753051758,
+      295.0,
+      534.0460815429688,
+      448.0
+    ],
+    "width": 1001,
+    "height": 324
+  },
+  {
+    "file": "cdti-2.webp",
+    "campus": "cdti",
+    "sourcePage": 40,
+    "bbox": [
+      60.59925842285156,
+      483.0,
+      539.4007568359375,
+      619.0
+    ],
+    "width": 1001,
+    "height": 285
+  },
+  {
+    "file": "sunny-1.webp",
+    "campus": "sunny",
+    "sourcePage": 42,
+    "bbox": [
+      319.0,
+      573.6614379882812,
+      574.0,
+      762.3385620117188
+    ],
+    "width": 1001,
+    "height": 741
+  },
+  {
+    "file": "sunny-2.webp",
+    "campus": "sunny",
+    "sourcePage": 43,
+    "bbox": [
+      49.95758056640625,
+      299.0,
+      304.04241943359375,
+      487.0
+    ],
+    "width": 1001,
+    "height": 741
+  },
+  {
+    "file": "sunny-3.webp",
+    "campus": "sunny",
+    "sourcePage": 43,
+    "bbox": [
+      319.0,
+      564.8848876953125,
+      576.0,
+      758.1151123046875
+    ],
+    "width": 1001,
+    "height": 753
+  },
+  {
+    "file": "sunny-4.webp",
+    "campus": "sunny",
+    "sourcePage": 45,
+    "bbox": [
+      86.0,
+      459.9499816894531,
+      509.0000305175781,
+      639.0499877929688
+    ],
+    "width": 1001,
+    "height": 424
+  },
+  {
+    "file": "nok-1.webp",
+    "campus": "nok",
+    "sourcePage": 38,
+    "bbox": [
+      75.98995971679688,
+      233.00003051757812,
+      520.0100708007812,
+      609.0000610351562
+    ],
+    "width": 1001,
+    "height": 848
+  }
+]

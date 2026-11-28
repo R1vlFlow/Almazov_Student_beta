@@ -20,7 +20,8 @@ check(worker.includes(version.buildId),'service worker cache version must match 
 check(!worker.includes('__BUILD_ID__')&&!worker.includes('__VERSIONED_SHELL__'),'generated service worker must not contain build placeholders');
 check(cacheSource.includes('ensureScheduleCacheVersion')&&cacheSource.includes('snapshot:')&&cacheSource.includes('raw:'),'build changes must invalidate only schedule/parser snapshots');
 check(!cacheSource.includes('localStorage.clear('),'build changes must never wipe user-owned localStorage');
-check(scheduleSource.includes("url.searchParams.set('v',buildId)")&&scheduleSource.includes("cache:'no-store'"),'static schedule fetch must be build-stamped and bypass HTTP cache');
+const publishedDataSource=await read('src/services/publishedData.ts');
+check(scheduleSource.includes("url.searchParams.set('v',buildId)")&&scheduleSource.includes('fetchPublishedData')&&publishedDataSource.includes("cache:'no-store'"),'static schedule fetch must be build-stamped and bypass HTTP cache');
 check(serverSource.includes('no-cache, no-store, must-revalidate')&&serverSource.includes('application/manifest+json'),'server JSON schedules and manifest must be no-store');
 check(html.includes(`?v=${version.buildId}`),'built HTML must version its assets');
 check(rootIndex.includes("current.pathname+='dist/'"),'branch-root index must route to canonical dist app');

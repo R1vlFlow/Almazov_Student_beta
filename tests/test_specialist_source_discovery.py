@@ -163,6 +163,43 @@ def test_image_source_preview_uses_ocr_for_identity_validation():
     finally:
         specialist.legacy.source_preview_text = original
 
+def test_official_semester_tables_preserve_merged_cells_rooms_and_labelled_clocks():
+    import json
+    from types import SimpleNamespace
+    tables = json.loads((Path(__file__).parent / 'fixtures' / 'semester-lecture-tables.json').read_text(encoding='utf-8'))
+    def parse(name, course):
+        pages = [SimpleNamespace(find_tables=lambda strategy, rows=rows: SimpleNamespace(tables=[SimpleNamespace(extract=lambda: rows)])) for rows in tables[name]]
+        return specialist.legacy.parse_lecture(pages, course, 'https://example.org/schedule.pdf', 'B')
+    peds = parse('peds2', 2)
+    assert peds and not any(e['weekNumber'] == 1 for e in peds), 'No invented first-week lessons from clock labels'
+    nurse = next(e for e in peds if e['subject'] == 'Сестринское дело')
+    assert (nurse['weekday'], nurse['weekNumber'], nurse['start'], nurse['end']) == (1, 2, '09:20', '10:45')
+    psych = next(e for e in peds if e['subject'] == 'Психология')
+    assert (psych['start'], psych['end']) == ('09:00', '10:35') and 'ЦДТИ' in psych['location']
+    assert {e['weekNumber'] for e in peds if e['subject'] == 'Микробиология'} == set(range(2, 17))
+    assert all(e['start'] == '10:50' for e in peds if e['subject'] == 'Микробиология')
+    psych1 = parse('psych1', 1)
+    double = [e for e in psych1 if e['subject'] == 'Общая психология' and e['weekday'] == 2 and e['weekNumber'] == 6]
+    assert {e['start'] for e in double} == {'09:00', '10:50'}, 'A vertically merged discipline covers both actual slots'
+    russian = next(e for e in psych1 if e['subject'] == 'Русский язык и культура речи' and e['weekNumber'] == 12)
+    assert russian['start'] == '15:10' and '1.3' in russian['location']
+    psych2 = parse('psych2', 2)
+    assert any(e['subject'] == 'IT-технологии, биостатистика' and e['weekday'] == 0 and e['weekNumber'] == 5 and e['start'] == '09:20' for e in psych2)
+    assert any(e['subject'] == 'IT-технологии, биостатистика' and e['weekday'] == 0 and e['weekNumber'] == 12 and e['start'] == '09:00' and 'Чайковского' in e['location'] for e in psych2)
+    assert any(e['subject'] == 'IT-технологии, биостатистика' and e['weekday'] == 3 and e['weekNumber'] == 9 and e['start'] == '11:00' for e in psych2), 'Thursday continues onto page two'
+    assert not any(e['weekday'] == 0 and e['weekNumber'] == 1 for e in psych2)
+    for event in peds + psych1 + psych2:
+        assert event['subject'] and not event['subject'].startswith(('(', 'ул.', 'ЦДТИ,', 'Солнечное,'))
+        assert event['type'] == 'lecture'
+
+
+def test_release_gate_rejects_clock_labels_instead_of_subjects():
+    from validate_production_release import subject_label_errors
+    events=[{'subject':s,'date':'2026-09-02','start':'09:00','sourceUrl':'https://example.org/a.pdf'} for s in ['(', '(Город)', '(Город) Биология', '(Солнечное) История России']]
+    assert len(subject_label_errors({'1':{'events':events}},'test')) == 4
+    assert not subject_label_errors({'1':{'events':[{'subject':s} for s in ['ОСК', 'IT-технологии, биостатистика', 'Физическая культура и спорт (ЭД)']]}},'test')
+
+
 def main():
     tests = [test_discovery_finds_pediatrics_and_clinical_psychology_stream_links,
              test_document_content_overrides_wrong_source_label,
@@ -172,7 +209,9 @@ def main():
              test_adjacent_double_slots_merge_but_identity_conflicts_do_not,
              test_org_source_long_block_stays_one_event_after_normalization,
              test_course_discovery_and_document_validation_support_courses_one_to_six,
-             test_image_source_preview_uses_ocr_for_identity_validation]
+             test_image_source_preview_uses_ocr_for_identity_validation,
+             test_official_semester_tables_preserve_merged_cells_rooms_and_labelled_clocks,
+             test_release_gate_rejects_clock_labels_instead_of_subjects]
     for test in tests:
         test()
         print(f'PASS {test.__name__}')

@@ -2,8 +2,51 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {compareSchedules} from '../dist/services/scheduleHistory.js';
-import {validatePersonalBackup,restorePersonalBackup,createPersonalBackup,mergeBackupRecords,validBackupFileEncoding,decodeBackupFile} from '../dist/services/personalBackup.js';
+import {validatePersonalBackup,restorePersonalBackup,createPersonalBackup,createPersonalBackupFile,readPersonalBackup,mergeBackupRecords,validBackupFileEncoding,decodeBackupFile} from '../dist/services/personalBackup.js';
 import {matchCourseAddresses} from '../dist/core/courseAddresses.js';
+
+test('installed APK refreshes public schedules and KUG, with safe offline fallback',async()=>{
+ const {fetchPublishedData}=await import('../dist/services/publishedData.js');
+ const {loadSchedule,clearScheduleMemory}=await import('../dist/services/scheduleService.js');
+ const {saveCache,readCache}=await import('../dist/services/cache.js');
+ const originals=Object.fromEntries(['window','document','fetch','localStorage'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ const values=new Map([['almazov.profile','personal profile'],['almazov.tasks','personal task']]);
+ const localStorage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)};
+ const calls=[];let native=true,failRemote=false,invalidRemote=false;
+ const fresh={events:[{subject:'Fresh official subject'}],generatedAt:new Date().toISOString()};
+ const bundled={events:[{subject:'Old bundled subject'}],generatedAt:new Date(Date.now()-86400000).toISOString()};
+ try{
+  Object.defineProperty(globalThis,'window',{configurable:true,value:{Capacitor:{isNativePlatform:()=>native}}});
+  Object.defineProperty(globalThis,'document',{configurable:true,value:{baseURI:'https://localhost/',documentElement:{dataset:{buildId:'test-build'}}}});
+  Object.defineProperty(globalThis,'localStorage',{configurable:true,value:localStorage});
+  Object.defineProperty(globalThis,'fetch',{configurable:true,value:async(url,options)=>{
+   calls.push({url:String(url),options});const remote=String(url).startsWith('https://r1vlflow.github.io/');
+   if(remote&&failRemote)throw new TypeError('offline');
+   const payload=remote?(invalidRemote?{unexpected:true}:fresh):bundled;
+   return Response.json(payload);
+  }});
+  const valid=value=>Boolean(value&&Array.isArray(value.events));
+  const current=await fetchPublishedData('./data/schedules/31.05.01/6.json?v=test-build&group=623&note=private',valid);
+  assert.deepEqual(current,{payload:fresh,offline:false});assert.equal(calls.length,1);
+  assert.equal(calls[0].url,'https://r1vlflow.github.io/Almazov_Student_beta/data/schedules/31.05.01/6.json?v=test-build');
+  assert.equal(calls[0].options.credentials,'omit');assert.equal(calls[0].options.referrerPolicy,'no-referrer');assert.equal(calls[0].options.cache,'no-store');
+  invalidRemote=true;
+  assert.deepEqual(await fetchPublishedData('./data/schedules/31.05.01/6.json',valid),{payload:bundled,offline:true});
+  invalidRemote=false;failRemote=true;
+  await saveCache('last-good:31.05.01:6',{status:'live',...fresh});clearScheduleMemory();
+  const offline=await loadSchedule('31.05.01',6);
+  assert.equal(offline.events[0].subject,'Fresh official subject');assert.equal(offline.status,'cache');assert.ok(offline.issues.includes('SCHEDULE_OFFLINE_CACHE'));
+  assert.equal((await readCache('last-good:31.05.01:6')).payload.events[0].subject,'Fresh official subject');
+  calls.length=0;native=false;
+  assert.deepEqual(await fetchPublishedData('./data/schedules/31.05.01/6.json',valid),{payload:bundled,offline:false});
+  assert.equal(calls.length,1);assert.equal(calls[0].url,'https://localhost/data/schedules/31.05.01/6.json');
+  native=true;failRemote=false;calls.length=0;
+  await fetchPublishedData('./data/kug.json',valid);assert.equal(calls[0].url,'https://r1vlflow.github.io/Almazov_Student_beta/data/kug.json');
+  assert.equal(values.get('almazov.profile'),'personal profile');assert.equal(values.get('almazov.tasks'),'personal task');
+ }finally{
+  clearScheduleMemory();for(const [key,descriptor] of Object.entries(originals)){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
+ }
+});
 test('startup opens the shell while schedule requests wait and offers retry if scripts stall',async()=>{
  const {runInNewContext}=await import('node:vm');
  const source=await readFile(new URL('../public/boot.js',import.meta.url),'utf8');
@@ -70,6 +113,23 @@ test('backup validates format, local keys and corrupt file data before writing',
 class Tx{constructor(rows){this.rows=rows;this.pending=0;queueMicrotask(()=>{if(!this.pending)this.oncomplete?.();});}objectStore(){const tx=this;const request=fn=>{tx.pending++;const r={};queueMicrotask(()=>{try{r.result=fn();r.onsuccess?.();}catch(e){r.error=e;r.onerror?.();tx.onerror?.();}finally{tx.pending--;queueMicrotask(()=>{if(!tx.pending)tx.oncomplete?.();});}});return r;};return {get:id=>request(()=>this.rows.get(id)),getAll:()=>request(()=>[...this.rows.values()]),add:row=>request(()=>{if(this.rows.has(row.id))throw Error('duplicate');this.rows.set(row.id,structuredClone(row));})};}}
 class DB{constructor(name){this.name=name;}createObjectStore(){Fake.stores.set(this.name,new Map());return {createIndex(){}};}transaction(){return new Tx(Fake.stores.get(this.name));}close(){}}
 class Fake{static stores=new Map();open(name){const r={};queueMicrotask(()=>{r.result=new DB(name);if(!Fake.stores.has(name))r.onupgradeneeded?.();r.onsuccess?.();});return r;}}
+
+test('backup round trip preserves tasks, attachments and preparation items and merges without overwriting',async()=>{
+ const old={indexedDB:globalThis.indexedDB,localStorage:globalThis.localStorage};const memory=new Map();globalThis.localStorage={getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,v)};globalThis.indexedDB=new Fake();Fake.stores=new Map();
+ try{
+  const {readPersonalization,savePersonalization}=await import('../dist/services/personalizationStore.js');
+  const current=readPersonalization();
+  const task={id:'old-task',program:'31.05.01',course:1,group:'123',subject:'Анатомия',text:'Мой текст',status:'done',done:true,priority:'medium',kind:'report',due:'2026-11-27T09:00',dueTimeZone:'Europe/Moscow',attachmentName:'notes.pdf',attachmentData:'data:application/pdf;base64,JVBERi0=',createdAt:'2026-11-26'};
+  const item={id:'old-item',program:'31.05.01',course:1,group:'123',date:'2026-11-27',text:'Халат',done:true,createdAt:'2026-11-26'};
+  savePersonalization({...current,tasks:[task],preparationItems:[item],subjectColors:{химия:'#7892bf'},subjectGradients:{химия:'blue-purple'}});
+  const copy=await createPersonalBackup();assert.equal(validatePersonalBackup(copy),copy);
+  copy.personalization.subjectColors={химия:'#b91c1c',биология:'#047857'};copy.personalization.subjectGradients={химия:'pastel-pink',биология:'teal-blue'};
+  copy.personalization.tasks=[{...task,text:'Чужой текст'},{...task,id:'new-task',text:'Новое задание'}];copy.personalization.preparationItems=[{...item,text:'Чужая вещь'},{...item,id:'new-item',text:'Тетрадь'}];
+  await restorePersonalBackup(copy);await restorePersonalBackup(copy);
+  const result=await createPersonalBackup();assert.equal(result.personalization.tasks.length,2);assert.equal(result.personalization.tasks[0].text,'Мой текст');assert.equal(result.personalization.tasks[0].attachmentData,task.attachmentData);assert.equal(result.personalization.tasks[0].dueTimeZone,'Europe/Moscow');assert.equal(result.personalization.preparationItems.length,2);assert.equal(result.personalization.preparationItems[0].text,'Халат');
+  assert.equal(result.personalization.subjectGradients.химия,'blue-purple');assert.equal(result.personalization.subjectGradients.биология,'teal-blue');assert.equal(result.personalization.subjectColors.химия,'#7892bf');
+ }finally{Object.assign(globalThis,old);}
+});
 test('restore is additive and repeated restore does not duplicate notes or overwrite files',async()=>{
  const old={indexedDB:globalThis.indexedDB,localStorage:globalThis.localStorage,FileReader:globalThis.FileReader};const memory=new Map();globalThis.localStorage={getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,v)};globalThis.indexedDB=new Fake();globalThis.FileReader=class{async readAsDataURL(blob){this.result='data:'+blob.type+';base64,'+Buffer.from(await blob.arrayBuffer()).toString('base64');this.onload();}};
  try{const b=blank();b.stores.files=[{id:'file-a',title:'Конспект',subject:'Терапия',category:'lecture',description:'',tags:[],fileName:'notes.pdf',mimeType:'application/pdf',size:5,createdAt:b.createdAt,program:'31.05.01',course:4,group:'423',scope:'31.05.01:4:423',fileBase64:'JVBERi0='}];await restorePersonalBackup(b);await restorePersonalBackup(b);const exported=await createPersonalBackup();assert.equal(exported.stores.files.length,1);assert.equal(exported.stores.files[0].fileBase64,'JVBERi0=');const altered=structuredClone(b);altered.stores.files[0].title='Чужая версия';await restorePersonalBackup(altered);assert.equal((await createPersonalBackup()).stores.files[0].title,'Конспект');}finally{Object.assign(globalThis,old);}
@@ -77,7 +137,7 @@ test('restore is additive and repeated restore does not duplicate notes or overw
 test('maps only resolve an unambiguous official address',()=>{const one={name:'Клинико-поликлинический комплекс',address:'ул. Аккуратова, д. 2',sourceUrl:'https://example.org',category:'test'};assert.equal(matchCourseAddresses([one],['КПК']).addresses.length,1);assert.equal(matchCourseAddresses([one,{...one,address:'другое'}],['КПК']).addresses.length,0);assert.equal(matchCourseAddresses([one],['ауд. 2']).addresses.length,0);});
 test('updates require explicit acceptance and never navigate clients from service worker',async()=>{const boot=await readFile('public/boot.js','utf8'),sw=await readFile('public/sw.js','utf8');assert.ok(boot.includes('window.confirm'));assert.ok(boot.includes('release.buildId===BUILD_ID&&!waitingWorker'));assert.ok(boot.includes("button.addEventListener('click',async()=>"));assert.ok(!sw.includes('client.navigate'));assert.ok(sw.includes("event.data?.type==='SKIP_WAITING'"));});
 
-test('Android release metadata is shipped with the web build',async()=>{const source=JSON.parse(await readFile('public/android-release.json','utf8'));const built=JSON.parse(await readFile('dist/android-release.json','utf8'));assert.deepEqual(built,source);assert.equal(source.versionCode,35);assert.equal(source.version,'3.2.2');assert.ok(source.apkUrl.endsWith('/v3.2.2/Almazov-Student-3.2.2.apk'));assert.match(source.apkUrl,/^https:\/\/github\.com\/R1vlFlow\/Almazov_Student_beta\/releases\/download\//);});
+test('Android release metadata is shipped with the web build',async()=>{const source=JSON.parse(await readFile('public/android-release.json','utf8'));const built=JSON.parse(await readFile('dist/android-release.json','utf8'));assert.deepEqual(built,source);assert.ok(Number.isInteger(source.versionCode)&&source.versionCode>0);assert.match(source.version,/^\d+\.\d+\.\d+$/);assert.equal(source.apkUrl,`https://github.com/R1vlFlow/Almazov_Student_beta/releases/download/v${source.version}/Almazov-Student-${source.version}.apk`);});
 
 test('offline initial HTML is cached only when it matches the worker build',async()=>{const sw=await readFile('public/sw.js','utf8');assert.ok(sw.includes('data-build-id="${BUILD_ID}"'));assert.ok(sw.includes('await cache.put(indexUrl,response)'));});
 
@@ -113,4 +173,20 @@ test('chunked attachment restore preserves every byte and yields to the interfac
  const blob=await decodeBackupFile(bytes.toString('base64'),bytes.length,'application/pdf');
  assert.equal(yielded,true);assert.equal(blob.type,'application/pdf');assert.deepEqual(Buffer.from(await blob.arrayBuffer()),bytes);
  await assert.rejects(decodeBackupFile('!!!!',3,'application/pdf'));
+});
+
+test('binary backup carries large task files and materials without base64 inflation and still reads old JSON',async()=>{
+ const old={indexedDB:globalThis.indexedDB,localStorage:globalThis.localStorage};const memory=new Map();globalThis.localStorage={getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,v)};globalThis.indexedDB=new Fake();Fake.stores=new Map();
+ try{
+  const {savePersonalization,readPersonalization}=await import('../dist/services/personalizationStore.js');savePersonalization({...readPersonalization(),tasks:[],materials:[]});
+  const b=blank(),taskBlob=new Blob([new Uint8Array(3*1024*1024).fill(17)],{type:'application/pdf'}),material=new Blob([new Uint8Array(30*1024*1024).fill(29)],{type:'application/pdf'});
+  b.personalization.tasks=[{id:'blob-task',subject:'Химия',text:'Файл больше старого лимита',program:'31.05.01',course:1,group:'123',done:false,attachmentId:'large-task-file',attachmentName:'task.pdf'}];
+  b.stores['task-files']=[{id:'large-task-file',name:'task.pdf',type:'application/pdf',size:taskBlob.size,createdAt:b.createdAt,blob:taskBlob}];
+  b.stores.files=[{id:'large-material',title:'Учебник',subject:'Химия',category:'book',description:'',tags:[],fileName:'book.pdf',mimeType:'application/pdf',size:material.size,createdAt:b.createdAt,program:'31.05.01',course:1,group:'123',scope:'31.05.01:1:123',blob:material}];
+  await restorePersonalBackup(b);const archive=await createPersonalBackupFile();assert.ok(archive.size<taskBlob.size+material.size+20000);
+  const decoded=await readPersonalBackup(new File([archive],'backup.almazov'));assert.equal(decoded.stores['task-files'][0].blob.size,taskBlob.size);assert.equal(decoded.stores.files[0].blob.size,material.size);assert.equal(new Uint8Array(await decoded.stores['task-files'][0].blob.slice(-8).arrayBuffer())[0],17);assert.equal(new Uint8Array(await decoded.stores.files[0].blob.slice(-8).arrayBuffer())[0],29);
+  await assert.rejects(readPersonalBackup(new File([archive.slice(0,-1)],'truncated.almazov')));
+  assert.equal((await readPersonalBackup(new File([JSON.stringify(blank())],'legacy.json'))).version,1);
+  const missing=blank();missing.personalization.tasks=b.personalization.tasks;assert.throws(()=>validatePersonalBackup(missing),/отсутствует вложение/);
+ }finally{Object.assign(globalThis,old);}
 });

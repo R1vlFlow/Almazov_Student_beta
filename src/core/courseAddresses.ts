@@ -1,6 +1,7 @@
 import type {AlmazovAddress} from '../data/addresses.js';
 
 const normalize=(s:string)=>s.toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/ли\.\s*т(?=[.\s])/gu,'лит').replace(/[«»"']/g,'').replace(/\s+/g,' ').trim();
+function aliasMatches(text:string,alias:string){const value=normalize(alias);if(!value||!text.startsWith(value))return false;const rest=text.slice(value.length);return !rest||/^(?:\s*[,;/()]|\s+(?:ауд(?:итория)?\.?|каб(?:инет)?\.?|этаж|лит\.?|корп(?:ус)?\.?|\d))/u.test(rest);}
 export function matchCourseAddresses(directory:AlmazovAddress[],locations:string[]){
   const matched=new Set<AlmazovAddress>();
   const unresolved:string[]=[];
@@ -8,6 +9,7 @@ export function matchCourseAddresses(directory:AlmazovAddress[],locations:string
     const text=normalize(raw);
     const candidates=directory.filter(item=>{
       const name=normalize(item.name),address=normalize(item.address);
+      if(item.aliases?.some(alias=>aliasMatches(text,alias)))return true;
       const token=(s:string)=>new RegExp('(^|[^а-яa-z])'+s+'(?=$|[^а-яa-z])','u').test(text);
       if(name.startsWith('клинико-поликлинический')&&token('кпк'))return true;
       if(name.startsWith('центр доклинических')&&token('цдти'))return true;
@@ -34,19 +36,21 @@ export function matchCourseAddresses(directory:AlmazovAddress[],locations:string
   return {addresses:directory.filter(x=>matched.has(x)),unresolved};
 }
 
-export interface AddressPlace {key:string;name:string;address:string;members:AlmazovAddress[];locations:string[];subjects:string[];}
+export interface AddressPlace {key:string;name:string;address:string;members:AlmazovAddress[];locations:string[];subjects:string[];aliases:string[];}
 // Campus grouping is presentation-only: lesson routes retain the precise matcher above.
 export function groupAddressPlaces(directory:AlmazovAddress[],rows:{location?:string;subject:string}[]){
   const places=new Map<string,AddressPlace>();
   const memberKeys=new Map<AlmazovAddress,string>();
   for(const item of directory){
     const sunny=/солнечное/u.test(normalize(item.address));
-    const address=sunny?'г. Санкт-Петербург, пос. Солнечное, ул. Средняя, д. 6':item.address.replace(/,?\s*(?:лит\.|ауд\.|аудитория)\s*.*$/iu,'').trim();
+    const address=sunny?'г. Санкт-Петербург, пос. Солнечное, ул. Средняя, д. 6':item.address.replace(/,?\s*(?:лит\.|ауд\.|аудитория)\s*.*$/iu,'').replace(/[\s,;.]+$/gu,'').trim();
     const key=normalize(address);
     let place=places.get(key);
-    if(!place){place={key,name:sunny?'Солнечное':item.name,address,members:[],locations:[],subjects:[]};places.set(key,place);}
+    if(!place){place={key,name:sunny?'Солнечное':item.shortName||item.name,address,members:[],locations:[],subjects:[],aliases:[]};places.set(key,place);}
+    if(!sunny&&item.shortName&&!place.members.some(m=>m.shortName))place.name=item.shortName;
     place.members.push(item);memberKeys.set(item,key);
-    if(!sunny&&new Set(place.members.map(x=>x.name)).size>1)place.name=address.replace(/^г\. Санкт-Петербург,\s*/u,'');
+    for(const alias of item.aliases??[])if(!place.aliases.includes(alias))place.aliases.push(alias);
+    if(!sunny&&!place.members.some(m=>m.shortName)&&new Set(place.members.map(x=>x.name)).size>1)place.name=address.replace(/^г\. Санкт-Петербург,\s*/u,'');
   }
   const unresolved=new Map<string,Set<string>>();
   const cache=new Map<string,AddressPlace|undefined>();

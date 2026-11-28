@@ -33,7 +33,8 @@ test('imported long practice blocks use the shared double-part display path',()=
   assert.match(appSource,/function importedPracticeCalendar\(e:ImportedPractice\):CalendarEvent\[\]/);
   assert.match(appSource,/const isDouble=\[185,205\]\.includes\(duration\)/);
   assert.match(appSource,/return displayScheduleParts\(schedule\)\.map\(/);
-  assert.equal((appSource.match(/\.flatMap\(importedPracticeCalendar\)/g)??[]).length,2);
+  assert.equal((appSource.match(/\.flatMap\(importedPracticeCalendar\)/g)??[]).length,1);
+  assert.match(appSource,/getPreparedEvents\(state\.homePersonal\)/);
 });
 
 test('timezone conversion handles Zurich winter DST offset',()=>{
