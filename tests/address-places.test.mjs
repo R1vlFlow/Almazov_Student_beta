@@ -18,6 +18,17 @@ test('distinct house numbers remain separate',()=>{
  const result=groupAddressPlaces([{...entry,address:'ул. Тестовая, д. 1, лит. А'},{...entry,address:'ул. Тестовая, д. 1, лит. Б'},{...entry,address:'ул. Тестовая, д. 2'}],[]);
  assert.equal(result.places.length,2);assert.equal(result.places[0].members.length,2);
 });
+test('trailing punctuation cannot split one hospital; grouping retains both buildings and their lessons',()=>{
+ const prefix='г. Санкт-Петербург, г. Петергоф, Санкт-Петербургский пр., д. ';
+ const entry={name:'Николаевская больница',category:'Базы',sourceUrl:'https://example.org'};
+ const directory=[{...entry,address:prefix+'20,. лит. А',aliases:['Корпус А'],note:'Вход А'},{...entry,address:prefix+'20, лит. В',aliases:['Корпус В'],note:'Вход В'},{...entry,address:prefix+'21'},{...entry,address:prefix+'20/1'},{...entry,address:prefix+'20, корп. 2'}];
+ const before=JSON.stringify(directory),rows=[{location:'Корпус А, ауд. 12',subject:'Анатомия'},{location:'Корпус В, ауд. 15',subject:'Химия'}];
+ const result=groupAddressPlaces(directory,rows);assert.equal(result.places.length,4);
+ const merged=result.places.find(p=>p.address===prefix+'20');assert.ok(merged);assert.deepEqual(merged.members,directory.slice(0,2));assert.deepEqual(merged.locations,rows.map(r=>r.location));assert.deepEqual(merged.subjects,['Анатомия','Химия']);
+ assert.deepEqual(matchCourseAddresses(directory,[rows[0].location]).addresses,[directory[0]]);assert.deepEqual(matchCourseAddresses(directory,[rows[1].location]).addresses,[directory[1]]);assert.equal(JSON.stringify(directory),before);
+ const real=groupAddressPlaces(ALMAZOV_ADDRESSES,[]).places.filter(p=>p.address.startsWith(prefix+'20')&&!/[\/]|корп\./u.test(p.address));
+ assert.equal(real.length,1);assert.equal(real[0].members.length,2);assert.equal(real[0].address,prefix+'20');
+});
 test('student campus names resolve to the verified school and main campus without room-level duplicates',()=>{
  const school=matchCourseAddresses(ALMAZOV_ADDRESSES,['ШКОЛА, ауд. 102']).addresses;
  assert.equal(school.length,1);assert.match(school[0].address,/Аккуратова, д\. 11/);

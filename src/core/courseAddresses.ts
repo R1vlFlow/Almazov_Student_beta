@@ -43,7 +43,7 @@ export function groupAddressPlaces(directory:AlmazovAddress[],rows:{location?:st
   const memberKeys=new Map<AlmazovAddress,string>();
   for(const item of directory){
     const sunny=/солнечное/u.test(normalize(item.address));
-    const address=sunny?'г. Санкт-Петербург, пос. Солнечное, ул. Средняя, д. 6':item.address.replace(/,?\s*(?:лит\.|ауд\.|аудитория)\s*.*$/iu,'').trim();
+    const address=sunny?'г. Санкт-Петербург, пос. Солнечное, ул. Средняя, д. 6':item.address.replace(/,?\s*(?:лит\.|ауд\.|аудитория)\s*.*$/iu,'').replace(/[\s,;.]+$/gu,'').trim();
     const key=normalize(address);
     let place=places.get(key);
     if(!place){place={key,name:sunny?'Солнечное':item.shortName||item.name,address,members:[],locations:[],subjects:[],aliases:[]};places.set(key,place);}
