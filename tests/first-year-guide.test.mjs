@@ -78,6 +78,10 @@ test('campus transport preserves full published stop lists, correct vehicle type
   const route=CAMPUS_ROUTES.find(r=>r.id===data.id),html=campusRouteMarkup(route,0);assert.ok(html.includes('Остановки и маршруты'));assert.doesNotMatch(html,/id="campusRouteImage"/);assert.ok(campusTransitMarkup(data,'Адрес & корпус').includes(encodeURIComponent('Адрес & корпус')));
  }
  const cdti=transitForCampus('cdti');assert.ok(cdti.stops.some(s=>s.routes.some(r=>r.type==='bus'&&r.number==='221')));assert.ok(cdti.stops.some(s=>s.routes.some(r=>r.type==='trolleybus'&&r.number==='52')));
+ const cdtiPlatforms=cdti.stops.filter(s=>/stop__1006730[01]/.test(s.url));assert.equal(cdtiPlatforms.length,2);
+ assert.ok(cdtiPlatforms.every(s=>s.routes.some(r=>r.number==='194')));assert.ok(cdtiPlatforms.every(s=>s.platformNote.includes('221')));
+ assert.notEqual(cdtiPlatforms[0].platformNote,cdtiPlatforms[1].platformNote);
+ const combinedStop=transitForCampus('imo').stops.find(s=>s.bothDirections);assert.ok(combinedStop.platformNote.includes('обеих сторон'));assert.ok(new URL(combinedStop.url).searchParams.get('text')?.includes('Поликлиника'));
  const imo=transitForCampus('imo');for(const number of ['25','50']){assert.ok(imo.stops.some(s=>s.routes.some(r=>r.type==='trolleybus'&&r.number===number)));assert.ok(imo.stops.every(s=>s.routes.every(r=>r.number!==number||r.type==='trolleybus')));}
  assert.deepEqual(transitForCampus('sunny').stops[0].routes.map(r=>r.number),['211','211Э','680']);assert.ok(transitForCampus('sunny').rail.includes('Солнечное'));
  const link=new URL(publicTransportUrl('Санкт-Петербург, Средняя, 6','Метро Удельная'));assert.equal(link.searchParams.get('rtt'),'mt');assert.equal(link.searchParams.get('rtext'),'Метро Удельная~Санкт-Петербург, Средняя, 6');

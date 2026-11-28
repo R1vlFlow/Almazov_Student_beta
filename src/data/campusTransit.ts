@@ -1,4 +1,4 @@
-export interface CampusTransitStop {name:string;url:string;routes:{type:'bus'|'tram'|'trolleybus';number:string}[];sourceUrl:string;checkedAt:string;bothDirections?:boolean;references?:string[];}
+export interface CampusTransitStop {name:string;url:string;routes:{type:'bus'|'tram'|'trolleybus';number:string}[];sourceUrl:string;checkedAt:string;bothDirections?:boolean;references?:string[];platformNote?:string;}
 export interface CampusTransit {id:string;metroLabel?:string;metro:{name:string;note:string}[];stops:CampusTransitStop[];rail?:string;notes:string[];checkedAt:string;}
 export const CAMPUS_TRANSIT:CampusTransit[]=[
   {
@@ -16,7 +16,7 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
     "stops": [
       {
         "name": "Центр имени Алмазова",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10068911/",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/stop__10068911/",
         "routes": [
           {
             "type": "bus",
@@ -40,7 +40,7 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
       },
       {
         "name": "Центр имени Алмазова (по требованию)",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/4659890063/",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/4659890063/",
         "routes": [
           {
             "type": "bus",
@@ -64,7 +64,7 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
       },
       {
         "name": "Коломяжский проспект",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10069219/",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/stop__10069219/",
         "routes": [
           {
             "type": "bus",
@@ -127,7 +127,7 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
     "stops": [
       {
         "name": "Центр имени Алмазова",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10068911/",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/stop__10068911/",
         "routes": [
           {
             "type": "bus",
@@ -151,7 +151,7 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
       },
       {
         "name": "Центр имени Алмазова (по требованию)",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/4659890063/",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/4659890063/",
         "routes": [
           {
             "type": "bus",
@@ -175,7 +175,7 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
       },
       {
         "name": "Коломяжский проспект",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10069219/",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/stop__10069219/",
         "routes": [
           {
             "type": "bus",
@@ -238,7 +238,7 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
     "stops": [
       {
         "name": "Проспект Королёва",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10072958/",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/stop__10072958/",
         "routes": [
           {
             "type": "bus",
@@ -282,7 +282,7 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
       },
       {
         "name": "Проспект Королёва — Поликлиника",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10072971/",
+        "url": "https://yandex.ru/maps/?text=%D0%A1%D0%B0%D0%BD%D0%BA%D1%82-%D0%9F%D0%B5%D1%82%D0%B5%D1%80%D0%B1%D1%83%D1%80%D0%B3%2C%20%D0%BE%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B0%20%D0%9F%D1%80%D0%BE%D1%81%D0%BF%D0%B5%D0%BA%D1%82%20%D0%9A%D0%BE%D1%80%D0%BE%D0%BB%D1%91%D0%B2%D0%B0%20%E2%80%94%20%D0%9F%D0%BE%D0%BB%D0%B8%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D0%BA%D0%B0",
         "bothDirections": true,
         "routes": [
           {
@@ -329,8 +329,10 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
         "sourceUrl": "https://ru.wikiroutes.info/stops/13948",
         "checkedAt": "2026-11-27",
         "references": [
-          "https://guzgp102.rprim.gov.spb.ru/svedeniya-o-meditsinskoj-organizatsii/"
-        ]
+          "https://guzgp102.rprim.gov.spb.ru/svedeniya-o-meditsinskoj-organizatsii/",
+          "https://yandex.kz/maps/ru/2/saint-petersburg/stops/stop__10072972/?lang=ru"
+        ],
+        "platformNote": "Общий список для обеих сторон проспекта. Выберите сторону посадки в Картах."
       }
     ],
     "notes": [
@@ -357,7 +359,7 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
     "stops": [
       {
         "name": "Улица Маршала Новикова / Вербная улица",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10066471/",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/stop__10066471/",
         "routes": [
           {
             "type": "bus",
@@ -372,12 +374,12 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
             "number": "219"
           }
         ],
-        "sourceUrl": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10066471/",
-        "checkedAt": "2026-11-27"
+        "sourceUrl": "https://yandex.kz/maps/2/saint-petersburg/stops/stop__10066471/",
+        "checkedAt": "2026-11-28"
       },
       {
         "name": "Долгоозёрная улица / Парашютная улица",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10067301/",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/stop__10067301/",
         "routes": [
           {
             "type": "bus",
@@ -397,6 +399,10 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
           },
           {
             "type": "bus",
+            "number": "194"
+          },
+          {
+            "type": "bus",
             "number": "221"
           },
           {
@@ -404,12 +410,58 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
             "number": "267"
           }
         ],
-        "sourceUrl": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10067301/",
-        "checkedAt": "2026-11-27"
+        "sourceUrl": "https://yandex.kz/maps/2/saint-petersburg/stops/stop__10067301/",
+        "checkedAt": "2026-11-28",
+        "platformNote": "Сторона, где автобус 221 идёт к Аэродромной улице."
+      },
+      {
+        "name": "Долгоозёрная улица / Парашютная улица",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/stop__10067300/",
+        "routes": [
+          {
+            "type": "bus",
+            "number": "9"
+          },
+          {
+            "type": "bus",
+            "number": "135"
+          },
+          {
+            "type": "bus",
+            "number": "171"
+          },
+          {
+            "type": "bus",
+            "number": "180"
+          },
+          {
+            "type": "bus",
+            "number": "194"
+          },
+          {
+            "type": "bus",
+            "number": "219"
+          },
+          {
+            "type": "bus",
+            "number": "221"
+          },
+          {
+            "type": "bus",
+            "number": "267"
+          },
+          {
+            "type": "trolleybus",
+            "number": "52"
+          }
+        ],
+        "sourceUrl": "https://yandex.uz/maps/2/saint-petersburg/stops/stop__10067300/",
+        "checkedAt": "2026-11-28",
+        "platformNote": "Сторона, где автобус 221 идёт к Северному кладбищу."
       },
       {
         "name": "Парашютная улица / Долгоозёрная улица",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10067302/",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/stop__10067302/",
         "routes": [
           {
             "type": "trolleybus",
@@ -424,12 +476,13 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
             "number": "184"
           }
         ],
-        "sourceUrl": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10067302/",
-        "checkedAt": "2026-11-27"
+        "sourceUrl": "https://yandex.kz/maps/2/saint-petersburg/stops/stop__10067302/",
+        "checkedAt": "2026-11-28",
+        "platformNote": "На Долгоозёрной улице · троллейбус 52 к Старой Деревне."
       },
       {
         "name": "Вербная улица / Репищева улица",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10066472/",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/stop__10066472/",
         "routes": [
           {
             "type": "bus",
@@ -468,12 +521,12 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
             "number": "237"
           }
         ],
-        "sourceUrl": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10066472/",
-        "checkedAt": "2026-11-27"
+        "sourceUrl": "https://yandex.kz/maps/2/saint-petersburg/stops/stop__10066472/",
+        "checkedAt": "2026-11-28"
       },
       {
         "name": "Репищева улица / Вербная улица",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10076926/",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/stop__10076926/",
         "routes": [
           {
             "type": "bus",
@@ -567,7 +620,7 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
     "stops": [
       {
         "name": "Проспект Королёва",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10072958/",
+        "url": "https://yandex.ru/maps/2/saint-petersburg/stops/stop__10072958/",
         "routes": [
           {
             "type": "bus",
@@ -611,7 +664,7 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
       },
       {
         "name": "Проспект Королёва — Поликлиника",
-        "url": "https://yandex.com/maps/2/saint-petersburg/stops/stop__10072971/",
+        "url": "https://yandex.ru/maps/?text=%D0%A1%D0%B0%D0%BD%D0%BA%D1%82-%D0%9F%D0%B5%D1%82%D0%B5%D1%80%D0%B1%D1%83%D1%80%D0%B3%2C%20%D0%BE%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B0%20%D0%9F%D1%80%D0%BE%D1%81%D0%BF%D0%B5%D0%BA%D1%82%20%D0%9A%D0%BE%D1%80%D0%BE%D0%BB%D1%91%D0%B2%D0%B0%20%E2%80%94%20%D0%9F%D0%BE%D0%BB%D0%B8%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D0%BA%D0%B0",
         "bothDirections": true,
         "routes": [
           {
@@ -658,8 +711,10 @@ export const CAMPUS_TRANSIT:CampusTransit[]=[
         "sourceUrl": "https://ru.wikiroutes.info/stops/13948",
         "checkedAt": "2026-11-27",
         "references": [
-          "https://guzgp102.rprim.gov.spb.ru/svedeniya-o-meditsinskoj-organizatsii/"
-        ]
+          "https://guzgp102.rprim.gov.spb.ru/svedeniya-o-meditsinskoj-organizatsii/",
+          "https://yandex.kz/maps/ru/2/saint-petersburg/stops/stop__10072972/?lang=ru"
+        ],
+        "platformNote": "Общий список для обеих сторон проспекта. Выберите сторону посадки в Картах."
       }
     ],
     "notes": [

@@ -240,6 +240,18 @@
     "checkedAt": "2026-11-27"
   },
   {
+    "id": "place-52",
+    "placeKey": "г. санкт-петербург, лахтинский пр., д. 98",
+    "address": "г. Санкт-Петербург, Лахтинский пр., д. 98",
+    "src": "./assets/place-photos/p052-a66d8944ab1c.webp",
+    "sourceUrl": "https://globus.aquaviva.ru/khospis-1-v-lakhte",
+    "sourceAddress": "Санкт-Петербург, пос. Лахта, Лахтинский пр., д. 98, лит. Ж",
+    "credit": "«Глобус Санкт-Петербургской митрополии»",
+    "caption": "Хоспис №1 · Лахтинский проспект, 98",
+    "kind": "photo",
+    "checkedAt": "2026-11-28"
+  },
+  {
     "id": "place-49",
     "placeKey": "г. санкт-петербург, лиговский пр., д. 8",
     "address": "г. Санкт-Петербург, Лиговский пр., д. 8",
@@ -274,6 +286,18 @@
     "caption": "Фасад здания",
     "kind": "photo",
     "checkedAt": "2026-11-27"
+  },
+  {
+    "id": "place-17",
+    "placeKey": "г. санкт-петербург, менделеевская линия, д. 3",
+    "address": "г. Санкт-Петербург, Менделеевская линия, д. 3",
+    "src": "./assets/place-photos/p017-df73cfa54704.webp",
+    "sourceUrl": "https://memgid.ru/object/2169",
+    "sourceAddress": "Менделеевская линия, д. 3, НИИ акушерства и гинекологии имени Д. О. Отта",
+    "credit": "Книга Памяти Северо-Западного федерального округа",
+    "caption": "НИИ имени Д. О. Отта · Менделеевская линия, 3",
+    "kind": "photo",
+    "checkedAt": "2026-11-28"
   },
   {
     "id": "place-84",
@@ -324,6 +348,18 @@
     "checkedAt": "2026-11-27"
   },
   {
+    "id": "place-122",
+    "placeKey": "г. санкт-петербург, наб. обводного канала, д. 179",
+    "address": "г. Санкт-Петербург, наб. Обводного канала, д. 179",
+    "src": "./assets/place-photos/p122-4349e264d9b3.webp",
+    "sourceUrl": "https://medadvisor.ru/sankt-peterburg/clinic/8743",
+    "sourceAddress": "Санкт-Петербург, наб. Обводного канала, д. 179",
+    "credit": "MedAdvisor · фотография здания",
+    "caption": "Поликлиника Центра СПИД · Обводного канала, 179",
+    "kind": "photo",
+    "checkedAt": "2026-11-28"
+  },
+  {
     "id": "place-141",
     "placeKey": "г. санкт-петербург, наб. обводного канала, д. 9",
     "address": "г. Санкт-Петербург, наб. Обводного канала, д. 9",
@@ -334,6 +370,18 @@
     "caption": "Фасад здания",
     "kind": "photo",
     "checkedAt": "2026-11-27"
+  },
+  {
+    "id": "place-115",
+    "placeKey": "г. санкт-петербург, наб. реки волковки, д. 3",
+    "address": "г. Санкт-Петербург, наб. реки Волковки, д. 3",
+    "src": "./assets/place-photos/p115-b985ffa3405a.webp",
+    "sourceUrl": "https://spb.ros-spravka.ru/catalog/hospitals_and_clinics/gorodskoy_kozhno_venerologicheskiy_dispanser_spb/",
+    "sourceAddress": "Санкт-Петербург, наб. реки Волковки, д. 3",
+    "credit": "Единая справочная · фотография здания",
+    "caption": "Центр дерматовенерологии · набережная Волковки, 3",
+    "kind": "photo",
+    "checkedAt": "2026-11-28"
   },
   {
     "id": "place-114",
@@ -430,6 +478,18 @@
     "caption": "Фасад здания",
     "kind": "photo",
     "checkedAt": "2026-11-27"
+  },
+  {
+    "id": "place-153",
+    "placeKey": "г. санкт-петербург, площадь чернышевского, дом 11, литера а, помещение 4-н",
+    "address": "г. Санкт-Петербург, площадь Чернышевского, дом 11, литера А, помещение 4-Н",
+    "src": "./assets/place-photos/p153-613fd2261f9b.webp",
+    "sourceUrl": "https://medadvisor.ru/sankt-peterburg/clinic/7653",
+    "sourceAddress": "Санкт-Петербург, пл. Чернышевского, д. 11, БЦ «Буржуа»",
+    "credit": "MedAdvisor · фотография входа",
+    "caption": "Немецкая семейная клиника · площадь Чернышевского, 11",
+    "kind": "photo",
+    "checkedAt": "2026-11-28"
   },
   {
     "id": "place-120",
@@ -708,6 +768,18 @@
     "checkedAt": "2026-11-27"
   },
   {
+    "id": "place-104",
+    "placeKey": "г. санкт-петербург, проспект тореза, 72",
+    "address": "г. Санкт-Петербург, проспект Тореза, 72",
+    "src": "./assets/place-photos/p104-69a62414247b.webp",
+    "sourceUrl": "https://medadvisor.ru/sankt-peterburg/clinic/8738",
+    "sourceAddress": "Санкт-Петербург, пр-кт Тореза, д. 72, лит. А",
+    "credit": "MedAdvisor · фотография больницы РАН",
+    "caption": "Клиническая больница РАН · Тореза, 72",
+    "kind": "photo",
+    "checkedAt": "2026-11-28"
+  },
+  {
     "id": "place-158",
     "placeKey": "г. санкт-петербург, пудожская ул., д. 6",
     "address": "г. Санкт-Петербург, Пудожская ул., д. 6",
@@ -816,6 +888,18 @@
     "checkedAt": "2026-11-27"
   },
   {
+    "id": "place-23",
+    "placeKey": "г. санкт-петербург, ул. авангардная, д. 14",
+    "address": "г. Санкт-Петербург, ул. Авангардная, д. 14",
+    "src": "./assets/place-photos/p023-85e8ab5a7d36.webp",
+    "sourceUrl": "https://vmedi.ru/clinic/gorodskayadetskayabolnica1.html",
+    "sourceAddress": "Санкт-Петербург, ул. Авангардная, д. 14",
+    "credit": "Vmedi · фотография больничного комплекса",
+    "caption": "Больничный комплекс · Авангардная, 14",
+    "kind": "photo",
+    "checkedAt": "2026-11-28"
+  },
+  {
     "id": "place-25",
     "placeKey": "г. санкт-петербург, ул. авангардная, д. 4, корп. в",
     "address": "г. Санкт-Петербург, ул. Авангардная, д. 4, корп. В",
@@ -900,6 +984,18 @@
     "checkedAt": "2026-11-27"
   },
   {
+    "id": "place-111",
+    "placeKey": "г. санкт-петербург, ул. будапештская, д. 3",
+    "address": "г. Санкт-Петербург, ул. Будапештская, д. 3",
+    "src": "./assets/place-photos/p111-26829ea35bca.webp",
+    "sourceUrl": "https://www.dp.ru/a/2023/08/07/na-kapremont-zdanija-nii-dzhanelidze",
+    "sourceAddress": "Санкт-Петербург, Будапештская ул., д. 3, лит. А",
+    "credit": "«Деловой Петербург» · фотография института",
+    "caption": "НИИ имени Джанелидзе · Будапештская, 3",
+    "kind": "photo",
+    "checkedAt": "2026-11-28"
+  },
+  {
     "id": "place-106",
     "placeKey": "г. санкт-петербург, ул. бухарестская, д. 134",
     "address": "г. Санкт-Петербург, ул. Бухарестская, д. 134",
@@ -958,6 +1054,18 @@
     "caption": "Фасад здания",
     "kind": "photo",
     "checkedAt": "2026-11-27"
+  },
+  {
+    "id": "place-13",
+    "placeKey": "г. санкт-петербург, ул. кавалергардская, д. 26",
+    "address": "г. Санкт-Петербург, ул. Кавалергардская, д. 26",
+    "src": "./assets/place-photos/p013-318d8902496c.webp",
+    "sourceUrl": "https://medadvisor.ru/sankt-peterburg/clinic/8233",
+    "sourceAddress": "Санкт-Петербург, ул. Кавалергардская, д. 26, лит. А",
+    "credit": "MedAdvisor · фотография поликлиники №38",
+    "caption": "Поликлиника №38 · Кавалергардская, 26",
+    "kind": "photo",
+    "checkedAt": "2026-11-28"
   },
   {
     "id": "place-131",
@@ -1128,6 +1236,18 @@
     "checkedAt": "2026-11-27"
   },
   {
+    "id": "place-112",
+    "placeKey": "г. санкт-петербург, ул. оптиков, д. 54",
+    "address": "г. Санкт-Петербург, ул. Оптиков, д. 54",
+    "src": "./assets/place-photos/p112-272cd24f1f96.webp",
+    "sourceUrl": "https://zoon.ru/spb/medical/poliklinika_na_ulitse_optikov/",
+    "sourceAddress": "Санкт-Петербург, ул. Оптиков, д. 54",
+    "credit": "Zoon · фотография медицинского комплекса",
+    "caption": "Клиника ВЦЭРМ · Оптиков, 54",
+    "kind": "photo",
+    "checkedAt": "2026-11-28"
+  },
+  {
     "id": "place-34",
     "placeKey": "г. санкт-петербург, ул. отважных, д. 8",
     "address": "г. Санкт-Петербург, ул. Отважных, д. 8",
@@ -1272,6 +1392,18 @@
     "checkedAt": "2026-11-27"
   },
   {
+    "id": "place-27",
+    "placeKey": "г. санкт-петербург, фермское шоссе, д. 36",
+    "address": "г. Санкт-Петербург, Фермское шоссе, д. 36",
+    "src": "./assets/place-photos/p027-2db70b4e979c.webp",
+    "sourceUrl": "https://vmedi.ru/clinic/gorodskayapsihiatricheskayabolnica3im-i-i-skvorcovastepanovapsihiatricheskiystacionar.html",
+    "sourceAddress": "Санкт-Петербург, Фермское шоссе, д. 36",
+    "credit": "Vmedi · фотография больничного комплекса",
+    "caption": "Больница имени Скворцова-Степанова · Фермское шоссе, 36",
+    "kind": "photo",
+    "checkedAt": "2026-11-28"
+  },
+  {
     "id": "place-162",
     "placeKey": "г. санкт-петербург, фермское шоссе, д.34",
     "address": "г. Санкт-Петербург, Фермское шоссе, д.34",
@@ -1282,6 +1414,18 @@
     "caption": "Фасад здания",
     "kind": "photo",
     "checkedAt": "2026-11-27"
+  },
+  {
+    "id": "place-159",
+    "placeKey": "г.санкт-петербург, пр-кт московский, д.109",
+    "address": "г.Санкт-Петербург, пр-кт Московский, д.109",
+    "src": "./assets/place-photos/p159-7d0d73478a7b.webp",
+    "sourceUrl": "https://spb.napopravku.ru/clinics/allergomed/",
+    "sourceAddress": "Санкт-Петербург, Московский проспект, д. 109",
+    "credit": "«НаПоправку» · фотография входа",
+    "caption": "Клиника «Аллергомед» · Московский проспект, 109",
+    "kind": "photo",
+    "checkedAt": "2026-11-28"
   },
   {
     "id": "place-73",
@@ -1306,6 +1450,18 @@
     "caption": "Фасад здания",
     "kind": "photo",
     "checkedAt": "2026-11-27"
+  },
+  {
+    "id": "place-119",
+    "placeKey": "ленинградская обл., всеволожский р-н, г. сертолово, ул. пограничная, д.8, корп. 1",
+    "address": "Ленинградская обл., Всеволожский р-н, г. Сертолово, ул. Пограничная, д.8, корп. 1",
+    "src": "./assets/place-photos/p119-07af969a86de.webp",
+    "sourceUrl": "https://medadvisor.ru/sertolovo/clinic/9706",
+    "sourceAddress": "Ленинградская область, г. Сертолово, ул. Пограничная, д. 8, корп. 1",
+    "credit": "MedAdvisor · фотография больничного комплекса",
+    "caption": "Сертоловская больница · Пограничная, 8, корпус 1",
+    "kind": "photo",
+    "checkedAt": "2026-11-28"
   },
   {
     "id": "place-145",

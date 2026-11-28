@@ -44,6 +44,17 @@ test('preparation merges only explicit double parts and never mutates schedule e
  const result=preparationLessons(events,'2026-11-27','Europe/Moscow');
  assert.equal(result.length,2);assert.equal(result[0].endAt,'2026-11-27T09:25:00Z');assert.equal(events[0].endAt,'2026-11-27T07:35:00Z');
 });
+test('tomorrow meme requires a loaded timetable with no classes; tasks and personal plans remain available',async()=>{
+ const context={profile,date:'2026-11-27',timeZone:'Europe/Moscow',events:[],tasks:[task()],materials:[],status:'live'};
+ const empty=preparationMarkup(context).html;
+ assert.match(empty,/tomorrow-hamster\.webp/);assert.match(empty,/Алмазик <em>отдыхает/);assert.match(empty,/Подготовиться/);assert.match(empty,/data-task-edit="t"/);
+ for(const status of ['loading','error','unavailable','cache','partial'])assert.doesNotMatch(preparationMarkup({...context,status}).html,/tomorrow-hamster/);
+ assert.doesNotMatch(preparationMarkup({...context,events:[calendar()]}).html,/tomorrow-hamster/);
+ const personal=preparationMarkup({...context,events:[calendar({kind:'personal',title:'Личный план'})]}).html;
+ assert.match(personal,/tomorrow-hamster/);assert.match(personal,/Личный план/);
+ assert.match(preparationMarkup({...context,events:[calendar({status:'cancelled'})]}).html,/tomorrow-hamster/);
+ const image=await readFile(new URL('../dist/assets/tomorrow-hamster.webp',import.meta.url));assert.equal(image.toString('ascii',8,12),'WEBP');assert.ok(image.length<160000);
+});
 test('detailed diff ignores IDs, source URL and row ordering while respecting duplicate counts',()=>{
  const a=scheduleRows(snapshot([event(),event({id:'dup'})]));
  const b=scheduleRows(snapshot([event({id:'new',sourceUrl:'https://example.org/new.pdf'}),event()]));
